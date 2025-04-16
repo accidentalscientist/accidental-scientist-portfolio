@@ -1,16 +1,16 @@
-"""
 {% extends 'portfolio/base.html' %}
 
 {% block title %}{{ project.title }}{% endblock %}
 
 {% block content %}
-<article>
-    <h1>{{ project.title }}</h1>
-    {% if project.image %}<img src="{{ project.image.url }}" alt="{{ project.title }}" style="max-width: 100%;">{% endif %}
-    <div>{{ project.description|linebreaks }}</div>
-    {% if project.project_url %}
-        <p><a href="{{ project.project_url }}" target="_blank">View Project</a></p>
-    {% endif %}
-</article>
+<div class="container py-5">
+  <h2>{{ project.title }}</h2>
+  <p>{{ project.description }}</p>
+
+  {% if project.project_url %}
+  <div class="ratio ratio-16x9 my-4">
+    <iframe src="{{ project.project_url }}" frameborder="0" allowfullscreen></iframe>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}
-"""
