@@ -1,0 +1,14 @@
+"""
+{% extends 'portfolio/base.html' %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<article>
+    <h1>{{ post.title }}</h1>
+    <p><em>{{ post.published|date:"F j, Y" }}</em></p>
+    {% if post.image %}<img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100%;">{% endif %}
+    <div>{{ post.content|linebreaks }}</div>
+</article>
+{% endblock %}
+"""
