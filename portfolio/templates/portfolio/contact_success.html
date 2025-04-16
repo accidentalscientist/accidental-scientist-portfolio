@@ -1,0 +1,20 @@
+{% extends "portfolio/base.html" %}
+{% block title %}Message Sent{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="mb-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+            </div>
+            <h2 class="mb-4">Message Sent Successfully!</h2>
+            <p class="text-secondary mb-4">Thank you for reaching out. I'll get back to you as soon as possible.</p>
+            <div class="mt-4">
+                <a href="{% url 'home' %}" class="btn btn-outline-primary me-2">Return Home</a>
+                <a href="{% url 'projects' %}" class="btn btn-primary">View Projects</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
