@@ -1,0 +1,23 @@
+"""
+{% extends 'portfolio/base.html' %}
+
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+<h2>All Projects</h2>
+<div class="row">
+  {% for project in projects %}
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
+        <div class="card-body">
+          <h5 class="card-title">{{ project.title }}</h5>
+          <p class="card-text">{{ project.description|truncatewords:25 }}</p>
+          {% if project.project_url %}<a href="{% url 'project_detail' project.slug %}" class="btn btn-outline-primary">View Project</a>          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
+"""

@@ -1,12 +1,37 @@
-"""
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Accidental Scientist Portfolio</title>
-</head>
-<body>
-    <h1>Welcome to the Portfolio</h1>
-    <p>This is the beginning of something great.</p>
-</body>
-</html>
-"""
+{% extends 'portfolio/base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h2 class="mt-4">Latest Projects</h2>
+<div class="row">
+    {% for project in projects %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            {% if project.image %}
+            <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ project.title }}</h5>
+                <p class="card-text">{{ project.description|truncatechars:120 }}</p>
+                {% if project.project_url %}
+                <a href="{{ project.project_url }}" class="btn btn-primary" target="_blank">View Project</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<hr>
+
+<h2 class="mt-4">Latest Blog Posts</h2>
+<div class="list-group">
+    {% for post in posts %}
+    <a href="{% url 'blog_detail' post.slug %}" class="list-group-item list-group-item-action">
+        <h5 class="mb-1">{{ post.title }}</h5>
+        <small class="text-muted">{{ post.published|date:"F j, Y" }}</small>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}
