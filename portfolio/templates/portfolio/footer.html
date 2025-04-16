@@ -1,0 +1,21 @@
+{% load static %}
+<footer class="bg-light text-dark text-center py-4 mt-5 border-top">
+  <div class="container">
+    <p class="mb-1">&copy; {{ now.year }} {{ site_name }}</p>
+    <p>{{ site_tagline }}</p>
+    
+    <div class="d-flex justify-content-center align-items-center gap-5 mt-3 social-links">
+      <a href="{% url 'contact' %}" class="text-primary d-flex align-items-center gap-1" title="Contact">
+        <i class="bi bi-envelope-fill fs-3"></i>
+      </a>
+      <a href="{{ github_url }}" class="text-primary d-flex align-items-center gap-1" target="_blank" rel="noopener" title="GitHub">
+        <i class="bi bi-github fs-3"></i> 
+      </a>
+      <a href="https://linkedin.com/in/your-profile" class="text-primary d-flex align-items-center gap-1" target="_blank" rel="noopener" title="LinkedIn">
+        <i class="bi bi-linkedin fs-3"></i> 
+      </a>
+    </div>
+
+  </div>
+</footer>
+

@@ -1,0 +1,287 @@
+/* ============================
+   CSS Variables
+   ============================ */
+   :root {
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --text-primary: #212529;
+    --text-secondary: #555;
+    --accent-color: #0d6efd;
+    --accent-hover: #0b5ed7;
+    --border-color: #dee2e6;
+    --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    --navbar-toggler-filter: none;
+    --transition: all 0.3s ease;
+}
+
+[data-theme='dark'] {
+    --bg-primary: #212529;
+    --bg-secondary: #1a1a1a;
+    --text-primary: #f8f9fa;
+    --text-secondary: #d1d1d1;
+    --border-color: #495057;
+    --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    --navbar-toggler-filter: invert(1);
+}
+
+/* ============================
+   Base Styles
+   ============================ */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+main {
+    flex: 1;
+    padding: 2rem;
+    background-color: var(--bg-primary);
+}
+
+/* ============================
+   Navigation
+   ============================ */
+.navbar {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    letter-spacing: -0.5px;
+    transition: var(--transition);
+    color: var(--text-primary);
+    color: var(--text-primary) !important;
+}
+
+.nav-link {
+    margin-left: 1rem;
+    color: var(--text-primary);
+    transition: color 0.2s ease;
+    position: relative;
+    color: var(--text-primary) !important;
+}
+
+.nav-link:hover {
+    color: var(--accent-color);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: var(--accent-color);
+    transition: var(--transition);
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+.navbar-toggler {
+    border-color: var(--border-color);
+}
+
+.navbar-toggler-icon {
+    filter: var(--navbar-toggler-filter);
+}
+
+#theme-toggle {
+    padding: 0.5rem;
+    color: var(--text-primary);
+    transition: transform 0.3s ease;
+    background: none;
+    border: none;
+}
+
+#theme-toggle:hover {
+    transform: rotate(15deg);
+}
+
+/* ============================
+   Footer
+   ============================ */
+footer {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    padding: 3rem 0 2rem;
+    margin-top: auto;
+}
+
+.footer-brand {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+}
+
+.footer-tagline {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.social-links a {
+    color: var(--text-primary) !important;
+    font-size: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.8;
+}
+
+.social-links a:hover {
+    transform: translateY(-3px) scale(1.1);
+    color: var(--accent-color) !important;
+    opacity: 1;
+}
+
+.social-links i {
+    transition: transform 0.2s ease;
+}
+
+.footer-copyright {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Add these specific dark mode overrides */
+[data-theme='dark'] footer {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme='dark'] footer p {
+    color: var(--text-primary) !important;
+}
+
+[data-theme='dark'] .social-links a {
+    color: var(--text-primary) !important;
+}
+
+/* ============================
+   Cards
+   ============================ */
+.card {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    box-shadow: var(--card-shadow);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.card-body {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.card-text {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* ============================
+   Forms
+   ============================ */
+.form-control {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    outline: none;
+}
+
+/* ============================
+   Responsive Design
+   ============================ */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0.5rem 0;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    footer {
+        padding: 1rem 0;
+    }
+}
+
+/* ============================
+   Blog List
+   ============================ */
+   .list-group-item {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    transition: var(--transition);
+}
+
+.list-group-item-action:hover {
+    background-color: var(--bg-primary);
+    color: var(--accent-color);
+}
+
+.list-group-item .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+.list-group-item h5 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
