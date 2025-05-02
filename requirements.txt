@@ -31,4 +31,4 @@ telepath==0.3.1
 typing_extensions==4.13.2
 tzdata==2025.2
 urllib3==2.4.0
-Willow==1.9.0
+willow==1.5.0
