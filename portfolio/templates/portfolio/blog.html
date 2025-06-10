@@ -30,21 +30,24 @@
     {% endfor %}
 </div>
 
-<h2 class="featured-title" style="margin-top: 2rem; font-size: 2.5rem;">All Blog Posts</h2>
-<div class="blog-list">
+<h2 style="margin-top: 3rem; font-size: 2rem; font-weight: 700;">All Blog Posts</h2>
+<div class="list-group-list">
+  <ul class="list-group list-unstyled">
     {% for post in page_obj %}
-        <div class="blog-card{% if post.is_featured %} featured{% endif %}">
-            <h3 style="margin-bottom: 0.2em;">{{ post.title }}</h3>
-            <div style="color: #2176ff; margin-bottom: 0.7em;">
-                {{ post.summary|truncatechars:140 }}
-            </div>
-            <div class="meta" style="font-size: 1rem; color: #8a8a8a;">{{ post.published|date:"F j, Y" }}</div>
-            <a href="{% url 'blog_detail' slug=post.slug %}" class="btn btn-outline-primary btn-sm" style="margin-top: 0.8em;">Read More</a>
-        </div>
+      <li>
+        <a href="{% url 'blog_detail' post.slug %}" class="list-group-item list-group-item-action">
+            <h5 class="mb-1">{{ post.title }}</h5>
+            <p class="mb-1">{{ post.summary|truncatewords:25 }}</p>
+            <small class="text-muted">{{ post.published|date:"F j, Y" }}</small>
+        </a>
+      </li>
+        
     {% empty %}
         <div>No posts found.</div>
     {% endfor %}
+  </ul>
 </div>
+
 
 <!-- Pagination stays below, unchanged -->
 <div class="pagination">
