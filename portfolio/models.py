@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
+from django.utils import timezone
+
 
 class Project(models.Model):
     title = models.CharField(max_length=200)
@@ -18,7 +20,10 @@ class BlogPost(models.Model):
     summary = models.TextField(blank=True)
     content = models.TextField()
     image = models.ImageField(upload_to='blog/', blank=True, null=True)
-    published = models.DateTimeField(auto_now_add=True)
+    # published = models.DateTimeField(auto_now_add=True)
+    published = models.DateField(default=timezone.now)
+    is_featured = models.BooleanField(default=False)
+    external_url = models.URLField(blank=True, null=True)
 
     class Meta:
         ordering = ['-published']

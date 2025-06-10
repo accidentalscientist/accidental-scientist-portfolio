@@ -4,9 +4,28 @@
 
 {% block content %}
 <article>
-    <h1>{{ post.title }}</h1>
-    <p><em>{{ post.published|date:"F j, Y" }}</em></p>
-    {% if post.image %}<img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100%;">{% endif %}
-    <div>{{ post.content|linebreaks }}</div>
+  <h1>{{ post.title }}</h1>
+  <p><em>{{ post.published|date:"F j, Y" }}</em></p>
+  {% if post.image %}
+    <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100%;">
+  {% endif %}
+  
+  {% if post.content %}
+    <div class="prose">{{ post.content_html|safe }}</div>
+  {% elif post.external_url %}
+    <div>
+      <p>This is a summary post. <a href="{{ post.external_url }}" target="_blank">Read the full notebook on GitHub</a>.</p>
+      {% if post.summary %}
+        <p>{{ post.summary }}</p>
+      {% endif %}
+    </div>
+  {% else %}
+    <div><em>No content available.</em></div>
+  {% endif %}
 </article>
+{% if post.external_url %}
+    <div style="margin-top:2em;">
+        <a href="{{ post.external_url }}" target="_blank">Read More on GitHub</a>
+    </div>
+{% endif %}
 {% endblock %}

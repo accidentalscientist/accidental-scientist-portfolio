@@ -25,13 +25,17 @@
 
 <hr>
 
-<h2 class="mt-4">Latest Blog Posts</h2>
+<h2 class="mt-4">Featured Blog Posts</h2>
 <div class="list-group">
-    {% for post in posts %}
-    <a href="{% url 'blog_detail' post.slug %}" class="list-group-item list-group-item-action">
-        <h5 class="mb-1">{{ post.title }}</h5>
-        <small class="text-muted">{{ post.published|date:"F j, Y" }}</small>
-    </a>
+    <ul class="list-group list-unstyled">
+    {% for post in featured_posts %}
+    <li>
+        <a href="{% url 'blog_detail' post.slug %}" class="list-group-item list-group-item-action">
+            <h5 class="mb-1">{{ post.title }}</h5>
+            <p class="mb-1">{{ post.summary|truncatewords:25 }}</p>
+            <small class="text-muted">{{ post.published|date:"F j, Y" }}</small>
+        </a>
+    </li>
     {% endfor %}
-</div>
+</ul>
 {% endblock %}
