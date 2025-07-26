@@ -31,6 +31,19 @@ class BlogPost(models.Model):
     def __str__(self):
         return self.title
 
+class BlogImage(models.Model):
+    post = models.ForeignKey(BlogPost, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='blog/')
+    caption = models.CharField(max_length=200, blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Image for {self.post.title} ({self.order})"
+
+
 class Contact(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()

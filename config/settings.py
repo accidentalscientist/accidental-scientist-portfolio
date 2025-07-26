@@ -148,7 +148,29 @@ STATIC_ROOT = STATIC_ROOT = '/var/www/accidental-site/staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# markdown settings
+MARKDOWN2_EXTRAS = [
+    "fenced-code-blocks",
+    "tables",
+    "strike",
+    "task_list",
+    "code-friendly",
+    "cuddled-lists",
+    "header-ids",
+    "markdown-in-html",
+]
+
+
 # email confiuguration
-DEFAULT_FROM_EMAIL ='beep@boop.gmail.com'
-CONTACT_EMAIL = 'beep@boop.gmail.com'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+from dotenv import load_dotenv
+load_dotenv()
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+CONTACT_EMAIL = os.getenv('CONTACT_EMAIL')

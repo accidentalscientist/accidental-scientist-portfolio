@@ -5,9 +5,11 @@ from .forms import ContactForm
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.conf import settings
+from django.templatetags.static import static
 import markdown2
 import random
 from django.utils import timezone
+import re
 
 
 
@@ -29,6 +31,7 @@ def project_detail(request, id):
 def blog_list(request):
     featured_posts = list(BlogPost.objects.filter(is_featured=True, published__lte=timezone.now()))
     random.shuffle(featured_posts)
+    featured_posts = featured_posts[:4]
     post_list = BlogPost.objects.filter(published__isnull=False).order_by('-published')
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
@@ -43,9 +46,27 @@ def blog_list(request):
 
 def blog_detail(request, slug):
     post = get_object_or_404(BlogPost, slug=slug)
-    post.content_html = markdown2.markdown(post.content)
-    post.summary_html = markdown2.markdown(post.summary)
+    markdown_extras = getattr(settings, "MARKDOWN2_EXTRAS", [])
+
+    # Replace [[image1]], [[image2]] etc. with <img> tags
+    content = post.content
+    for i, img in enumerate(post.images.all()):
+        placeholder = f"[[image{i+1}]]"
+        img_tag = f'<img src="{img.image.url}" alt="{img.caption}" style="max-width:100%;">'
+        content = content.replace(placeholder, img_tag)
+
+    # Markdown rendering with extras
+    post.content_html = markdown2.markdown(content, extras=markdown_extras)
+    post.summary_html = markdown2.markdown(post.summary, extras=markdown_extras)
+
+    # Absolute URL for OpenGraph image
+    if post.image:
+        post.image_absolute_url = request.build_absolute_uri(post.image.url)
+    else:
+        post.image_absolute_url = request.build_absolute_uri(static('images/favicon.png'))
+
     return render(request, 'portfolio/blog_detail.html', {'post': post})
+
 
 def contact_view(request):
     if request.method == 'POST':
@@ -63,14 +84,15 @@ def contact_view(request):
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[settings.CONTACT_EMAIL],
                 fail_silently=False,
+                reply_to=[email]
             )
-            return redirect('contact_success')
+            messages.success(request, "Thanks for your message. I'll get back to you soon!")
+            form = ContactForm()
+            return render(request, 'portfolio/contact.html', {'form': form, 'redirect': True})
+
+            
 
     else:
-        form = ContactForm()
-        
-    return render(request, 'portfolio/contact.html', {'form': form})
+        form = ContactForm() 
 
-def contact_success(request):
-    messages.success(request, "Your message has been sent successfully!")
-    return render(request, 'portfolio/contact_success.html')
+    return render(request, 'portfolio/contact.html', {'form': form})

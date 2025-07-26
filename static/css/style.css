@@ -59,9 +59,17 @@ main {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.navbar-shrink {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    transition: padding 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+
 .navbar-brand {
     font-weight: bold;
-    font-size: 1.5rem;
+    font-size: 2rem;
     letter-spacing: -0.5px;
     transition: var(--transition);
     color: var(--text-primary);
@@ -197,7 +205,18 @@ footer {
     box-shadow: var(--card-shadow);
     border-radius: 8px;
     border: 1px solid var(--border-color);
-    transition: var(--transition);
+    transition: var(--transition); 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 500px;
+}
+
+.card-img-top {
+  height: 180px;
+  object-fit: cover;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
 
 .card-body {
@@ -212,7 +231,7 @@ footer {
 
 .card-title {
     font-weight: 600;
-    font-size: 1.2rem;
+    font-size: 2rem;
     color: var(--text-primary);
 }
 
@@ -284,3 +303,20 @@ footer {
 .blog-card:hover {
     box-shadow: 0 4px 14px rgba(40,60,80,0.11);
 }
+
+
+/* ============================
+   Background Imagery
+   ============================ */
+
+html[data-theme="light"] body {
+  background: radial-gradient(circle at 20% 30%, #2a2a40, #f0f1a1),
+              linear-gradient(135deg, rgba(0,255,200,0.1), rgba(0,100,255,0.1)) !important;
+  background-blend-mode: overlay;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 200% 200%;
+  animation: auroraShift 30s ease-in-out infinite;
+}
+
+
