@@ -19,7 +19,14 @@ class BlogPost(models.Model):
     slug = models.SlugField(unique=True)
     summary = models.TextField(blank=True)
     content = models.TextField()
-    image = models.ImageField(upload_to='blog/', blank=True, null=True)
+    # BlogPost feature image
+    image = models.ImageField(
+    upload_to='blog/featured/',
+    blank=True,
+    null=True,
+    help_text="Main feature image. Appears at the top of the post and on blog listings."
+)
+
     # published = models.DateTimeField(auto_now_add=True)
     published = models.DateField(default=timezone.now)
     is_featured = models.BooleanField(default=False)
@@ -33,7 +40,12 @@ class BlogPost(models.Model):
 
 class BlogImage(models.Model):
     post = models.ForeignKey(BlogPost, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='blog/')
+    # BlogImage inline image
+    image = models.ImageField(
+    upload_to='blog/inline/',
+    help_text="Inline image. Use [[image1]], [[image2]] etc. in content to insert."
+)
+
     caption = models.CharField(max_length=200, blank=True)
     order = models.PositiveIntegerField(default=0)
 

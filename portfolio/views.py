@@ -40,9 +40,7 @@ def blog_list(request):
         'featured_posts': featured_posts,
         'page_obj': page_obj
     })    
-    ##### original: before modifications
-    #posts = BlogPost.objects.all()
-    #return render(request, 'portfolio/blog.html', {'posts': posts})
+
 
 def blog_detail(request, slug):
     post = get_object_or_404(BlogPost, slug=slug)
@@ -90,9 +88,9 @@ def contact_view(request):
             form = ContactForm()
             return render(request, 'portfolio/contact.html', {'form': form, 'redirect': True})
 
-            
-
     else:
         form = ContactForm() 
 
     return render(request, 'portfolio/contact.html', {'form': form})
+
+

@@ -183,17 +183,23 @@ footer {
 }
 
 /* Add these specific dark mode overrides */
-[data-theme='dark'] footer {
+[data-theme='dark'] {
+  footer {
     background-color: var(--bg-secondary) !important;
+  }
+
+  footer p,
+  .social-links a,
+  .list-group-item {
+    color: var(--text-primary) !important;
+  }
+
+  .list-group-item {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+  }
 }
 
-[data-theme='dark'] footer p {
-    color: var(--text-primary) !important;
-}
-
-[data-theme='dark'] .social-links a {
-    color: var(--text-primary) !important;
-}
 
 /* ============================
    Cards
@@ -291,17 +297,18 @@ footer {
 }
 
 .blog-card {
-    background: #fff;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
     border-radius: 7px;
-    border: 1px solid #e0e5eb;
-    box-shadow: 0 2px 8px rgba(60,60,60,0.06);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
     padding: 1.25rem 1.5rem 1.15rem 1.5rem;
     margin-bottom: 0.3rem;
-    transition: box-shadow 0.18s;
+    transition: box-shadow 0.18s, background-color 0.3s ease, color 0.3s ease;
 }
 
 .blog-card:hover {
-    box-shadow: 0 4px 14px rgba(40,60,80,0.11);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -318,5 +325,3 @@ html[data-theme="light"] body {
   background-size: 200% 200%;
   animation: auroraShift 30s ease-in-out infinite;
 }
-
-
