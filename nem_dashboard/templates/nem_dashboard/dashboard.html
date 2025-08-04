@@ -1,0 +1,72 @@
+{% extends "portfolio/base.html" %}
+{% load static %}
+
+
+{% block content %}
+<div class="container py-5">
+  <h2>NEM Fuel Generation Dashboard</h2>
+
+  <div class="last-updated text-end">
+    Last Updated: {{ last_updated|date:"M d, Y H:i" }}
+  </div>
+
+  <!-- 🌏 State selector -->
+  <form method="get" class="mb-4">
+    <label for="state" class="form-label">Select state:</label>
+    <select name="state" id="state" class="custom-select" onchange="this.form.submit()">
+      {% for state in states %}
+        <option value="{{ state }}" {% if selected_state == state %}selected{% endif %}>{{ state }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <!-- 📊 Main fuel mix chart -->
+  <div class="chart-wrapper">
+    <canvas id="fuelMixChart"></canvas>
+  </div>
+
+
+  {{ fuel_data_by_type|json_script:"fuel-data" }}
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <script src="{% static 'nem_dashboard/js/fuel_chart.js' %}"></script>
+
+  <!-- 🔋 Fuel breakdown with icon/label/value -->
+  <h4 class="mt-5">Fuel Mix Breakdown</h4>
+
+  
+
+  
+
+  <!-- 📊 Horizontal bar chart & table -->
+  <div class="custom-bars">
+    {% for record in fuel_data %}
+      <div class="bar-row d-flex align-items-center mb-2">
+        
+        <!-- Label and icon -->
+        <div class="bar-label me-2" style="width: 140px;">
+          <span class="fuel-icon me-1">{{ record.icon }}</span>
+          <span class="fuel-name">{{ record.fuel }}</span>
+        </div>
+        
+        <!-- Outer bar container with light grey background -->
+        <div class="bar-wrapper flex-grow-1 me-2" style="background-color: #eee; height: 20px;">
+
+          <!-- Actual fill bar — width and color dynamically applied here! -->
+          <div class="bar-fill" style="width: {{ record.normalized_width }}%; background-color: {{ record.color }}; height: 100%;"></div>
+        </div>
+
+        <!-- MW value -->
+        <div class="bar-value text-end text-muted" style="width: 100px;">
+          {{ record.total_gen|floatformat:2 }} MW
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+
+
+</div>
+{% endblock %}

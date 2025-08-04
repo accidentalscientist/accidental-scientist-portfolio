@@ -15,8 +15,15 @@ class BlogPostAdmin(admin.ModelAdmin):
     search_fields = ('title', 'summary')
     inlines = [BlogImageInline]
 
+class ProjectAdmin(admin.ModelAdmin):
+    prepopulated_fields = {"slug": ("title",)}
+    list_display = ('title', 'slug', 'date')
+    fields = ('title', 'slug', 'description', 'image', 'project_url')
+    readonly_fields = ('date',)
 
-admin.site.register(Project)
+
+
+admin.site.register(Project, ProjectAdmin)
 admin.site.register(BlogPost, BlogPostAdmin)
 admin.site.register(BlogImage)
 admin.site.register(Contact)

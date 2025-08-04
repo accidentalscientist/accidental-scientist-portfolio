@@ -12,6 +12,7 @@
     --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     --navbar-toggler-filter: none;
     --transition: all 0.3s ease;
+    --chart-bg: #e1e4e9; /* soft neutral background */
 }
 
 [data-theme='dark'] {
@@ -325,3 +326,65 @@ html[data-theme="light"] body {
   background-size: 200% 200%;
   animation: auroraShift 30s ease-in-out infinite;
 }
+
+
+/* ============================
+   Dashboard CSS
+   ============================ */
+
+.fuel-bar-wrapper {
+  background-color: #e4c9c9;
+  height: 18px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.fuel-bar-fill {
+  height: 100%;
+  background-color: #4a90e2; /* or any test color */
+  border-radius: 5px;
+  transition: width 0.4s ease-in-out;
+}
+.chart-wrapper {
+  background: rgb(238, 233, 233);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+}
+
+
+
+/* -----------------------------
+   ✨ Custom Dropdown Styling
+----------------------------- */
+.custom-select {
+  appearance: none; /* Remove default browser styling */
+  background-color: #e9e1e1;
+  border: 1px solid #ede2e2;
+  padding: 12px 18px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  min-width: 120px;
+  outline: none;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  background-image: url("data:image/svg+xml,%3Csvg fill='%23666' viewBox='0 0 24 24' width='16' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+}
+
+.custom-select:hover {
+  border-color: #888;
+}
+
+.custom-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+

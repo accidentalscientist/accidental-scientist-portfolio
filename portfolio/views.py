@@ -24,8 +24,8 @@ def all_projects(request):
     projects = Project.objects.all().order_by('-date')
     return render(request, 'portfolio/projects.html', {'projects': projects})
 
-def project_detail(request, id):
-    project = get_object_or_404(Project, id=id)
+def project_detail(request, slug):
+    project = get_object_or_404(Project, slug=slug)
     return render(request, 'portfolio/project_detail.html', {'project': project})
 
 def blog_list(request):
@@ -63,7 +63,7 @@ def blog_detail(request, slug):
     else:
         post.image_absolute_url = request.build_absolute_uri(static('images/favicon.png'))
 
-    return render(request, 'portfolio/blog_detail.html', {'post': post})
+    return render(request, 'portfolio/blog_detail.html', {'post': post, 'include_markdown_css': True})
 
 
 def contact_view(request):
@@ -88,9 +88,9 @@ def contact_view(request):
             form = ContactForm()
             return render(request, 'portfolio/contact.html', {'form': form, 'redirect': True})
 
+            
+
     else:
         form = ContactForm() 
 
     return render(request, 'portfolio/contact.html', {'form': form})
-
-

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 
     # my apps
     'portfolio',
+    'nem_dashboard',
 ]
 
 MIDDLEWARE = [
@@ -138,10 +139,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 #static
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
+STATICFILES_DIRS = [ 
     BASE_DIR / 'static',
 ]
-STATIC_ROOT = STATIC_ROOT = '/var/www/accidental-site/staticfiles'
+STATIC_ROOT = '/var/www/accidental-site/staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
