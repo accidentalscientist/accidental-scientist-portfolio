@@ -34,7 +34,13 @@ class Command(BaseCommand):
 
         packages = sorted(path for path in source_dir.iterdir() if path.is_dir())
         if options['slug']:
-            packages = [path for path in packages if path.name.endswith(options['slug'].replace('-', '_'))]
+            packages = [
+                path
+                for path in packages
+                if (path / 'metadata.json').is_file()
+                and json.loads((path / 'metadata.json').read_text(encoding='utf-8')).get('slug')
+                == options['slug']
+            ]
         if not packages:
             raise CommandError('No matching article packages were found.')
 
