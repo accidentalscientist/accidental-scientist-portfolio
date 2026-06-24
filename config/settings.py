@@ -17,6 +17,15 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# The editorial source repository is deliberately separate from this website.
+# Override this locally or in deployment with ELITE_ARTICLES_DIR when needed.
+ELITE_ARTICLES_DIR = Path(
+    config(
+        'ELITE_ARTICLES_DIR',
+        default=str(BASE_DIR.parent / 'elite-analytics-articles-2026'),
+    )
+)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/

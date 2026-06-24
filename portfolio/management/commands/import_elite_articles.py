@@ -14,7 +14,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--source-dir',
-            default=Path(settings.BASE_DIR) / 'elite-analytics-articles-2026' / 'articles',
+            default=Path(settings.ELITE_ARTICLES_DIR) / 'articles',
             help='Directory containing one folder per article package.',
         )
         parser.add_argument(
