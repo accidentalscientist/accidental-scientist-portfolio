@@ -1,46 +1,88 @@
 {% extends "portfolio/base.html" %}
-{% block title %}Contact{% endblock %}
+{% block title %}About{% endblock %}
 
 {% block content %}
-{% if messages %}
-  {% for message in messages %}
-    <div class="alert alert-success" role="alert">
-      {{ message }}
+
+<div class="about-page">
+
+  {# ── Who I am ── #}
+  <header class="about-hero">
+    <p class="journal-eyebrow">About</p>
+    <h1>Thibault Aymonier-Newman</h1>
+    <p class="about-lead">
+      I'm a data analyst and storyteller based in Sydney, working at the intersection of energy systems,
+      data science, and human performance. My work focuses on making complex systems legible —
+      whether that's the National Electricity Market, climate data, or how a runner's body responds
+      to training load over time. I came to this work sideways, which is why I call myself the
+      Accidental Scientist.
+    </p>
+  </header>
+
+  {# ── Interests ── #}
+  <section class="about-interests">
+    <div class="about-interest">
+      <span class="about-interest__icon">⚡</span>
+      <div>
+        <h3>Energy transition</h3>
+        <p>The NEM, renewables integration, grid stability, emissions intensity, and the policy systems shaping Australia's decarbonisation path.</p>
+      </div>
     </div>
-  {% endfor %}
-{% endif %}
-
-{% if redirect %}
-  <script>
-    setTimeout(function() {
-      window.location.href = "{% url 'home' %}";
-    }, 6000);
-  </script>
-{% endif %}
-
-
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <h2 class="mb-4">Let's Connect</h2>
-            <p class="text-secondary mb-4">I'm always interested in discussing data science, energy, and football. Drop me a message!</p>
-            
-            <form method="post" class="needs-validation" novalidate>
-                {% csrf_token %}
-                {% for field in form %}
-                <div class="mb-3">
-                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}
-                    <div class="invalid-feedback d-block">
-                        {{ field.errors|join:", " }}
-                    </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                <button type="submit" class="btn btn-primary">Send Message</button>
-            </form>
-        </div>
+    <div class="about-interest">
+      <span class="about-interest__icon">📊</span>
+      <div>
+        <h3>Data science & methods</h3>
+        <p>Time-series analysis, visualisation, Python, Django, and building tools that make data accessible to non-specialists.</p>
+      </div>
     </div>
+    <div class="about-interest">
+      <span class="about-interest__icon">🏃</span>
+      <div>
+        <h3>Sport & performance</h3>
+        <p>Parkrun, running analytics, and what sport science can teach us about how humans adapt to stress over time.</p>
+      </div>
+    </div>
+    <div class="about-interest">
+      <span class="about-interest__icon">🌏</span>
+      <div>
+        <h3>Society & policy</h3>
+        <p>Climate policy, international development, and the social systems that sit beneath the energy transition.</p>
+      </div>
+    </div>
+  </section>
+
+  {# ── Contact form ── #}
+  <section class="about-contact">
+    <div class="about-contact__header">
+      <p class="journal-eyebrow">Get in touch</p>
+      <h2>Let's connect</h2>
+      <p>I'm always open to conversations about energy data, collaboration, or just a good data problem. Drop me a line.</p>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-success mb-4" role="alert">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% if redirect %}
+      <script>setTimeout(function(){ window.location.href="{% url 'home' %}"; }, 6000);</script>
+    {% endif %}
+
+    <form method="post" class="about-form">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="mb-3">
+        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Send message</button>
+    </form>
+  </section>
+
 </div>
+
 {% endblock %}

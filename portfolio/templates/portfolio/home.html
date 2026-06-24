@@ -1,41 +1,105 @@
 {% extends 'portfolio/base.html' %}
-
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<h2 class="mt-4">Latest Projects</h2>
-<div class="row">
-    {% for project in projects %}
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            {% if project.image %}
-            <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
-            {% endif %}
-            <div class="card-body">
-                <h5 class="card-title">{{ project.title }}</h5>
-                <p class="card-text">{{ project.description|truncatechars:120 }}</p>
-                {% if project.project_url %}
-                <a href="{{ project.project_url }}" class="btn btn-primary" target="_blank">View Project</a>
-                {% endif %}
-            </div>
+<section class="portfolio-hero" aria-labelledby="hero-title">
+    <div class="portfolio-hero__content">
+        <p class="portfolio-hero__eyebrow">
+            <span id="typewriter-prefix">Exploring </span><span id="typewriter-word" aria-live="polite"></span><span class="typewriter-cursor" aria-hidden="true">|</span>
+        </p>
+        <h1 id="hero-title">Turning Australian energy data into clearer decisions.</h1>
+        <p class="portfolio-hero__intro">
+            I build practical data stories and tools around the NEM, renewables, and the systems shaping the transition.
+        </p>
+        <div class="portfolio-hero__actions">
+            <a class="btn btn-primary" href="{% url 'nem_dashboard:nem_dashboard' %}">Explore the NEM dashboard</a>
+            <a class="btn btn-outline-primary" href="{% url 'projects' %}">View projects</a>
         </div>
     </div>
-    {% endfor %}
-</div>
 
-<hr>
+    <aside class="current-project" aria-labelledby="current-project-title">
+        <p class="current-project__label">Current project</p>
+        <h2 id="current-project-title">NEM Fuel Generation Dashboard</h2>
+        <p>Explore electricity generation by fuel source and state across the National Electricity Market.</p>
+        <ul class="current-project__tags" aria-label="Project technologies">
+            <li>Django</li>
+            <li>Chart.js</li>
+            <li>Energy data</li>
+        </ul>
+        <a class="current-project__link" href="{% url 'nem_dashboard:nem_dashboard' %}">Open dashboard &rarr;</a>
+    </aside>
+</section>
 
-<h2 class="mt-4">Featured Blog Posts</h2>
-<div class="list-group">
-    <ul class="list-group list-unstyled">
-    {% for post in featured_posts %}
-    <li>
-        <a href="{% url 'blog_detail' post.slug %}" class="list-group-item list-group-item-action">
-            <h5 class="mb-1">{{ post.title }}</h5>
-            <p class="mb-1">{{ post.summary|truncatewords:25 }}</p>
-            <small class="text-muted">{{ post.published|date:"F j, Y" }}</small>
-        </a>
-    </li>
-    {% endfor %}
-</ul>
+{# ── Featured writing ── #}
+{% if featured_posts %}
+<section class="home-writing" aria-labelledby="home-writing-title">
+    <div class="journal-section__heading">
+        <h2 id="home-writing-title">Featured writing</h2>
+        <a href="{% url 'blog' %}" class="article-card__link">All articles &rarr;</a>
+    </div>
+    <div class="article-list">
+        {% for post in featured_posts %}
+        <article class="article-list__item">
+            {% if post.image %}
+            <a href="{% url 'blog_detail' post.slug %}" class="article-list__thumb-link">
+                <img src="{{ post.image.url }}" alt="" class="article-list__thumb" loading="lazy">
+            </a>
+            {% endif %}
+            <div class="article-list__body">
+                <p class="article-card__meta">
+                    <span class="category-badge category-badge--{{ post.category }}">{{ post.get_category_display }}</span>
+                    &nbsp;{{ post.published|date:"j M Y" }} &middot; {{ post.reading_time_minutes }} min read
+                </p>
+                <h3><a href="{% url 'blog_detail' post.slug %}">{{ post.title }}</a></h3>
+                <p>{{ post.summary|truncatewords:28 }}</p>
+                <a href="{% url 'blog_detail' post.slug %}" class="article-card__link">Read article &rarr;</a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const words = [
+        'Data Science',
+        'Energy Systems',
+        'Football Analytics',
+        'Grid Transition',
+        'Climate Policy',
+        'NEM Data',
+        'Human Performance',
+        'Renewable Energy',
+    ];
+    const el = document.getElementById('typewriter-word');
+    let wordIndex = 0, charIndex = 0, deleting = false;
+
+    function tick() {
+        const word = words[wordIndex];
+        if (!deleting) {
+            el.textContent = word.slice(0, ++charIndex);
+            if (charIndex === word.length) {
+                deleting = true;
+                setTimeout(tick, 1800);
+                return;
+            }
+        } else {
+            el.textContent = word.slice(0, --charIndex);
+            if (charIndex === 0) {
+                deleting = false;
+                wordIndex = (wordIndex + 1) % words.length;
+                setTimeout(tick, 300);
+                return;
+            }
+        }
+        setTimeout(tick, deleting ? 50 : 85);
+    }
+
+    setTimeout(tick, 600);
+})();
+</script>
 {% endblock %}

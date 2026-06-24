@@ -2,56 +2,42 @@
 
 {% block title %}{{ post.title }}{% endblock %}
 
-{% block meta_description %}
-  {{ post.summary|default:post.title|truncatewords:30 }}
-{% endblock %}
-
-{% block og_title %}
-  {{ post.title }}
-{% endblock %}
-
-{% block og_description %}
-  {{ post.summary|default:post.title|truncatewords:30 }}
-{% endblock %}
-
-{% block og_image %}
-  {{ post.image_absolute_url }}
-{% endblock %}
-
-
-
+{% block meta_description %}{{ post.summary|default:post.title|truncatewords:30 }}{% endblock %}
+{% block og_title %}{{ post.title }}{% endblock %}
+{% block og_description %}{{ post.summary|default:post.title|truncatewords:30 }}{% endblock %}
+{% block og_image %}{{ post.image_absolute_url }}{% endblock %}
 
 {% block content %}
-<article>
-  <h1>{{ post.title }}</h1>
-  <p><em>{{ post.published|date:"F j, Y" }}</em></p>
+<a href="{% url 'blog' %}" class="back-link">← Back to Writing</a>
+<article class="article-detail">
+  <header class="article-detail__header">
+    <p class="journal-eyebrow"><span class="category-badge category-badge--{{ post.category }}">{{ post.get_category_display }}</span></p>
+    <h1>{{ post.title }}</h1>
+    <p class="article-detail__meta">{{ post.published|date:"j F Y" }} <span aria-hidden="true">&middot;</span> {{ post.reading_time_minutes }} min read</p>
+    {% if post.summary %}<p class="article-detail__summary">{{ post.summary }}</p>{% endif %}
+  </header>
 
-  {# FEATURED IMAGE #}
   {% if post.image %}
-    <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100%;" />
+    <img src="{{ post.image.url }}" class="article-detail__image" alt="" loading="eager">
   {% endif %}
 
-  {# MAIN CONTENT (markdown or summary) #}
+  {% if post.key_takeaway %}
+  <aside class="article-takeaway" aria-label="Key takeaway">
+    <p class="article-takeaway__label">Key takeaway</p>
+    <p>{{ post.key_takeaway }}</p>
+  </aside>
+  {% endif %}
+
   {% if post.content %}
-    <div class="post-content markdown-body">
-      {{ post.content_html|safe }}
-    </div>
+    <div class="post-content markdown-body">{{ post.content_html|safe }}</div>
   {% elif post.external_url %}
-    <div>
-      <p>This is a summary post. <a href="{{ post.external_url }}" target="_blank">Read the full notebook on GitHub</a>.</p>
-      {% if post.summary %}
-        <p>{{ post.summary }}</p>
-      {% endif %}
-    </div>
+    <p class="article-detail__empty">This article is available as a notebook on GitHub.</p>
   {% else %}
-    <div><em>No content available.</em></div>
+    <p class="article-detail__empty"><em>No content is available yet.</em></p>
   {% endif %}
 
-  {# EXTERNAL LINK #}
   {% if post.external_url %}
-    <div style="margin-top:2em;">
-      <a href="{{ post.external_url }}" target="_blank">Read More on GitHub</a>
-    </div>
+    <a class="article-source-link" href="{{ post.external_url }}" target="_blank" rel="noopener">Open the source notebook <span aria-hidden="true">&nearr;</span></a>
   {% endif %}
 </article>
 {% endblock %}

@@ -23,7 +23,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('portfolio.urls')), 
+    path('markdownx/', include('markdownx.urls')),
+    path('', include('portfolio.urls')),
     path('nem/', include('nem_dashboard.urls', namespace='nem_dashboard')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

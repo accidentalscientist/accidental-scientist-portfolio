@@ -7,7 +7,6 @@ from django.core.paginator import Paginator
 from django.conf import settings
 from django.templatetags.static import static
 import markdown2
-import random
 from django.utils import timezone
 import re
 
@@ -15,9 +14,11 @@ import re
 
 def home(request):
     projects = Project.objects.order_by('-date')[:2]
-    featured_posts = list(BlogPost.objects.filter(is_featured=True, published__lte=timezone.now()))    # only show featured posts that are published
-    random.shuffle(featured_posts)
-    featured_posts = featured_posts[:3]  
+    featured_posts = BlogPost.objects.filter(
+        status=BlogPost.Status.PUBLISHED,
+        is_featured=True,
+        published__lte=timezone.now(),
+    )[:3]
     return render(request, 'portfolio/home.html', {'projects': projects, 'featured_posts': featured_posts})
 
 def all_projects(request):
@@ -29,31 +30,50 @@ def project_detail(request, slug):
     return render(request, 'portfolio/project_detail.html', {'project': project})
 
 def blog_list(request):
-    featured_posts = list(BlogPost.objects.filter(is_featured=True, published__lte=timezone.now()))
-    random.shuffle(featured_posts)
+    published_qs = BlogPost.objects.filter(
+        status=BlogPost.Status.PUBLISHED,
+        published__lte=timezone.now(),
+    )
+
+    category = request.GET.get('category', '')
+    if category and category in dict(BlogPost.Category.choices):
+        filtered_qs = published_qs.filter(category=category)
+    else:
+        category = ''
+        filtered_qs = published_qs
+
+    featured_posts = list(published_qs.filter(is_featured=True))
+    import random; random.shuffle(featured_posts)
     featured_posts = featured_posts[:4]
-    post_list = BlogPost.objects.filter(published__isnull=False).order_by('-published')
-    paginator = Paginator(post_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+
+    # All posts go into the list — featured posts are highlighted above, not removed
+    paginator = Paginator(filtered_qs.order_by('-published'), 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
     return render(request, 'portfolio/blog.html', {
         'featured_posts': featured_posts,
-        'page_obj': page_obj
+        'page_obj': page_obj,
+        'active_category': category,
+        'categories': BlogPost.Category.choices,
+        'total_count': filtered_qs.count(),
     })    
 
 
 def blog_detail(request, slug):
-    post = get_object_or_404(BlogPost, slug=slug)
-    markdown_extras = getattr(settings, "MARKDOWN2_EXTRAS", [])
-
-    # Replace [[image1]], [[image2]] etc. with <img> tags
+    post = get_object_or_404(
+        BlogPost,
+        slug=slug,
+        status=BlogPost.Status.PUBLISHED,
+        published__lte=timezone.now(),
+    )
+    # Replace [[image1]], [[image2]] etc. with <img> tags before rendering
     content = post.content
     for i, img in enumerate(post.images.all()):
         placeholder = f"[[image{i+1}]]"
-        img_tag = f'<img src="{img.image.url}" alt="{img.caption}" style="max-width:100%;">'
+        img_tag = f'<figure><img src="{img.image.url}" alt="{img.caption}" style="max-width:100%;border-radius:8px;">{"<figcaption>" + img.caption + "</figcaption>" if img.caption else ""}</figure>'
         content = content.replace(placeholder, img_tag)
 
-    # Markdown rendering with extras
+    markdown_extras = getattr(settings, "MARKDOWN2_EXTRAS", [])
     post.content_html = markdown2.markdown(content, extras=markdown_extras)
     post.summary_html = markdown2.markdown(post.summary, extras=markdown_extras)
 

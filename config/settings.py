@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sitemaps',
 
     # third party apps
-    
+    'markdownx',
 
     # my apps
     'portfolio',

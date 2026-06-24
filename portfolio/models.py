@@ -2,6 +2,8 @@ from django.db import models
 from django.utils.text import slugify
 from django.utils import timezone
 from django.db.models import Count
+from markdownx.models import MarkdownxField
+import re
 
 
 
@@ -32,12 +34,27 @@ class Project(models.Model):
 
 
 class BlogPost(models.Model):
+    class Status(models.TextChoices):
+        DRAFT = 'draft', 'Draft'
+        PUBLISHED = 'published', 'Published'
+
+    class Category(models.TextChoices):
+        ENERGY = 'energy', 'Energy transition'
+        DATA = 'data', 'Data & methods'
+        SOCIETY = 'society', 'Society & policy'
+        SPORT = 'sport', 'Sport & performance'
+        OTHER = 'other', 'Other'
+
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     summary = models.TextField(blank=True)
-    content = models.TextField()
+    key_takeaway = models.TextField(blank=True, help_text='Optional one-sentence insight shown prominently on the article page.')
+    content = MarkdownxField()
     image = models.ImageField(upload_to='blog/', blank=True, null=True)
     published = models.DateField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PUBLISHED)
+    category = models.CharField(max_length=20, choices=Category.choices, default=Category.OTHER)
     is_featured = models.BooleanField(default=False)
     external_url = models.URLField(blank=True, null=True)
 
@@ -46,6 +63,11 @@ class BlogPost(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def reading_time_minutes(self):
+        word_count = len(re.findall(r'\b\w+\b', self.content))
+        return max(1, (word_count + 199) // 200)
 
 class BlogImage(models.Model):
     post = models.ForeignKey(BlogPost, related_name='images', on_delete=models.CASCADE)

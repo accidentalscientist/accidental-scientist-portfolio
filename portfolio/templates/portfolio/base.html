@@ -13,22 +13,29 @@
     <meta property="og:type" content="website">
 
 
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400;1,700&display=swap" rel="stylesheet">
+
     <!-- stylesheets -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% if include_markdown_css %}
-      <link rel="stylesheet" href="{% static 'css/markdown.css' %}">
+      <link rel="stylesheet" href="{% static 'css/github-markdown.css' %}">
     {% endif %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
     
     <!-- Favicon block -->
     <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light shadow-sm py-3">
+    <div style="position:fixed;top:6px;left:8px;font-size:0.62rem;font-weight:700;color:#b84a1a;opacity:0.6;z-index:9999;letter-spacing:0.04em;pointer-events:none;">v1.4.1</div>
+    <nav class="navbar navbar-expand-lg sticky-top py-3">
   <div class="container position-relative">
 
     <!-- Centered brand -->
@@ -65,6 +72,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/dark_mode.js' %}"></script>
     <script src="{% static 'js/navbar_shrink.js' %}"></script>
+    {% block extra_js %}{% endblock %}
   </body>
 
 </html>
