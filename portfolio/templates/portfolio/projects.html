@@ -1,28 +1,32 @@
 {% extends 'portfolio/base.html' %}
+{% load static %}
 
 {% block title %}Projects{% endblock %}
 
 {% block content %}
-<h2>All Projects</h2>
-<div class="row">
-  {% for project in projects %}
-    <div class="col-md-4">
-      <div class="card mb-4">
-        {% if project.image %}
-          <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
-        {% endif %}      
-        <div class="card-body">
-          <h5 class="card-title">{{ project.title }}</h5>
-          <p class="card-text">{{ project.description|truncatewords:25 }}</p>
-          {% if project.project_url %}
-            <a href="{{ project.project_url }}" class="btn btn-primary">View Project</a>
-          {% else %}
-            <a href="{% url 'project_detail' slug=project.slug %}" class="btn btn-primary">View Project</a>
-          {% endif %}
+<div class="page-mark page-mark--projects" aria-hidden="true"><img src="{% static 'images/favicon.png' %}" alt=""></div>
+<div class="projects-page">
 
+  <header class="journal-hero">
+    <p class="journal-eyebrow">Work</p>
+    <h1>Tools and analyses for the energy transition.</h1>
+    <p>Interactive data projects built around Australia's grid, renewables, and the systems shaping decarbonisation.</p>
+  </header>
+
+  <div class="project-rows">
+    {% for project in projects %}
+      <a class="project-row" href="{% if project.project_url %}{{ project.project_url }}{% else %}{% url 'project_detail' slug=project.slug %}{% endif %}">
+        <div class="project-row__body">
+          <div class="project-row__head">
+            <h3 class="project-row__title">{{ project.title }}</h3>
+            {% if project.project_url %}<span class="project-row__badge">Live tool</span>{% endif %}
+          </div>
+          <p class="project-row__desc">{{ project.description|truncatewords:26 }}</p>
         </div>
-      </div>
-    </div>
-  {% endfor %}
+        <span class="project-row__arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span>
+      </a>
+    {% endfor %}
+  </div>
+
 </div>
 {% endblock %}

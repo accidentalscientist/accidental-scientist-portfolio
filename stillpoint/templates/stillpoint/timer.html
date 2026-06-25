@@ -1,0 +1,71 @@
+{% extends "portfolio/base.html" %}
+{% load static %}
+
+{% block title %}Stillpoint{% endblock %}
+{% block meta_description %}Stillpoint — a quiet meditation timer. Sit in silence or be guided.{% endblock %}
+
+{% block content %}
+<div class="stillpoint">
+
+  <header class="stillpoint__hero">
+    <p class="journal-eyebrow">Stillpoint</p>
+    <h1>A quiet place to sit.</h1>
+    <p class="stillpoint__intro">A simple meditation timer. Choose silence and keep your own time, or let a guide lead the way.</p>
+  </header>
+
+  {# ── Mode toggle ── #}
+  <div class="stillpoint__modes" role="tablist" aria-label="Meditation mode">
+    <button class="stillpoint__mode stillpoint__mode--active" data-mode="master" role="tab" aria-selected="true">Master</button>
+    <button class="stillpoint__mode" data-mode="student" role="tab" aria-selected="false">Guide me</button>
+  </div>
+
+  {# ── Timer ring ── #}
+  <div class="stillpoint__stage">
+    <div class="stillpoint__ring" id="sp-ring">
+      <svg viewBox="0 0 240 240" aria-hidden="true">
+        <circle class="sp-ring__track" cx="120" cy="120" r="110"></circle>
+        <circle class="sp-ring__progress" id="sp-progress" cx="120" cy="120" r="110"></circle>
+      </svg>
+      <div class="stillpoint__readout">
+        <span class="stillpoint__time" id="sp-time">15:00</span>
+        <span class="stillpoint__phase" id="sp-phase">Press begin</span>
+      </div>
+    </div>
+  </div>
+
+  {# ── Master: duration presets ── #}
+  <div class="stillpoint__durations" id="sp-durations" aria-label="Session length in minutes">
+    <button class="sp-duration" data-min="2">2</button>
+    <button class="sp-duration" data-min="5">5</button>
+    <button class="sp-duration" data-min="9">9</button>
+    <button class="sp-duration sp-duration--active" data-min="15">15</button>
+    <button class="sp-duration" data-min="30">30</button>
+    <button class="sp-duration" data-min="60">60</button>
+  </div>
+
+  {# ── Student: guided session picker ── #}
+  <div class="stillpoint__guided" id="sp-guided" hidden>
+    {% if guided_sessions %}
+      <label for="sp-audio-select" class="stillpoint__guided-label">Guided session</label>
+      <select id="sp-audio-select" class="stillpoint__select">
+        {% for session in guided_sessions %}
+          <option value="{{ session.audio.url }}">{{ session.title }}</option>
+        {% endfor %}
+      </select>
+      <audio id="sp-audio" preload="none"></audio>
+    {% else %}
+      <p class="stillpoint__empty">No guided sessions yet. Add an audio file in the admin to enable guided mode.</p>
+    {% endif %}
+  </div>
+
+  {# ── Controls ── #}
+  <div class="stillpoint__controls">
+    <button class="btn btn-primary" id="sp-begin">Begin</button>
+    <button class="btn btn-outline-primary" id="sp-reset" hidden>Reset</button>
+  </div>
+
+</div>
+
+<script>window.STILLPOINT_HAS_AUDIO = {% if guided_sessions %}true{% else %}false{% endif %};</script>
+<script src="{% static 'stillpoint/js/timer.js' %}?v=2"></script>
+{% endblock %}

@@ -26,6 +26,7 @@ urlpatterns = [
     path('markdownx/', include('markdownx.urls')),
     path('', include('portfolio.urls')),
     path('nem/', include('nem_dashboard.urls', namespace='nem_dashboard')),
+    path('stillpoint/', include('stillpoint.urls', namespace='stillpoint')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

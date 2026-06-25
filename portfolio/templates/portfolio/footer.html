@@ -3,8 +3,6 @@
   <div class="container">
 
     <div class="footer-brand">Accidental Scientist</div>
-    <span class="footer-ornament">· ◆ ·</span>
-    <p class="footer-tagline">{{ site_tagline }}</p>
 
     <div class="social-links">
       <a href="{% url 'contact' %}" title="Contact">
@@ -20,5 +18,21 @@
 
     <p class="footer-copyright">&copy; {{ now.year }} {{ site_name }}</p>
 
+  </div>
+
+  {# ── Fleur-de-lys — footer corner marginalia (French) ── #}
+  <div class="footer-fleur" aria-hidden="true">
+    <img src="{% static 'images/fleur-de-lys.png' %}" alt="">
+  </div>
+
+  {# ── Kolam + Tamil Om — footer corner marginalia ── #}
+  <div class="footer-kolam" aria-hidden="true">
+    <svg width="38" height="38" viewBox="0 0 46 46">
+      <g fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M23 6 C32 14 32 32 23 40 C14 32 14 14 23 6 Z"></path>
+        <path d="M6 23 C14 14 32 14 40 23 C32 32 14 32 6 23 Z"></path>
+      </g>
+    </svg>
+    <span class="footer-om">ௐ</span>
   </div>
 </footer>

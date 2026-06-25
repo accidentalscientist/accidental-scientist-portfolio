@@ -16,7 +16,7 @@
     <!-- fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500&family=Playfair+Display:ital,wght@0,700;1,400;1,700&display=swap" rel="stylesheet">
 
     <!-- stylesheets -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
@@ -34,7 +34,25 @@
 </head>
 
 <body>
-    <div style="position:fixed;top:6px;left:8px;font-size:0.62rem;font-weight:700;color:#b84a1a;opacity:0.6;z-index:9999;letter-spacing:0.04em;pointer-events:none;">v1.4.1</div>
+    <div style="position:fixed;top:6px;left:8px;font-size:0.62rem;font-weight:700;color:#b84a1a;opacity:0.6;z-index:9999;letter-spacing:0.04em;pointer-events:none;">v2.6.0</div>
+
+    {# ── Terracotta brick ribbon — left edge marginalia ── #}
+    <div class="edge-brick" aria-hidden="true">
+      <svg width="30" height="100%" preserveAspectRatio="none">
+        <defs>
+          <pattern id="edgeBrick" width="30" height="24" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke="currentColor" stroke-width="1.6">
+              <rect x="3" y="3" width="11" height="8" rx="1"></rect>
+              <rect x="17" y="3" width="11" height="8" rx="1"></rect>
+              <rect x="-4" y="15" width="11" height="8" rx="1"></rect>
+              <rect x="10" y="15" width="11" height="8" rx="1"></rect>
+              <rect x="24" y="15" width="11" height="8" rx="1"></rect>
+            </g>
+          </pattern>
+        </defs>
+        <rect width="30" height="100%" fill="url(#edgeBrick)"></rect>
+      </svg>
+    </div>
     <nav class="navbar navbar-expand-lg sticky-top py-3">
   <div class="container position-relative">
 
@@ -72,6 +90,43 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/dark_mode.js' %}"></script>
     <script src="{% static 'js/navbar_shrink.js' %}"></script>
+
+    <!-- Random placement for the favicon page-mark (new spot each load) -->
+    <script>
+    (function () {
+      var mark = document.querySelector('.page-mark');
+      if (!mark) return;
+      var spots = [
+        { top: '92px',    right: '24px' },
+        { top: '40%',     right: '22px' },
+        { bottom: '130px', right: '26px' },
+        { bottom: '96px',  right: '20px' },
+        { bottom: '88px',  left: '24px' },
+        { bottom: '150px', left: '26px' },
+        { top: '44%',     left: '22px' },
+        { top: '120px',   left: '28px' },
+        { bottom: '220px', right: '22px' },
+        { top: '180px',   right: '26px' },
+        { bottom: '120px', left: '24px' },
+        { top: '220px',   left: '26px' }
+      ];
+      var s = spots[Math.floor(Math.random() * spots.length)];
+      mark.style.top    = s.top    || 'auto';
+      mark.style.bottom = s.bottom || 'auto';
+      mark.style.left   = s.left   || 'auto';
+      mark.style.right  = s.right  || 'auto';
+
+      // Tilt: ~50% perfectly straight; the rest slight, occasionally wild.
+      var rot = 0;
+      if (Math.random() < 0.5) {
+        rot = (Math.random() < 0.5)
+          ? (Math.random() * 12 - 6)    // slight: +/- 6deg
+          : (Math.random() * 44 - 22);  // wild:  +/- 22deg
+      }
+      mark.style.transform = 'rotate(' + rot.toFixed(1) + 'deg)';
+    })();
+    </script>
+
     {% block extra_js %}{% endblock %}
   </body>
 

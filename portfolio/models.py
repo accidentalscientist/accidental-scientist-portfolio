@@ -40,10 +40,9 @@ class BlogPost(models.Model):
 
     class Category(models.TextChoices):
         ENERGY = 'energy', 'Energy transition'
-        DATA = 'data', 'Data & methods'
+        DATA = 'data', 'Data Stories'
         SOCIETY = 'society', 'Society & policy'
-        SPORT = 'sport', 'Sport & performance'
-        OTHER = 'other', 'Other'
+        SPORT = 'sport', 'Human performance'
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
@@ -54,7 +53,7 @@ class BlogPost(models.Model):
     published = models.DateField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PUBLISHED)
-    category = models.CharField(max_length=20, choices=Category.choices, default=Category.OTHER)
+    category = models.CharField(max_length=20, choices=Category.choices, default=Category.ENERGY)
     is_featured = models.BooleanField(default=False)
     external_url = models.URLField(blank=True, null=True)
 

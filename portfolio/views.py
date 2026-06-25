@@ -13,13 +13,13 @@ import re
 
 
 def home(request):
-    projects = Project.objects.order_by('-date')[:2]
-    featured_posts = BlogPost.objects.filter(
+    current_project = Project.objects.order_by('-date').first()
+    featured_post = BlogPost.objects.filter(
         status=BlogPost.Status.PUBLISHED,
         is_featured=True,
         published__lte=timezone.now(),
-    )[:3]
-    return render(request, 'portfolio/home.html', {'projects': projects, 'featured_posts': featured_posts})
+    ).order_by('?').first()
+    return render(request, 'portfolio/home.html', {'current_project': current_project, 'featured_post': featured_post})
 
 def all_projects(request):
     projects = Project.objects.all().order_by('-date')
@@ -42,16 +42,14 @@ def blog_list(request):
         category = ''
         filtered_qs = published_qs
 
-    featured_posts = list(published_qs.filter(is_featured=True))
-    import random; random.shuffle(featured_posts)
-    featured_posts = featured_posts[:4]
+    featured_post = published_qs.filter(is_featured=True).order_by('?').first()
 
-    # All posts go into the list — featured posts are highlighted above, not removed
+    # All posts go into the list — the featured post is highlighted above, not removed
     paginator = Paginator(filtered_qs.order_by('-published'), 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
     return render(request, 'portfolio/blog.html', {
-        'featured_posts': featured_posts,
+        'featured_post': featured_post,
         'page_obj': page_obj,
         'active_category': category,
         'categories': BlogPost.Category.choices,

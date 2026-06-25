@@ -1,15 +1,19 @@
 {% extends 'portfolio/base.html' %}
+{% load static %}
 {% block title %}Home{% endblock %}
 
 {% block content %}
+<div class="page-mark page-mark--home" aria-hidden="true"><img src="{% static 'images/favicon.png' %}" alt=""></div>
 <section class="portfolio-hero" aria-labelledby="hero-title">
+    <img class="hero-castle" src="{% static 'images/coastal_castle.svg' %}" alt="" aria-hidden="true">
     <div class="portfolio-hero__content">
         <p class="portfolio-hero__eyebrow">
             <span id="typewriter-prefix">Exploring </span><span id="typewriter-word" aria-live="polite"></span><span class="typewriter-cursor" aria-hidden="true">|</span>
         </p>
-        <h1 id="hero-title">Turning Australian energy data into clearer decisions.</h1>
+        <h1 id="hero-title">Energy, systems, and human performance.</h1>
         <p class="portfolio-hero__intro">
-            I build practical data stories and tools around the NEM, renewables, and the systems shaping the transition.
+            I explore the renewable energy transition &mdash; and the data, systems, and human behaviour
+            shaping a cleaner, more resilient future.
         </p>
         <div class="portfolio-hero__actions">
             <a class="btn btn-primary" href="{% url 'nem_dashboard:nem_dashboard' %}">Explore the NEM dashboard</a>
@@ -17,46 +21,30 @@
         </div>
     </div>
 
+    {% if current_project %}
     <aside class="current-project" aria-labelledby="current-project-title">
         <p class="current-project__label">Current project</p>
-        <h2 id="current-project-title">NEM Fuel Generation Dashboard</h2>
-        <p>Explore electricity generation by fuel source and state across the National Electricity Market.</p>
-        <ul class="current-project__tags" aria-label="Project technologies">
-            <li>Django</li>
-            <li>Chart.js</li>
-            <li>Energy data</li>
-        </ul>
-        <a class="current-project__link" href="{% url 'nem_dashboard:nem_dashboard' %}">Open dashboard &rarr;</a>
+        <h2 id="current-project-title">{{ current_project.title }}</h2>
+        <p>{{ current_project.description|truncatewords:26 }}</p>
+        <a class="current-project__link" href="{% if current_project.project_url %}{{ current_project.project_url }}{% else %}{% url 'project_detail' slug=current_project.slug %}{% endif %}">Open project &rarr;</a>
     </aside>
+    {% endif %}
 </section>
 
-{# ── Featured writing ── #}
-{% if featured_posts %}
-<section class="home-writing" aria-labelledby="home-writing-title">
+{# ── Featured writing — single article with intro ── #}
+{% if featured_post %}
+<section class="featured-single" aria-labelledby="home-writing-title">
     <div class="journal-section__heading">
         <h2 id="home-writing-title">Featured writing</h2>
         <a href="{% url 'blog' %}" class="article-card__link">All articles &rarr;</a>
     </div>
-    <div class="article-list">
-        {% for post in featured_posts %}
-        <article class="article-list__item">
-            {% if post.image %}
-            <a href="{% url 'blog_detail' post.slug %}" class="article-list__thumb-link">
-                <img src="{{ post.image.url }}" alt="" class="article-list__thumb" loading="lazy">
-            </a>
-            {% endif %}
-            <div class="article-list__body">
-                <p class="article-card__meta">
-                    <span class="category-badge category-badge--{{ post.category }}">{{ post.get_category_display }}</span>
-                    &nbsp;{{ post.published|date:"j M Y" }} &middot; {{ post.reading_time_minutes }} min read
-                </p>
-                <h3><a href="{% url 'blog_detail' post.slug %}">{{ post.title }}</a></h3>
-                <p>{{ post.summary|truncatewords:28 }}</p>
-                <a href="{% url 'blog_detail' post.slug %}" class="article-card__link">Read article &rarr;</a>
-            </div>
-        </article>
-        {% endfor %}
-    </div>
+
+    <a class="featured-single__card" href="{% url 'blog_detail' featured_post.slug %}">
+        <span class="category-badge category-badge--{{ featured_post.category }}">{{ featured_post.get_category_display }}</span>
+        <h3 class="featured-single__title">{{ featured_post.title }}</h3>
+        <p class="featured-single__intro">{{ featured_post.summary|truncatewords:55 }}</p>
+        <p class="featured-single__meta">{{ featured_post.published|date:"j M Y" }} &middot; {{ featured_post.reading_time_minutes }} min read <span class="featured-single__cta">Read article &rarr;</span></p>
+    </a>
 </section>
 {% endif %}
 
@@ -75,6 +63,13 @@
         'Human Performance',
         'Renewable Energy',
     ];
+    // ── Speed controls — higher numbers = slower. Tweak these freely. ──
+    const TYPE_SPEED   = 150;   // ms per letter while typing
+    const DELETE_SPEED = 90;    // ms per letter while deleting
+    const HOLD_FULL    = 2600;  // ms to pause on a finished word
+    const HOLD_EMPTY   = 600;   // ms to pause before the next word
+    const START_DELAY  = 700;   // ms before the very first letter
+
     const el = document.getElementById('typewriter-word');
     let wordIndex = 0, charIndex = 0, deleting = false;
 
@@ -84,7 +79,7 @@
             el.textContent = word.slice(0, ++charIndex);
             if (charIndex === word.length) {
                 deleting = true;
-                setTimeout(tick, 1800);
+                setTimeout(tick, HOLD_FULL);
                 return;
             }
         } else {
@@ -92,14 +87,14 @@
             if (charIndex === 0) {
                 deleting = false;
                 wordIndex = (wordIndex + 1) % words.length;
-                setTimeout(tick, 300);
+                setTimeout(tick, HOLD_EMPTY);
                 return;
             }
         }
-        setTimeout(tick, deleting ? 50 : 85);
+        setTimeout(tick, deleting ? DELETE_SPEED : TYPE_SPEED);
     }
 
-    setTimeout(tick, 600);
+    setTimeout(tick, START_DELAY);
 })();
 </script>
 {% endblock %}

@@ -1,8 +1,10 @@
 {% extends 'portfolio/base.html' %}
+{% load static %}
 
 {% block title %}Writing{% endblock %}
 
 {% block content %}
+<div class="page-mark page-mark--blog" aria-hidden="true"><img src="{% static 'images/favicon.png' %}" alt=""></div>
 <header class="journal-hero">
   <p class="journal-eyebrow">Field notes</p>
   <h1>Ideas, evidence, and the energy transition.</h1>
@@ -17,31 +19,18 @@
     {% endfor %}
 </nav>
 
-{% if featured_posts and not active_category %}
-<section class="journal-section" aria-labelledby="featured-writing-title">
+{% if featured_post and not active_category %}
+<section class="featured-single" aria-labelledby="featured-writing-title">
   <div class="journal-section__heading">
     <h2 id="featured-writing-title">Featured</h2>
   </div>
 
-  <div class="row g-4">
-    {% for post in featured_posts %}
-    <div class="col-md-6">
-      <article class="article-card article-card--featured h-100">
-        {% if post.image %}
-          <img src="{{ post.image.url }}" class="article-card__image" alt="" loading="lazy">
-        {% else %}
-          <div class="article-card__image article-card__image--placeholder" aria-hidden="true"></div>
-        {% endif %}
-        <div class="article-card__body">
-          <p class="article-card__meta"><span class="category-badge category-badge--{{ post.category }}">{{ post.get_category_display }}</span> &nbsp;{{ post.published|date:"j M Y" }} &middot; {{ post.reading_time_minutes }} min read</p>
-          <h3><a href="{% url 'blog_detail' slug=post.slug %}">{{ post.title }}</a></h3>
-          <p class="article-card__summary">{{ post.key_takeaway|default:post.summary|truncatewords:28 }}</p>
-          <a class="article-card__link" href="{% url 'blog_detail' slug=post.slug %}">Read article <span aria-hidden="true">&rarr;</span></a>
-        </div>
-      </article>
-    </div>
-    {% endfor %}
-  </div>
+  <a class="featured-single__card" href="{% url 'blog_detail' slug=featured_post.slug %}">
+    <span class="category-badge category-badge--{{ featured_post.category }}">{{ featured_post.get_category_display }}</span>
+    <h3 class="featured-single__title">{{ featured_post.title }}</h3>
+    <p class="featured-single__intro">{{ featured_post.summary|truncatewords:55 }}</p>
+    <p class="featured-single__meta">{{ featured_post.published|date:"j M Y" }} &middot; {{ featured_post.reading_time_minutes }} min read <span class="featured-single__cta">Read article &rarr;</span></p>
+  </a>
 </section>
 {% endif %}
 
@@ -73,16 +62,18 @@
   </div>
 
   {% if page_obj.has_other_pages %}
-  <nav class="d-flex justify-content-center mt-5" aria-label="Article pages">
-    <ul class="pagination">
-      {% if page_obj.has_previous %}
-        <li class="page-item"><a class="page-link" href="?{% if active_category %}category={{ active_category }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a></li>
-      {% endif %}
-      <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
-      {% if page_obj.has_next %}
-        <li class="page-item"><a class="page-link" href="?{% if active_category %}category={{ active_category }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a></li>
-      {% endif %}
-    </ul>
+  <nav class="blog-pager" aria-label="Article pages">
+    {% if page_obj.has_previous %}
+      <a class="blog-pager__link" href="?{% if active_category %}category={{ active_category }}&{% endif %}page={{ page_obj.previous_page_number }}"><span aria-hidden="true">&larr;</span> Previous</a>
+    {% else %}
+      <span class="blog-pager__link blog-pager__link--off"><span aria-hidden="true">&larr;</span> Previous</span>
+    {% endif %}
+    <span class="blog-pager__status">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a class="blog-pager__link" href="?{% if active_category %}category={{ active_category }}&{% endif %}page={{ page_obj.next_page_number }}">Next <span aria-hidden="true">&rarr;</span></a>
+    {% else %}
+      <span class="blog-pager__link blog-pager__link--off">Next <span aria-hidden="true">&rarr;</span></span>
+    {% endif %}
   </nav>
   {% endif %}
 </section>

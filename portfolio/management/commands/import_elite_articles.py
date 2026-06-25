@@ -38,7 +38,7 @@ class Command(BaseCommand):
                 path
                 for path in packages
                 if (path / 'metadata.json').is_file()
-                and json.loads((path / 'metadata.json').read_text(encoding='utf-8')).get('slug')
+                and json.loads((path / 'metadata.json').read_text(encoding='utf-8-sig')).get('slug')
                 == options['slug']
             ]
         if not packages:
@@ -53,7 +53,7 @@ class Command(BaseCommand):
             if not metadata_path.is_file() or not article_path.is_file():
                 raise CommandError(f'{package.name} needs metadata.json and article.md')
 
-            metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
+            metadata = json.loads(metadata_path.read_text(encoding='utf-8-sig'))
             required = {'title', 'slug', 'category', 'summary', 'key_takeaway'}
             missing = required - metadata.keys()
             if missing:

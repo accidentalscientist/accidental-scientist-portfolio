@@ -1,50 +1,51 @@
 {% extends "portfolio/base.html" %}
+{% load static %}
 {% block title %}About{% endblock %}
 
 {% block content %}
+<div class="page-mark page-mark--about" aria-hidden="true"><img src="{% static 'images/favicon.png' %}" alt=""></div>
 
 <div class="about-page">
 
   {# ── Who I am ── #}
   <header class="about-hero">
     <p class="journal-eyebrow">About</p>
-    <h1>Thibault Aymonier-Newman</h1>
+    <h1>On data, systems, and human performance.</h1>
     <p class="about-lead">
-      I'm a data analyst and storyteller based in Sydney, working at the intersection of energy systems,
-      data science, and human performance. My work focuses on making complex systems legible —
-      whether that's the National Electricity Market, climate data, or how a runner's body responds
-      to training load over time. I came to this work sideways, which is why I call myself the
-      Accidental Scientist.
+      I'm an experienced commercial manager and a lifelong lover of data. My work and my curiosity
+      sit at the meeting point of the energy economy, the systems that shape it, and how people
+      adapt, perform, and change. I came to this work sideways &mdash; which is why I call myself
+      the Accidental Scientist.
     </p>
   </header>
 
   {# ── Interests ── #}
   <section class="about-interests">
     <div class="about-interest">
-      <span class="about-interest__icon">⚡</span>
+      <span class="about-interest__num">01</span>
       <div>
-        <h3>Energy transition</h3>
-        <p>The NEM, renewables integration, grid stability, emissions intensity, and the policy systems shaping Australia's decarbonisation path.</p>
+        <h3>Energy Transition</h3>
+        <p>The future of the energy economy, the data behind it, and the climate policy steering the shift to renewables.</p>
       </div>
     </div>
     <div class="about-interest">
-      <span class="about-interest__icon">📊</span>
+      <span class="about-interest__num">02</span>
       <div>
-        <h3>Data science & methods</h3>
-        <p>Time-series analysis, visualisation, Python, Django, and building tools that make data accessible to non-specialists.</p>
+        <h3>Data Stories</h3>
+        <p>A genuine love of finding the story in the numbers &mdash; time-series, visualisation, and building tools that make data legible to others.</p>
       </div>
     </div>
     <div class="about-interest">
-      <span class="about-interest__icon">🏃</span>
+      <span class="about-interest__num">03</span>
       <div>
-        <h3>Sport & performance</h3>
-        <p>Parkrun, running analytics, and what sport science can teach us about how humans adapt to stress over time.</p>
+        <h3>Human Performance</h3>
+        <p>Football analytics, running analytics, and how the body adapts to stress over time &mdash; plus a deep interest in behaviour change and habit formation.</p>
       </div>
     </div>
     <div class="about-interest">
-      <span class="about-interest__icon">🌏</span>
+      <span class="about-interest__num">04</span>
       <div>
-        <h3>Society & policy</h3>
+        <h3>Society &amp; Policy</h3>
         <p>Climate policy, international development, and the social systems that sit beneath the energy transition.</p>
       </div>
     </div>
@@ -52,11 +53,8 @@
 
   {# ── Contact form ── #}
   <section class="about-contact">
-    <div class="about-contact__header">
-      <p class="journal-eyebrow">Get in touch</p>
-      <h2>Let's connect</h2>
-      <p>I'm always open to conversations about energy data, collaboration, or just a good data problem. Drop me a line.</p>
-    </div>
+    <h2 class="about-contact__title">Get in touch</h2>
+    <p class="about-contact__intro">I'm always open to conversations about energy data, collaboration, or just a good data problem. Drop me a line.</p>
 
     {% if messages %}
       {% for message in messages %}
@@ -71,8 +69,8 @@
     <form method="post" class="about-form">
       {% csrf_token %}
       {% for field in form %}
-      <div class="mb-3">
-        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+      <div class="about-form__field">
+        <label for="{{ field.id_for_label }}" class="about-form__label">{{ field.label }}</label>
         {{ field }}
         {% if field.errors %}
           <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
