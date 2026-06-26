@@ -1,0 +1,385 @@
+/* ─────────────────────────────────────────────────────────────
+   NEM Fuel Mix dashboard
+   ───────────────────────────────────────────────────────────── */
+.nem {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1rem 0 4rem;
+}
+
+.nem-hero {
+  margin-bottom: 2.25rem;
+}
+
+.nem-hero h1 {
+  margin: 0.3rem 0 0.75rem;
+}
+
+.nem-hero__intro {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 60ch;
+}
+
+/* Region selector ─────────────────────────────────────────── */
+.nem-regions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.nem-region {
+  appearance: none;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.9rem;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.nem-region:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.nem-region--active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #fff;
+}
+
+.nem-auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+
+.nem-auto--on {
+  opacity: 1;
+  color: var(--accent-warm);
+}
+
+.nem-auto__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.nem-auto--on .nem-auto__dot {
+  animation: nemPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes nemPulse {
+  0%, 100% { transform: scale(1);   opacity: 1; }
+  50%      { transform: scale(1.5); opacity: 0.4; }
+}
+
+/* Headline stats ──────────────────────────────────────────── */
+.nem-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.nem-subhead__region {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  color: var(--accent-color);
+  background: rgba(45, 106, 45, 0.12);
+  border-radius: 3px;
+  padding: 0.15rem 0.5rem;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.nem-stat {
+  background: var(--bg-secondary);
+  padding: 1.1rem 1.25rem;
+}
+
+.nem-stat__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem;
+}
+
+.nem-stat__value {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.85rem;
+  line-height: 1;
+  color: var(--text-primary);
+  margin: 0 0 0.35rem;
+}
+
+.nem-stat--renew .nem-stat__value { color: var(--accent-color); }
+.nem-stat--fossil .nem-stat__value { color: var(--accent-warm); }
+.nem-stat--coal .nem-stat__value { color: var(--text-primary); }
+.nem-stat--gas .nem-stat__value { color: #b07b46; }
+
+.nem-stat__sub {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Grouped breakdown: coal / gas / renewables / storage ─────── */
+.nem-groups {
+  margin-bottom: 2.75rem;
+}
+
+.nem-groupbar {
+  display: flex;
+  height: 14px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+}
+
+.nem-groupbar__seg {
+  height: 100%;
+  width: 0;
+  transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nem-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 0.9rem;
+}
+
+.nem-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+}
+
+.nem-legend__swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.nem-legend__label { color: var(--text-secondary); }
+
+.nem-legend__val {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.nem-subhead {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 0 0 1.1rem;
+}
+
+.nem-bar--empty {
+  opacity: 0.35;
+}
+
+/* Window banner (explicit timeframe) ───────────────────────── */
+.nem-window {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.nem-window__pill {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-color);
+  background: rgba(45, 106, 45, 0.12);
+  border-radius: 3px;
+  padding: 0.25rem 0.6rem;
+}
+
+.nem-window__pill--alt {
+  color: var(--accent-warm);
+  background: var(--accent-warm-bg);
+}
+
+.nem-window__range {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* 3-month trend chart ──────────────────────────────────────── */
+.nem-trend {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.nem-trend__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.nem-trend__head .nem-subhead { margin: 0; }
+
+.nem-trend__intro {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  max-width: 70ch;
+}
+
+.nem-trend__note {
+  display: block;
+  font-size: 0.82rem;
+  font-style: italic;
+  opacity: 0.85;
+  margin-top: 0.2rem;
+}
+
+.nem-trend__canvas {
+  position: relative;
+  height: 320px;
+}
+
+/* Fuel breakdown bars ─────────────────────────────────────── */
+.nem-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.nem-bar {
+  display: grid;
+  grid-template-columns: 150px 1fr 110px;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nem-bar__label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+.nem-bar__icon { font-size: 0.95rem; }
+
+.nem-bar__track {
+  height: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.nem-bar__fill {
+  height: 100%;
+  width: 0;
+  border-radius: 6px;
+  transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nem-bar__value {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.nem-bar__pct {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+.nem-bar__mw {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+/* Upload ──────────────────────────────────────────────────── */
+.nem-upload {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+}
+
+.nem-upload h2 { font-size: 1.2rem; margin: 0 0 0.4rem; }
+
+.nem-upload p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.nem-upload code {
+  background: var(--bg-tertiary);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.82rem;
+}
+
+.nem-upload__form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.nem-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 720px) {
+  .nem-stats { grid-template-columns: repeat(2, 1fr); }
+  .nem-stat { padding: 0.85rem 0.7rem; }
+  .nem-bar {
+    grid-template-columns: 120px 1fr 80px;
+    gap: 0.6rem;
+  }
+  .nem-bar__label { font-size: 0.82rem; }
+}
+

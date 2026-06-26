@@ -1,0 +1,301 @@
+/* ============================
+   Navbar  — Austrian masthead
+   Seamless surface, double hairline below (newspaper rule)
+   ============================ */
+.navbar {
+  background-color: var(--bg-navbar) !important;
+  color: var(--text-primary);
+  padding: 1.1rem 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: background-color 0.35s ease, padding 0.25s ease;
+  border-bottom: 3px double var(--border-strong);
+  /* Subtle shadow to give it weight vs the body */
+  box-shadow: 0 2px 12px rgba(26, 46, 26, 0.07);
+}
+
+.navbar-shrink { padding-top: 0.5rem; }
+
+/* Brand — Playfair italic, like a French journal title */
+.navbar-brand {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.45rem;
+  letter-spacing: -0.01em;
+  color: var(--text-primary) !important;
+  transition: color 0.2s ease;
+  padding-bottom: 0.9rem;
+}
+
+.navbar-brand:hover { color: var(--accent-color) !important; }
+
+/* Nav links — Inter, tiny, wide-tracked caps */
+.nav-link {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary) !important;
+  margin-left: 0.5rem;
+  padding-bottom: 0.9rem !important;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover { color: var(--text-primary) !important; }
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--accent-color);
+  transition: width 0.25s ease;
+}
+
+.nav-link:hover::after { width: 100%; }
+
+.navbar-toggler { border-color: var(--border-color); }
+.navbar-toggler-icon { filter: var(--navbar-toggler-filter); }
+
+#theme-toggle {
+  padding: 0.4rem 0.5rem;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  transition: color 0.2s ease, transform 0.3s ease;
+  margin-bottom: 0.5rem;
+}
+
+#theme-toggle:hover {
+  color: var(--accent-warm);
+  transform: rotate(20deg);
+}
+
+/* ============================
+   Footer  — French minimalism with Indian ornament
+   ============================ */
+footer {
+  background-color: var(--bg-footer) !important;
+  color: var(--text-primary);
+  border-top: 3px double var(--border-strong);
+  padding: 1.25rem 0 1rem;
+  margin-top: auto;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer-brand {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0;
+  letter-spacing: -0.01em;
+}
+
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.6rem;
+  margin: 0.7rem 0 0.2rem;
+}
+
+.footer-nav a {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.footer-nav a:hover { color: var(--accent-warm); }
+
+.footer-dot { color: var(--accent-warm); margin: 0 0.15rem; }
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.8rem;
+  margin: 0.7rem 0 0.5rem;
+}
+
+.social-links a {
+  color: var(--text-secondary) !important;
+  font-size: 1.2rem;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.social-links a:hover {
+  transform: translateY(-2px);
+  color: var(--accent-color) !important;
+}
+
+.footer-copyright {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* ============================
+   Cards
+   ============================ */
+.card {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  box-shadow: var(--card-shadow);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-img-top {
+  height: 180px;
+  object-fit: cover;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.card-body {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(26, 46, 26, 0.1);
+}
+
+.card-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.card-text {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+/* ============================
+   Forms
+   ============================ */
+.form-control {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(45, 106, 45, 0.15);
+  outline: none;
+}
+
+/* ============================
+   Dark mode overrides
+   ============================ */
+[data-theme='dark'] footer           { background-color: var(--bg-primary) !important; }
+[data-theme='dark'] footer p         { color: var(--text-secondary) !important; }
+[data-theme='dark'] .social-links a  { color: var(--text-secondary) !important; }
+[data-theme='dark'] .list-group-item {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ============================
+   Responsive
+   ============================ */
+@media (max-width: 768px) {
+  .navbar { padding-top: 0.6rem; }
+  .card   { margin-bottom: 1rem; }
+  footer  { padding: 2rem 0 1.5rem; }
+  main    { padding: 1.25rem; }
+}
+
+/* ============================
+   Dashboard
+   ============================ */
+.fuel-bar-wrapper {
+  background-color: var(--bg-tertiary);
+  height: 16px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fuel-bar-fill {
+  height: 100%;
+  background-color: var(--accent-color);
+  border-radius: 4px;
+  transition: width 0.4s ease-in-out;
+}
+
+.chart-wrapper {
+  background: var(--chart-bg);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  border: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+  transition: background-color 0.3s ease;
+}
+
+.custom-select {
+  appearance: none;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 10px 2.5rem 10px 14px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 130px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background-image: url("data:image/svg+xml,%3Csvg fill='%235a6e52' viewBox='0 0 24 24' width='16' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+}
+
+.custom-select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(45, 106, 45, 0.15);
+}
+
+/* ============================
+   Shared page width — keeps every main page the same width
+   ============================ */
+main.container {
+  max-width: var(--page-width);
+}
+

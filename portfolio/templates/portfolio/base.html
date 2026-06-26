@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-{% load static %}
+{% load static compress %}
 
 <head>
     <meta charset="UTF-8">
@@ -29,7 +29,19 @@
     {% if include_markdown_css %}
       <link rel="stylesheet" href="{% static 'css/github-markdown.css' %}">
     {% endif %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- Design system, split into readable partials; bundled + minified in production -->
+    {% compress css %}
+    <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/blog.css' %}">
+    <link rel="stylesheet" href="{% static 'css/about.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nem.css' %}">
+    <link rel="stylesheet" href="{% static 'css/projects.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stillpoint.css' %}">
+    <link rel="stylesheet" href="{% static 'css/marginalia.css' %}">
+    {% endcompress %}
 
     
     <!-- Favicon block -->

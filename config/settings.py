@@ -71,6 +71,7 @@ INSTALLED_APPS = [
 
     # third party apps
     'markdownx',
+    'compressor',
 
     # my apps
     'portfolio',
@@ -173,6 +174,17 @@ STATICFILES_DIRS = [
 # Local-friendly default; the server sets STATIC_ROOT in its .env to
 # /var/www/accidental-site/staticfiles (see DEPLOYMENT.md).
 STATIC_ROOT = config('STATIC_ROOT', default=str(BASE_DIR / 'staticfiles'))
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+]
+
+# django-compressor: bundle + minify the split CSS partials in production.
+# Disabled in DEBUG so the individual files are served (easy to read/debug locally).
+COMPRESS_ENABLED = not config('DEBUG', default=False, cast=bool)
+COMPRESS_OFFLINE = False
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -1,0 +1,104 @@
+/* ─────────────────────────────────────────────────────────────
+   Austro-indo-french marginalia (faint, decorative, non-interactive)
+   ───────────────────────────────────────────────────────────── */
+
+/* Terracotta brick ribbon — left edge */
+.edge-brick {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--accent-warm);
+  opacity: 0.32;
+}
+
+.edge-brick svg { display: block; height: 100%; }
+
+/* Kolam + Tamil Om — footer corner */
+.footer-kolam {
+  position: absolute;
+  right: 18px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-warm);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.footer-om {
+  font-family: 'Noto Sans Tamil', serif;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+/* Coastal-abbey watermark — faint backdrop behind the home hero */
+.hero-castle {
+  position: absolute;
+  left: -5%;
+  top: -0.75rem;
+  bottom: auto;
+  width: 84%;
+  max-width: 820px;
+  z-index: 0;
+  opacity: 0.16;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Favicon page-mark — a small signature, placed differently per page */
+.page-mark {
+  position: fixed;
+  width: 34px;
+  height: 34px;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.page-mark img { width: 100%; height: 100%; display: block; }
+
+.page-mark--home     { bottom: 92px; right: 26px;  transform: rotate(-8deg); }
+.page-mark--projects { bottom: 104px; left: 48px;  transform: rotate(7deg);  width: 30px; height: 30px; }
+.page-mark--blog     { top: 104px;  right: 28px;   transform: rotate(-5deg); width: 28px; height: 28px; }
+.page-mark--about    { top: 50%;    right: 30px;   transform: rotate(11deg); width: 38px; height: 38px; }
+
+@media (max-width: 1200px) { .edge-brick { display: none; } }
+/* Only show the favicon mark when there's real gutter space beside the content */
+@media (max-width: 1280px) { .page-mark { display: none; } }
+@media (max-width: 720px)  { .hero-castle { display: none; } }
+
+/* Mobile navbar: hamburger left, toggle right, BOTH anchored to the top row
+   so they don't drift into the stacked links when the menu is open. */
+@media (max-width: 991px) {
+  .navbar .navbar-toggler {
+    position: absolute;
+    left: 6px;
+    top: 0.4rem;
+    transform: none;
+    z-index: 3;
+  }
+  .navbar .nav-theme {
+    top: 0.4rem !important;
+    transform: none !important;
+  }
+}
+/* Fleur-de-lys — footer bottom-left (mirrors the kolam on the right) */
+.footer-fleur {
+  position: absolute;
+  left: 14px;
+  bottom: 4px;
+  width: 62px;
+  height: 62px;
+  background-color: var(--accent-warm);   /* same terracotta as the kolam, theme-aware */
+  -webkit-mask: url("../images/fleur_mask.png") no-repeat center / contain;
+  mask: url("../images/fleur_mask.png") no-repeat center / contain;
+  opacity: 0.5;                            /* match the kolam */
+  pointer-events: none;
+}
+
+@media (max-width: 640px)  { .footer-kolam, .footer-fleur { display: none; } }
