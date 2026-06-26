@@ -4,8 +4,14 @@
 
     <div class="footer-brand">Accidental Scientist</div>
 
+    <nav class="footer-nav" aria-label="Footer navigation">
+      <a href="{% url 'projects' %}">Projects</a>
+      <a href="{% url 'blog' %}">Writing</a>
+      <a href="{% url 'about' %}">About</a>
+    </nav>
+
     <div class="social-links">
-      <a href="{% url 'about' %}" title="About">
+      <a href="{% url 'about' %}" title="Contact">
         <i class="bi bi-envelope-fill"></i>
       </a>
       <a href="{{ github_url }}" target="_blank" rel="noopener" title="GitHub">
@@ -16,14 +22,12 @@
       </a>
     </div>
 
-    <p class="footer-copyright">&copy; {{ now.year }} {{ site_name }}</p>
+    <p class="footer-copyright">&copy; {{ now.year }} {{ site_name }} <span class="footer-dot">·</span> {{ site_tagline }}</p>
 
   </div>
 
   {# ── Fleur-de-lys — footer corner marginalia (French) ── #}
-  <div class="footer-fleur" aria-hidden="true">
-    <img src="{% static 'images/fleur-de-lys.png' %}" alt="">
-  </div>
+  <div class="footer-fleur" aria-hidden="true"></div>
 
   {# ── Kolam + Tamil Om — footer corner marginalia ── #}
   <div class="footer-kolam" aria-hidden="true">

@@ -195,12 +195,34 @@ footer {
   letter-spacing: -0.01em;
 }
 
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.6rem;
+  margin: 0.7rem 0 0.2rem;
+}
+
+.footer-nav a {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.footer-nav a:hover { color: var(--accent-warm); }
+
+.footer-dot { color: var(--accent-warm); margin: 0 0.15rem; }
+
 .social-links {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 2rem;
-  margin: 0.85rem 0 0.5rem;
+  gap: 1.8rem;
+  margin: 0.7rem 0 0.5rem;
 }
 
 .social-links a {
@@ -2058,36 +2080,33 @@ main.container {
 @media (max-width: 1280px) { .page-mark { display: none; } }
 @media (max-width: 720px)  { .hero-castle { display: none; } }
 
-/* Mobile navbar: hamburger on the left so it never overlaps the dark-mode toggle */
+/* Mobile navbar: hamburger left, toggle right, BOTH anchored to the top row
+   so they don't drift into the stacked links when the menu is open. */
 @media (max-width: 991px) {
   .navbar .navbar-toggler {
     position: absolute;
     left: 6px;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 0.4rem;
+    transform: none;
     z-index: 3;
+  }
+  .navbar .nav-theme {
+    top: 0.4rem !important;
+    transform: none !important;
   }
 }
 /* Fleur-de-lys — footer bottom-left (mirrors the kolam on the right) */
 .footer-fleur {
   position: absolute;
-  left: 16px;
-  bottom: 6px;
-  width: 46px;
+  left: 14px;
+  bottom: 4px;
+  width: 62px;
+  height: 62px;
+  background-color: var(--accent-warm);   /* same terracotta as the kolam, theme-aware */
+  -webkit-mask: url("../images/fleur_mask.png") no-repeat center / contain;
+  mask: url("../images/fleur_mask.png") no-repeat center / contain;
+  opacity: 0.5;                            /* match the kolam */
   pointer-events: none;
-}
-
-.footer-fleur img {
-  width: 100%;
-  display: block;
-  mix-blend-mode: multiply;   /* drops the white background into the linen */
-  opacity: 0.6;
-}
-
-[data-theme='dark'] .footer-fleur img {
-  mix-blend-mode: screen;     /* on dark: invert to light lines, drop black bg */
-  filter: invert(1);
-  opacity: 0.5;
 }
 
 @media (max-width: 640px)  { .footer-kolam, .footer-fleur { display: none; } }
