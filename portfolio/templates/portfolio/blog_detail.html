@@ -1,11 +1,29 @@
 {% extends 'portfolio/base.html' %}
 
-{% block title %}{{ post.title }}{% endblock %}
+{% block title %}{{ post.title }} — Accidental Scientist{% endblock %}
 
 {% block meta_description %}{{ post.summary|default:post.title|truncatewords:30 }}{% endblock %}
 {% block og_title %}{{ post.title }}{% endblock %}
 {% block og_description %}{{ post.summary|default:post.title|truncatewords:30 }}{% endblock %}
 {% block og_image %}{{ post.image_absolute_url }}{% endblock %}
+{% block og_type %}article{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ post.title|escapejs }}",
+  "description": "{{ post.summary|default:post.title|truncatewords:30|escapejs }}",
+  "image": "{{ post.image_absolute_url|escapejs }}",
+  "datePublished": "{{ post.published|date:'c' }}",
+  "dateModified": "{{ post.updated_at|date:'c' }}",
+  "author": { "@type": "Person", "name": "Thibault Aymonier-Newman" },
+  "publisher": { "@type": "Organization", "name": "Accidental Scientist" },
+  "mainEntityOfPage": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <a href="{% url 'blog' %}" class="back-link">← Back to Writing</a>

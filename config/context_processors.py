@@ -1,4 +1,9 @@
+from django.conf import settings
 from django.utils.timezone import now
+
+# Single source of truth for the site version (shown only in local/dev).
+SITE_VERSION = "2.7.0"
+
 
 def inject_now(request):
     return {'now': now()}
@@ -11,4 +16,6 @@ def global_site_info(request):
         'site_tagline': "Exploring Data, Energy, and Football",
         'contact_email': "contact@accidentalscientist.net",
         'github_url': "https://github.com/accidentalscientist",
+        'debug_mode': settings.DEBUG,
+        'site_version': SITE_VERSION,
     }

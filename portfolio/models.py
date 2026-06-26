@@ -8,9 +8,17 @@ import re
 
 
 class Project(models.Model):
+    # Mirrors BlogPost.Category so projects and writing share one taxonomy.
+    class Category(models.TextChoices):
+        ENERGY = 'energy', 'Energy transition'
+        DATA = 'data', 'Data Stories'
+        SOCIETY = 'society', 'Society & policy'
+        SPORT = 'sport', 'Human performance'
+
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True, null=True)
     description = models.TextField()
+    category = models.CharField(max_length=20, choices=Category.choices, default=Category.ENERGY)
     image = models.ImageField(upload_to='projects/', blank=True, null=True)
     project_url = models.URLField(blank=True, null=True)
     date = models.DateField(auto_now_add=True)

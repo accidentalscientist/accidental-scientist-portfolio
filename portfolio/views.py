@@ -1,14 +1,44 @@
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Project, BlogPost
 from .forms import ContactForm
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.conf import settings
 from django.templatetags.static import static
 import markdown2
 from django.utils import timezone
 import re
+
+logger = logging.getLogger(__name__)
+
+# Light, invisible contact throttle: max submissions per IP per window.
+CONTACT_MAX_PER_WINDOW = 5
+CONTACT_WINDOW_SECONDS = 600  # 10 minutes
+
+
+def _client_ip(request):
+    """Best-effort client IP, honouring the proxy header set by Nginx."""
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '')
+
+
+def robots_txt(request):
+    """Served at /robots.txt — allows crawling and points to the sitemap."""
+    from django.http import HttpResponse
+    lines = [
+        "User-agent: *",
+        "Disallow: /admin/",
+        "Disallow: /markdownx/",
+        "",
+        f"Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
 
 
 
@@ -23,7 +53,16 @@ def home(request):
 
 def all_projects(request):
     projects = Project.objects.all().order_by('-date')
-    return render(request, 'portfolio/projects.html', {'projects': projects})
+    category = request.GET.get('category', '')
+    if category and category in dict(Project.Category.choices):
+        projects = projects.filter(category=category)
+    else:
+        category = ''
+    return render(request, 'portfolio/projects.html', {
+        'projects': projects,
+        'categories': Project.Category.choices,
+        'active_category': category,
+    })
 
 def project_detail(request, slug):
     project = get_object_or_404(Project, slug=slug)
@@ -64,22 +103,29 @@ def blog_detail(request, slug):
         status=BlogPost.Status.PUBLISHED,
         published__lte=timezone.now(),
     )
-    # Replace [[image1]], [[image2]] etc. with <img> tags before rendering
+    # Replace [[image1]], [[image2]] etc. with <img> tags before rendering.
+    # Captions are escaped so a stray "<", "&" etc. displays as text (hygiene).
+    from django.utils.html import escape
     content = post.content
     for i, img in enumerate(post.images.all()):
         placeholder = f"[[image{i+1}]]"
-        img_tag = f'<figure><img src="{img.image.url}" alt="{img.caption}" style="max-width:100%;border-radius:8px;">{"<figcaption>" + img.caption + "</figcaption>" if img.caption else ""}</figure>'
+        caption = escape(img.caption) if img.caption else ""
+        figcaption = f"<figcaption>{caption}</figcaption>" if caption else ""
+        img_tag = (
+            f'<figure><img src="{img.image.url}" alt="{caption}" '
+            f'style="max-width:100%;border-radius:8px;">{figcaption}</figure>'
+        )
         content = content.replace(placeholder, img_tag)
 
     markdown_extras = getattr(settings, "MARKDOWN2_EXTRAS", [])
     post.content_html = markdown2.markdown(content, extras=markdown_extras)
     post.summary_html = markdown2.markdown(post.summary, extras=markdown_extras)
 
-    # Absolute URL for OpenGraph image
+    # Absolute URL for OpenGraph image (falls back to the branded share image)
     if post.image:
         post.image_absolute_url = request.build_absolute_uri(post.image.url)
     else:
-        post.image_absolute_url = request.build_absolute_uri(static('images/favicon.png'))
+        post.image_absolute_url = request.build_absolute_uri(static('images/share-default.png'))
 
     return render(request, 'portfolio/blog_detail.html', {'post': post, 'include_markdown_css': True})
 
@@ -88,27 +134,46 @@ def contact_view(request):
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
+            # Honeypot: a bot filled the hidden field — pretend success, send nothing.
+            if form.cleaned_data.get('website'):
+                logger.info("Contact honeypot triggered from %s", _client_ip(request))
+                messages.success(request, "Thanks for your message. I'll get back to you soon!")
+                return render(request, 'portfolio/contact.html', {'form': ContactForm(), 'redirect': True})
+
+            # Light per-IP rate limit (invisible unless someone is abusing the form).
+            ip = _client_ip(request)
+            throttle_key = f"contact-throttle:{ip}"
+            attempts = cache.get(throttle_key, 0)
+            if attempts >= CONTACT_MAX_PER_WINDOW:
+                messages.error(request, "You've sent a few messages already — please try again a little later.")
+                return render(request, 'portfolio/contact.html', {'form': form})
+            cache.set(throttle_key, attempts + 1, CONTACT_WINDOW_SECONDS)
+
             name = form.cleaned_data['name']
             email = form.cleaned_data['email']
             message = form.cleaned_data['message']
+            full_message = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
 
-            full_message = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
+            try:
+                EmailMessage(
+                    subject=f"Contact form: {name}",
+                    body=full_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[settings.CONTACT_EMAIL],
+                    reply_to=[email],
+                ).send(fail_silently=False)
+            except Exception:
+                logger.exception("Contact form email failed to send")
+                messages.error(
+                    request,
+                    "Sorry — something went wrong sending your message. "
+                    "Please email me directly at contact@accidentalscientist.net.",
+                )
+                return render(request, 'portfolio/contact.html', {'form': form})
 
-            send_mail(
-                subject=f"Contact Form Submission from {name}",
-                message=full_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[settings.CONTACT_EMAIL],
-                fail_silently=False,
-                reply_to=[email]
-            )
             messages.success(request, "Thanks for your message. I'll get back to you soon!")
-            form = ContactForm()
-            return render(request, 'portfolio/contact.html', {'form': form, 'redirect': True})
-
-            
-
+            return render(request, 'portfolio/contact.html', {'form': ContactForm(), 'redirect': True})
     else:
-        form = ContactForm() 
+        form = ContactForm()
 
     return render(request, 'portfolio/contact.html', {'form': form})

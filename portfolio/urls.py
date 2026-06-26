@@ -1,5 +1,5 @@
-from django.views.generic import TemplateView
 from django.urls import path
+from django.views.generic import RedirectView
 from . import views
 
 urlpatterns = [
@@ -8,7 +8,7 @@ urlpatterns = [
     path('projects/<slug:slug>/', views.project_detail, name='project_detail'),
     path('blog/', views.blog_list, name='blog'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
-    path('contact/', views.contact_view, name='contact'),
-    path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
-
+    path('about/', views.contact_view, name='about'),
+    # Keep the old /contact/ working; send it to the canonical /about/.
+    path('contact/', RedirectView.as_view(pattern_name='about', permanent=True), name='contact'),
 ]

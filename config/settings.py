@@ -39,6 +39,24 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: v.split(','))
 
 
+# ── Production security (applied only when DEBUG is off) ──────────────
+# The zero-risk headers are always on in production. SSL redirect and HSTS
+# are opt-in via env so there is no chance of locking the site out before
+# HTTPS is confirmed stable — flip them on after the first clean deploy.
+if not config('DEBUG', default=False, cast=bool):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+
+    # Opt-in once HTTPS is confirmed (set these env vars on the server):
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
+    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=0, cast=int)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
+    SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=False, cast=bool)
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -149,10 +167,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 #static
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [ 
+STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
-STATIC_ROOT = '/var/www/accidental-site/staticfiles'
+# Local-friendly default; the server sets STATIC_ROOT in its .env to
+# /var/www/accidental-site/staticfiles (see DEPLOYMENT.md).
+STATIC_ROOT = config('STATIC_ROOT', default=str(BASE_DIR / 'staticfiles'))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

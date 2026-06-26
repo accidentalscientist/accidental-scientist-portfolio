@@ -1,6 +1,7 @@
 {% extends "portfolio/base.html" %}
 {% load static %}
-{% block title %}About{% endblock %}
+{% block title %}About Thibault Aymonier-Newman — Accidental Scientist{% endblock %}
+{% block meta_description %}About Thibault Aymonier-Newman — an experienced commercial manager and data analyst working at the meeting point of energy systems, data science and human performance.{% endblock %}
 
 {% block content %}
 <div class="page-mark page-mark--about" aria-hidden="true"><img src="{% static 'images/favicon.png' %}" alt=""></div>
@@ -69,13 +70,17 @@
     <form method="post" class="about-form">
       {% csrf_token %}
       {% for field in form %}
-      <div class="about-form__field">
-        <label for="{{ field.id_for_label }}" class="about-form__label">{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}
-          <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
+        {% if field.name == 'website' %}
+          <div class="hp-wrap" aria-hidden="true">{{ field }}</div>
+        {% else %}
+          <div class="about-form__field">
+            <label for="{{ field.id_for_label }}" class="about-form__label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
+            {% endif %}
+          </div>
         {% endif %}
-      </div>
       {% endfor %}
       <button type="submit" class="btn btn-primary">Send message</button>
     </form>

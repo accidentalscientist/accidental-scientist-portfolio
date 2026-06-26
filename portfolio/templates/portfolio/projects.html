@@ -1,7 +1,8 @@
 {% extends 'portfolio/base.html' %}
 {% load static %}
 
-{% block title %}Projects{% endblock %}
+{% block title %}Projects — energy &amp; data tools — Accidental Scientist{% endblock %}
+{% block meta_description %}Interactive data projects built around Australia's energy transition — including the live NEM fuel-mix dashboard.{% endblock %}
 
 {% block content %}
 <div class="page-mark page-mark--projects" aria-hidden="true"><img src="{% static 'images/favicon.png' %}" alt=""></div>
@@ -13,18 +14,29 @@
     <p>Interactive data projects built around Australia's grid, renewables, and the systems shaping decarbonisation.</p>
   </header>
 
+  {# ── Category filter ── #}
+  <nav class="category-filter" aria-label="Filter projects by category">
+    <a href="{% url 'projects' %}" class="category-pill {% if not active_category %}category-pill--active{% endif %}">All</a>
+    {% for value, label in categories %}
+    <a href="?category={{ value }}" class="category-pill {% if active_category == value %}category-pill--active{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </nav>
+
   <div class="project-rows">
     {% for project in projects %}
       <a class="project-row" href="{% if project.project_url %}{{ project.project_url }}{% else %}{% url 'project_detail' slug=project.slug %}{% endif %}">
         <div class="project-row__body">
           <div class="project-row__head">
             <h3 class="project-row__title">{{ project.title }}</h3>
+            <span class="category-badge category-badge--{{ project.category }}">{{ project.get_category_display }}</span>
             {% if project.project_url %}<span class="project-row__badge">Live tool</span>{% endif %}
           </div>
           <p class="project-row__desc">{{ project.description|truncatewords:26 }}</p>
         </div>
         <span class="project-row__arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span>
       </a>
+    {% empty %}
+      <p class="nem-empty">No projects in this category yet.</p>
     {% endfor %}
   </div>
 
