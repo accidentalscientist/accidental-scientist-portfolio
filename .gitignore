@@ -22,3 +22,7 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+
+# Private docs — design reports, security audits, deployment & next-steps notes
+# (keep these out of the public repo per the IP policy)
+docs/
