@@ -32,8 +32,10 @@ class BlogPostAdmin(MarkdownxModelAdmin):
 
 class ProjectAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
-    list_display = ('title', 'slug', 'date')
-    fields = ('title', 'slug', 'description', 'image', 'project_url')
+    list_display = ('title', 'category', 'slug', 'date')
+    list_editable = ('category',)
+    list_filter = ('category',)
+    fields = ('title', 'slug', 'category', 'description', 'image', 'project_url')
     readonly_fields = ('date',)
 
 
