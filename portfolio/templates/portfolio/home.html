@@ -13,20 +13,20 @@
         <p class="portfolio-hero__eyebrow">
             <span id="typewriter-prefix">Exploring </span><span id="typewriter-word" aria-live="polite"></span><span class="typewriter-cursor" aria-hidden="true">|</span>
         </p>
-        <h1 id="hero-title">Energy, systems, and human performance.</h1>
+        <h1 id="hero-title">Energy, Systems, and Human Performance.</h1>
         <p class="portfolio-hero__intro">
             I explore the renewable energy transition &mdash; and the data, systems, and human behaviour
             shaping a cleaner, more resilient future.
         </p>
         <div class="portfolio-hero__actions">
-            <a class="btn btn-primary" href="{% url 'nem_dashboard:nem_dashboard' %}">Explore the NEM dashboard</a>
-            <a class="btn btn-outline-primary" href="{% url 'projects' %}">View projects</a>
+            <a class="btn btn-primary" href="{% url 'nem_dashboard:nem_dashboard' %}">Explore the NEM Dashboard</a>
+            <a class="btn btn-outline-primary" href="{% url 'projects' %}">View Projects</a>
         </div>
     </div>
 
     {% if current_project %}
     <aside class="current-project" aria-labelledby="current-project-title">
-        <p class="current-project__label">Current project</p>
+        <p class="current-project__label">Current Project</p>
         <h2 id="current-project-title">{{ current_project.title }}</h2>
         <p>{{ current_project.description|truncatewords:26 }}</p>
         <a class="current-project__link" href="{% if current_project.project_url %}{{ current_project.project_url }}{% else %}{% url 'project_detail' slug=current_project.slug %}{% endif %}">Open project &rarr;</a>
@@ -38,7 +38,7 @@
 {% if featured_post %}
 <section class="featured-single" aria-labelledby="home-writing-title">
     <div class="journal-section__heading">
-        <h2 id="home-writing-title">Featured writing</h2>
+        <h2 id="home-writing-title">Featured Writing</h2>
         <a href="{% url 'blog' %}" class="article-card__link">All articles &rarr;</a>
     </div>
 
