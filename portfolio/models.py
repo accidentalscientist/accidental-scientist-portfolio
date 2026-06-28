@@ -10,10 +10,10 @@ import re
 class Project(models.Model):
     # Mirrors BlogPost.Category so projects and writing share one taxonomy.
     class Category(models.TextChoices):
-        ENERGY = 'energy', 'Energy transition'
+        ENERGY = 'energy', 'Energy Systems'
         DATA = 'data', 'Data Stories'
-        SOCIETY = 'society', 'Society & policy'
-        SPORT = 'sport', 'Human performance'
+        SOCIETY = 'society', 'Society & Policy'
+        SPORT = 'sport', 'Human Performance'
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True, null=True)
@@ -47,10 +47,10 @@ class BlogPost(models.Model):
         PUBLISHED = 'published', 'Published'
 
     class Category(models.TextChoices):
-        ENERGY = 'energy', 'Energy transition'
+        ENERGY = 'energy', 'Energy Systems'
         DATA = 'data', 'Data Stories'
-        SOCIETY = 'society', 'Society & policy'
-        SPORT = 'sport', 'Human performance'
+        SOCIETY = 'society', 'Society & Policy'
+        SPORT = 'sport', 'Human Performance'
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
