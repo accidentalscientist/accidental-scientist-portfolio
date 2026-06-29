@@ -13,7 +13,7 @@ def global_site_info(request):
     return {
         'now': now(),
         'site_name': "Accidental Scientist",
-        'site_tagline': "Energy Systems · Data · Human Performance · Society & Policy",
+        'site_tagline': "Energy Systems · Data Stories · Human Performance · Commercial Intelligence",
         'contact_email': "contact@accidentalscientist.net",
         'github_url': "https://github.com/accidentalscientist",
         'debug_mode': settings.DEBUG,
