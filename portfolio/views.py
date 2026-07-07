@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Q
+from django.urls import reverse
 from .models import Project, BlogPost
 from .forms import ContactForm
 from django.core.mail import EmailMessage
@@ -45,22 +46,39 @@ def robots_txt(request):
 
 
 # Tools with no Project row of their own (standalone apps, not admin-managed
-# portfolio entries) — included in the homepage's daily rotation alongside
-# the real Project rows so all four live tools get equal homepage billing.
-EXTRA_HOMEPAGE_TOOLS = [
-    SimpleNamespace(
-        title='Life Compass',
-        description='A public demo of a local-first strategy and execution dashboard with generic demo data only.',
-        project_url='/life-compass/',
-        slug='life-compass',
-    ),
-    SimpleNamespace(
-        title='Portfolio Pulse',
-        description='Upload a book of business and get an instant health read: portfolio score, NRR/GRR, renewal risk, and silent decliners — with the scoring fully explained.',
-        project_url='/pulse/',
-        slug='portfolio-pulse',
-    ),
+# portfolio entries). One definition here drives both the homepage's daily
+# rotation and the "external tool" rows on the Projects page — add a tool
+# once here rather than wiring a new template block + view flag for it.
+EXTERNAL_TOOLS = [
+    {
+        'title': 'Life Compass',
+        'slug': 'life-compass',
+        'url_name': 'life_compass:home',
+        'category': Project.Category.SPORT,
+        'description': 'A public demo of a local-first strategy and execution dashboard with generic demo data only.',
+    },
+    {
+        'title': 'Portfolio Pulse',
+        'slug': 'portfolio-pulse',
+        'url_name': 'portfolio_pulse:dashboard',
+        'category': Project.Category.COMMERCIAL,
+        'description': 'Upload a book of business and get an instant health read: portfolio score, NRR/GRR, renewal risk, and silent decliners — with the scoring fully explained.',
+    },
 ]
+
+
+def _external_tools():
+    """EXTERNAL_TOOLS with URLs resolved, as attribute-access objects so
+    templates can treat them the same way as a Project instance."""
+    category_labels = dict(Project.Category.choices)
+    return [
+        SimpleNamespace(
+            title=t['title'], slug=t['slug'], category=t['category'],
+            category_display=category_labels[t['category']],
+            description=t['description'], project_url=reverse(t['url_name']),
+        )
+        for t in EXTERNAL_TOOLS
+    ]
 
 
 def _homepage_tools():
@@ -71,7 +89,7 @@ def _homepage_tools():
         .exclude(slug='nem-fuelmix')
         .order_by('slug')
     )
-    return db_tools + EXTRA_HOMEPAGE_TOOLS
+    return db_tools + _external_tools()
 
 
 def home(request):
@@ -93,14 +111,12 @@ def all_projects(request):
         projects = projects.filter(category=category)
     else:
         category = ''
-    show_life_compass = not category or category == Project.Category.SPORT
-    show_portfolio_pulse = not category or category == Project.Category.COMMERCIAL
+    external_tools = [t for t in _external_tools() if not category or t.category == category]
     return render(request, 'portfolio/projects.html', {
         'projects': projects,
         'categories': Project.Category.choices,
         'active_category': category,
-        'show_life_compass': show_life_compass,
-        'show_portfolio_pulse': show_portfolio_pulse,
+        'external_tools': external_tools,
     })
 
 def project_detail(request, slug):
