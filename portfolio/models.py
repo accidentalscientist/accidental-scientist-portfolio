@@ -12,8 +12,8 @@ class Project(models.Model):
     class Category(models.TextChoices):
         ENERGY = 'energy', 'Energy Systems'
         DATA = 'data', 'Data Stories'
-        SOCIETY = 'society', 'Society & Policy'
         SPORT = 'sport', 'Human Performance'
+        COMMERCIAL = 'commercial', 'Commercial Intelligence'
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True, null=True)
@@ -49,8 +49,8 @@ class BlogPost(models.Model):
     class Category(models.TextChoices):
         ENERGY = 'energy', 'Energy Systems'
         DATA = 'data', 'Data Stories'
-        SOCIETY = 'society', 'Society & Policy'
         SPORT = 'sport', 'Human Performance'
+        COMMERCIAL = 'commercial', 'Commercial Intelligence'
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)

@@ -1,7 +1,9 @@
 import logging
+from types import SimpleNamespace
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.db.models import Q
 from .models import Project, BlogPost
 from .forms import ContactForm
 from django.core.mail import EmailMessage
@@ -42,8 +44,41 @@ def robots_txt(request):
 
 
 
+# Tools with no Project row of their own (standalone apps, not admin-managed
+# portfolio entries) — included in the homepage's daily rotation alongside
+# the real Project rows so all four live tools get equal homepage billing.
+EXTRA_HOMEPAGE_TOOLS = [
+    SimpleNamespace(
+        title='Life Compass',
+        description='A public demo of a local-first strategy and execution dashboard with generic demo data only.',
+        project_url='/life-compass/',
+        slug='life-compass',
+    ),
+    SimpleNamespace(
+        title='Portfolio Pulse',
+        description='Upload a book of business and get an instant health read: portfolio score, NRR/GRR, renewal risk, and silent decliners — with the scoring fully explained.',
+        project_url='/pulse/',
+        slug='portfolio-pulse',
+    ),
+]
+
+
+def _homepage_tools():
+    # NEM already has its own dedicated hero CTA ("Explore the NEM Dashboard"),
+    # so it's excluded here to avoid the homepage pointing at it twice.
+    db_tools = list(
+        Project.objects.exclude(Q(project_url__isnull=True) | Q(project_url=''))
+        .exclude(slug='nem-fuelmix')
+        .order_by('slug')
+    )
+    return db_tools + EXTRA_HOMEPAGE_TOOLS
+
+
 def home(request):
-    current_project = Project.objects.order_by('-date').first()
+    tools = _homepage_tools()
+    # Deterministic per-day rotation (not per-visit) — stable all day, changes
+    # daily, and needs no stored state.
+    current_project = tools[timezone.localdate().toordinal() % len(tools)] if tools else None
     featured_post = BlogPost.objects.filter(
         status=BlogPost.Status.PUBLISHED,
         is_featured=True,
@@ -58,10 +93,14 @@ def all_projects(request):
         projects = projects.filter(category=category)
     else:
         category = ''
+    show_life_compass = not category or category == Project.Category.SPORT
+    show_portfolio_pulse = not category or category == Project.Category.COMMERCIAL
     return render(request, 'portfolio/projects.html', {
         'projects': projects,
         'categories': Project.Category.choices,
         'active_category': category,
+        'show_life_compass': show_life_compass,
+        'show_portfolio_pulse': show_portfolio_pulse,
     })
 
 def project_detail(request, slug):

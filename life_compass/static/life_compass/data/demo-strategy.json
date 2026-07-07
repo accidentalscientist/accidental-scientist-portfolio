@@ -1,0 +1,85 @@
+{
+  "title": "The map before action.",
+  "principle": "Strategy is the map. Execution is the sail.",
+  "northStar": "Build a meaningful career",
+  "currentSeason": "Create visible progress",
+  "careerCompass": {
+    "title": "Meaningful career direction",
+    "items": [
+      {
+        "label": "Capability",
+        "text": "Build useful skills through focused practice and visible projects."
+      },
+      {
+        "label": "Evidence",
+        "text": "Create work that demonstrates judgment, reliability and momentum."
+      },
+      {
+        "label": "Path",
+        "text": "Clarify the people, roles and places that fit the next season."
+      }
+    ]
+  },
+  "season": {
+    "title": "Create visible progress",
+    "summary": "A focused season for turning intention into small, finished pieces of work.",
+    "points": [
+      "Finish one meaningful project brief.",
+      "Publish or share one piece of visible work.",
+      "Review the week and reduce unnecessary commitments."
+    ],
+    "tags": ["Focus", "Progress", "Learning", "Review"]
+  },
+  "rules": [
+    {
+      "number": "01",
+      "name": "Protect Momentum",
+      "summary": "Make progress easy to restart.",
+      "text": "Choose small, repeatable actions that keep the important work moving."
+    },
+    {
+      "number": "02",
+      "name": "Tell The Truth",
+      "summary": "Stay honest about what is working.",
+      "text": "Use honest reflection to notice drift, friction and real progress."
+    },
+    {
+      "number": "03",
+      "name": "Keep Promises Small",
+      "summary": "Make commitments that can be finished.",
+      "text": "Prefer clear, finishable promises over vague ambition."
+    },
+    {
+      "number": "04",
+      "name": "Create Before Consuming",
+      "summary": "Put output before noise.",
+      "text": "Start the day by making progress on something that matters."
+    },
+    {
+      "number": "05",
+      "name": "Review The Map",
+      "summary": "Let reflection guide the next step.",
+      "text": "Regularly compare current action with long-term direction."
+    },
+    {
+      "number": "06",
+      "name": "Care For The Body",
+      "summary": "Health supports judgment.",
+      "text": "Use sleep, movement and food as foundations for better decisions."
+    }
+  ],
+  "careerStory": {
+    "title": "From curiosity to useful work",
+    "body": "This story is a movement from broad curiosity toward practical contribution. The through-line is learning, making ideas visible, and using finished work to create better opportunities.",
+    "points": [
+      "Where I have been: building skills, interests and self-knowledge.",
+      "Where I am now: turning direction into visible work and daily progress.",
+      "Where I am going: toward roles and projects where my strengths are useful."
+    ]
+  },
+  "longTermDirection": [
+    "Build a life and career around useful skills, clear values and visible contribution.",
+    "Create a portfolio of work that can travel ahead of introductions.",
+    "Move toward opportunities where learning, service and practical delivery meet."
+  ]
+}

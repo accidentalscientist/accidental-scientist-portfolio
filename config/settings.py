@@ -72,11 +72,14 @@ INSTALLED_APPS = [
     # third party apps
     'markdownx',
     'compressor',
+    'django.contrib.humanize',
 
     # my apps
     'portfolio',
     'nem_dashboard',
     'stillpoint',
+    'portfolio_pulse',
+    'life_compass',
 ]
 
 MIDDLEWARE = [

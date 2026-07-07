@@ -37,6 +37,8 @@ urlpatterns = [
     path('', include('portfolio.urls')),
     path('nem/', include('nem_dashboard.urls', namespace='nem_dashboard')),
     path('stillpoint/', include('stillpoint.urls', namespace='stillpoint')),
+    path('pulse/', include('portfolio_pulse.urls', namespace='portfolio_pulse')),
+    path('life-compass/', include('life_compass.urls', namespace='life_compass')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

@@ -432,17 +432,17 @@
   text-transform: uppercase;
 }
 
-.category-badge--energy  { background: rgba(45, 106, 45, 0.12);  color: #1e4d1e; }
-.category-badge--data    { background: rgba(59, 130, 246, 0.12);  color: #1e3a8a; }
-.category-badge--sport   { background: rgba(184, 74, 26, 0.12);   color: #7c2d12; }
-.category-badge--society { background: rgba(139, 92, 246, 0.12);  color: #4c1d95; }
-.category-badge--other   { background: rgba(107, 114, 128, 0.12); color: #374151; }
+.category-badge--energy     { background: rgba(45, 106, 45, 0.12);  color: #1e4d1e; }
+.category-badge--data       { background: rgba(59, 130, 246, 0.12);  color: #1e3a8a; }
+.category-badge--sport      { background: rgba(184, 74, 26, 0.12);   color: #7c2d12; }
+.category-badge--commercial { background: rgba(201, 150, 43, 0.16);  color: #8a6416; }
+.category-badge--other      { background: rgba(107, 114, 128, 0.12); color: #374151; }
 
-[data-theme='dark'] .category-badge--energy  { background: rgba(90, 158, 90, 0.2);   color: #a3d9a3; }
-[data-theme='dark'] .category-badge--data    { background: rgba(59, 130, 246, 0.18); color: #93c5fd; }
-[data-theme='dark'] .category-badge--sport   { background: rgba(212, 105, 58, 0.2);  color: #fdba74; }
-[data-theme='dark'] .category-badge--society { background: rgba(139, 92, 246, 0.18); color: #c4b5fd; }
-[data-theme='dark'] .category-badge--other   { background: rgba(107, 114, 128, 0.18);color: #d1d5db; }
+[data-theme='dark'] .category-badge--energy     { background: rgba(90, 158, 90, 0.2);   color: #a3d9a3; }
+[data-theme='dark'] .category-badge--data       { background: rgba(59, 130, 246, 0.18); color: #93c5fd; }
+[data-theme='dark'] .category-badge--sport      { background: rgba(212, 105, 58, 0.2);  color: #fdba74; }
+[data-theme='dark'] .category-badge--commercial { background: rgba(201, 150, 43, 0.22); color: #e8c375; }
+[data-theme='dark'] .category-badge--other      { background: rgba(107, 114, 128, 0.18);color: #d1d5db; }
 
 /* ============================
    Typewriter (homepage)

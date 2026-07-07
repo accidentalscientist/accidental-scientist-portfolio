@@ -10,8 +10,8 @@
 
   <header class="journal-hero">
     <p class="journal-eyebrow">Work</p>
-    <h1>Live & Intereactive Tools</h1>
-    <p>Interactive data projects built around Australia's Energy Systems, Commercial Excelle & Human Performance</p>
+    <h1>Live & Interactive Tools</h1>
+    <p>Interactive data projects built around Australia's Energy Systems, Commercial Excellence & Human Performance</p>
   </header>
 
   {# ── Category filter ── #}
@@ -23,6 +23,32 @@
   </nav>
 
   <div class="project-rows">
+    {% if show_life_compass %}
+      <a class="project-row" href="{% url 'life_compass:home' %}">
+        <div class="project-row__body">
+          <div class="project-row__head">
+            <h3 class="project-row__title">Life Compass</h3>
+            <span class="category-badge category-badge--sport">Human Performance</span>
+            <span class="project-row__badge">Live tool</span>
+          </div>
+          <p class="project-row__desc">A public demo of a local-first strategy and execution dashboard with generic demo data only.</p>
+        </div>
+        <span class="project-row__arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span>
+      </a>
+    {% endif %}
+    {% if show_portfolio_pulse %}
+      <a class="project-row" href="{% url 'portfolio_pulse:dashboard' %}">
+        <div class="project-row__body">
+          <div class="project-row__head">
+            <h3 class="project-row__title">Portfolio Pulse</h3>
+            <span class="category-badge category-badge--commercial">Commercial Intelligence</span>
+            <span class="project-row__badge">Live tool</span>
+          </div>
+          <p class="project-row__desc">Upload a book of business and get an instant health read: portfolio score, NRR/GRR, renewal risk, and silent decliners — with the scoring fully explained.</p>
+        </div>
+        <span class="project-row__arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span>
+      </a>
+    {% endif %}
     {% for project in projects %}
       <a class="project-row" href="{% if project.project_url %}{{ project.project_url }}{% else %}{% url 'project_detail' slug=project.slug %}{% endif %}">
         <div class="project-row__body">
@@ -36,7 +62,7 @@
         <span class="project-row__arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span>
       </a>
     {% empty %}
-      <p class="nem-empty">No projects in this category yet.</p>
+      {% if not show_life_compass and not show_portfolio_pulse %}<p class="nem-empty">No projects in this category yet.</p>{% endif %}
     {% endfor %}
   </div>
 

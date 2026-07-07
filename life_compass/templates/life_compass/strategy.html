@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Strategy | Life Compass</title>
+    <script type="module" crossorigin src="/static/life_compass/assets/strategy-CfX8mVR1.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/settingsMenu-DaA10LKg.js">
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/dom-BWdcqXEl.js">
+    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/settingsMenu-o7FyAQ-h.css">
+  </head>
+  <body data-page="strategy">
+    <header class="site-header">
+      <a class="site-return" href="/projects/">Back to Accidental Scientist</a>
+      <a class="brand" href="index.html" aria-label="Life Compass home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Life Compass</span>
+      </a>
+      <nav class="top-nav" aria-label="Primary">
+        <a href="strategy.html" aria-current="page">Strategy</a>
+        <a href="execution.html">Execution</a>
+      </nav>
+    </header>
+
+    <main class="shell stack strategy-layout">
+      <section class="panel panel-hero compact-hero strategy-hero">
+        <div>
+          <p class="eyebrow">Strategy</p>
+          <h1 id="strategy-title">The map before action.</h1>
+          <p class="lede" id="strategy-principle"></p>
+          <button class="text-button hero-edit" type="button" data-edit-section="hero" data-edit-only>Edit bearing</button>
+        </div>
+        <div class="hero-facts" aria-label="Strategic focus">
+          <div>
+            <span>North Star</span>
+            <strong id="north-star"></strong>
+          </div>
+          <div>
+            <span>Current Season</span>
+            <strong id="current-season"></strong>
+          </div>
+        </div>
+        <img class="hero-image" src="/static/life_compass/assets/map-hero.png" alt="">
+      </section>
+
+      <section class="two-column">
+        <article class="panel editable-card" data-edit-card="careerCompass">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Career Compass</p>
+              <h2 id="compass-title"></h2>
+            </div>
+            <button class="text-button" type="button" data-edit-section="careerCompass" data-edit-only>Edit</button>
+          </div>
+          <div class="compass-list" id="career-compass"></div>
+        </article>
+
+        <article class="panel rules-summary-card editable-card">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Editable set</p>
+              <h2>Operating principles</h2>
+            </div>
+            <div class="button-pair">
+              <button class="text-button" type="button" id="open-rules">View all</button>
+            </div>
+          </div>
+          <div class="rules-preview" id="rules-preview"></div>
+        </article>
+      </section>
+
+      <section class="two-column">
+        <article class="panel editable-card" data-edit-card="careerStory">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Career Story</p>
+              <h2 id="career-story-title"></h2>
+            </div>
+            <button class="text-button" type="button" data-edit-section="careerStory" data-edit-only>Edit</button>
+          </div>
+          <p class="story-copy" id="career-story-body"></p>
+          <ul class="thinking-points" id="career-story-points"></ul>
+        </article>
+
+        <article class="panel editable-card" data-edit-card="longTermDirection">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Long-Term Direction</p>
+              <h2>Where the map points</h2>
+            </div>
+            <button class="text-button" type="button" data-edit-section="longTermDirection" data-edit-only>Edit</button>
+          </div>
+          <ul class="quiet-list" id="long-term-direction"></ul>
+        </article>
+      </section>
+
+      <section class="panel editable-card season-strip" data-edit-card="season">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Current Season</p>
+            <h2 id="season-title"></h2>
+          </div>
+          <button class="text-button" type="button" data-edit-section="season" data-edit-only>Edit</button>
+        </div>
+        <p id="season-summary"></p>
+        <ul class="quiet-list compact-list" id="season-points"></ul>
+        <div class="tag-row" id="season-tags"></div>
+      </section>
+    </main>
+
+    <dialog class="modal wide-modal" id="rules-modal">
+      <form method="dialog" id="rules-form">
+        <div class="modal-heading">
+          <div>
+            <p class="eyebrow">Operating Principles</p>
+            <h2>View and edit your bearings</h2>
+          </div>
+          <button class="icon-button" type="submit" value="cancel" aria-label="Close rules">x</button>
+        </div>
+        <div class="rules-grid rules-editor" id="rules-grid"></div>
+        <div class="modal-actions">
+          <button class="text-button" type="submit" value="cancel">Close</button>
+          <button class="primary-button" type="submit" value="save">Save principles</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="strategy-edit-modal">
+      <form method="dialog" id="strategy-edit-form">
+        <div class="modal-heading">
+          <div>
+            <p class="eyebrow" id="strategy-edit-kicker">Edit</p>
+            <h2 id="strategy-edit-title">Edit content</h2>
+          </div>
+          <button class="icon-button" type="submit" value="cancel" aria-label="Close editor">x</button>
+        </div>
+        <div class="edit-fields" id="strategy-edit-fields"></div>
+        <div class="modal-actions">
+          <button class="text-button" type="submit" value="cancel">Cancel</button>
+          <button class="primary-button" type="submit" value="save">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+  </body>
+</html>

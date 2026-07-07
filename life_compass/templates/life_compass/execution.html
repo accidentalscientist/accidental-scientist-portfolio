@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Execution | Life Compass</title>
+    <script type="module" crossorigin src="/static/life_compass/assets/execution-iwp4iVU0.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/settingsMenu-DaA10LKg.js">
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/dom-BWdcqXEl.js">
+    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/settingsMenu-o7FyAQ-h.css">
+  </head>
+  <body data-page="execution">
+    <header class="site-header">
+      <a class="site-return" href="/projects/">Back to Accidental Scientist</a>
+      <a class="brand" href="index.html" aria-label="Life Compass home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Life Compass</span>
+      </a>
+      <nav class="top-nav" aria-label="Primary">
+        <a href="strategy.html">Strategy</a>
+        <a href="execution.html" aria-current="page">Execution</a>
+      </nav>
+    </header>
+
+    <main class="shell execution-layout">
+      <section class="panel panel-hero compact-hero execution-hero">
+        <div>
+          <p class="eyebrow">Execution</p>
+          <h1>Set the bearing. Sail the day.</h1>
+          <p class="lede">Navigate the waters with three clear tasks and visible work.</p>
+        </div>
+        <div class="hero-facts">
+          <div>
+            <span>North Star</span>
+            <strong id="execution-north-star">Build a meaningful career</strong>
+          </div>
+          <div>
+            <span>This Week's Focus</span>
+            <strong id="weekly-focus-summary">Write project brief + Review prototype + Move for 20 minutes</strong>
+          </div>
+        </div>
+        <img class="hero-image" src="/static/life_compass/assets/sail-hero.png" alt="">
+      </section>
+
+      <section class="panel daily-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Three Daily Tasks</p>
+            <h2 id="today-label">Today</h2>
+          </div>
+          <button class="icon-button" id="reset-day" type="button" title="Reset daily tasks" aria-label="Reset daily tasks" data-edit-only>R</button>
+        </div>
+        <div class="daily-task-list" id="daily-task-list"></div>
+      </section>
+
+      <section class="panel weekly-panel">
+        <p class="eyebrow">This Week's Focus</p>
+        <div class="focus-grid">
+          <label>Main<input id="focus-main" type="text" autocomplete="off"></label>
+          <label>Secondary<input id="focus-secondary" type="text" autocomplete="off"></label>
+          <label>Health Focus<input id="focus-health" type="text" autocomplete="off"></label>
+        </div>
+      </section>
+
+      <section class="panel calendar-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">X Calendar</p>
+            <h2>Moved the needle</h2>
+          </div>
+          <span class="mini-stat" id="chain-count">0 marked</span>
+        </div>
+        <div class="calendar-wrap" id="calendar-wrap"></div>
+      </section>
+
+      <section class="panel kanban-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Projects Kanban</p>
+            <h2>Ideas to complete</h2>
+          </div>
+        </div>
+        <form class="inline-add" id="kanban-add-form" data-edit-only>
+          <input id="kanban-add-input" type="text" placeholder="Develop an idea into a project" autocomplete="off">
+          <button type="submit">Add</button>
+        </form>
+        <div class="kanban-board" id="kanban-board"></div>
+      </section>
+
+      <section class="panel ledger-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Done Ledger</p>
+            <h2>Recent completions</h2>
+          </div>
+          <button class="text-button" type="button" id="open-ledger-archive">View all</button>
+        </div>
+        <ol class="ledger-list" id="done-ledger"></ol>
+      </section>
+    </main>
+
+    <dialog class="modal" id="ledger-modal">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">Archive</p>
+          <h2>All completed tasks</h2>
+        </div>
+        <button class="icon-button" type="button" id="close-ledger-archive" aria-label="Close completed task archive">x</button>
+      </div>
+      <ol class="ledger-list archive-list" id="ledger-archive"></ol>
+    </dialog>
+
+    <dialog class="modal" id="work-modal">
+      <form method="dialog" id="work-form">
+        <div class="modal-heading">
+          <div>
+            <p class="eyebrow">Project</p>
+            <h2 id="work-modal-title">Project</h2>
+          </div>
+          <button class="icon-button" type="submit" value="cancel" aria-label="Close work editor">x</button>
+        </div>
+        <div class="edit-fields">
+          <label>Title<input id="work-title" type="text" autocomplete="off"></label>
+          <label>Date<input id="work-date" type="date"></label>
+          <label>Description<textarea id="work-description" rows="5"></textarea></label>
+          <label>Priority<select id="work-priority">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select></label>
+          <label>Subtasks <span class="field-hint">Maximum 6. Use one as part of today's three tasks.</span><div class="subtask-editor" id="subtask-editor"></div></label>
+        </div>
+        <div class="modal-actions">
+          <button class="text-button parking-action" type="button" id="park-project" data-edit-only>Move to Parking Lot</button>
+          <button class="text-button" type="submit" value="cancel">Cancel</button>
+          <button class="primary-button" type="submit" value="save" data-edit-only>Save</button>
+        </div>
+      </form>
+    </dialog>
+
+  </body>
+</html>

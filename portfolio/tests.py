@@ -20,6 +20,14 @@ class PageSmokeTests(TestCase):
     def test_projects_ok(self):
         self.assertEqual(self.client.get(reverse('projects')).status_code, 200)
 
+    def test_life_compass_ok(self):
+        self.assertEqual(self.client.get(reverse('life_compass:home')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('life_compass:strategy')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('life_compass:execution')).status_code, 200)
+
+    def test_portfolio_pulse_ok(self):
+        self.assertEqual(self.client.get(reverse('portfolio_pulse:dashboard')).status_code, 200)
+
     def test_blog_list_ok(self):
         self.assertEqual(self.client.get(reverse('blog')).status_code, 200)
 
