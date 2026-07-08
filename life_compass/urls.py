@@ -1,3 +1,4 @@
+from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import views
@@ -10,4 +11,11 @@ urlpatterns = [
     path("index.html", views.home, name="index_html"),
     path("strategy.html", views.strategy, name="strategy"),
     path("execution.html", views.execution, name="execution"),
+    path(
+        "login/",
+        auth_views.LoginView.as_view(template_name="life_compass/login.html", redirect_authenticated_user=True),
+        name="login",
+    ),
+    path("logout/", auth_views.LogoutView.as_view(next_page="life_compass:home"), name="logout"),
+    path("api/data/", views.sync_data, name="sync_data"),
 ]
