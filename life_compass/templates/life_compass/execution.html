@@ -13,26 +13,20 @@
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:type" content="website">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <script type="module" crossorigin src="/static/life_compass/assets/execution-BQXk02qJ.js"></script>
-    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-Czcm6a9D.js">
+    <script type="module" crossorigin src="/static/life_compass/assets/execution-VObFXZ7w.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-_EfQVhel.js">
     <link rel="modulepreload" crossorigin href="/static/life_compass/assets/dom-BWdcqXEl.js">
-    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-o7FyAQ-h.css">
+    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-CKOUnqFG.css">
   </head>
-  <body data-page="execution" data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}">
+  <body data-page="execution" data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}" data-login-url="{% url 'life_compass:login' %}" data-logout-url="{% url 'life_compass:logout' %}">
     <header class="site-header">
-      <a class="site-return" href="/projects/">Back to Accidental Scientist</a>
-      <a class="brand" href="index.html" aria-label="Life Compass home">
+      <a class="brand" href="/projects/" aria-label="Back to Accidental Scientist">
         <span class="brand-mark" aria-hidden="true"></span>
-        <span>Life Compass</span>
+        <span>Back to Accidental Scientist</span>
       </a>
       <nav class="top-nav" aria-label="Primary">
-        <a href="strategy.html">Strategy</a>
-        <a href="execution.html" aria-current="page">Execution</a>
-        {% if request.user.is_authenticated %}
-          <a href="{% url 'life_compass:logout' %}">Log out</a>
-        {% else %}
-          <a href="{% url 'life_compass:login' %}?next={{ request.path }}">Log in</a>
-        {% endif %}
+        <a href="{% url 'life_compass:strategy' %}">Strategy</a>
+        <a href="{% url 'life_compass:execution' %}" aria-current="page">Execution</a>
       </nav>
     </header>
 

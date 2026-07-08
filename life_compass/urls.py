@@ -8,14 +8,13 @@ app_name = "life_compass"
 
 urlpatterns = [
     path("", views.home, name="home"),
-    path("index.html", views.home, name="index_html"),
-    path("strategy.html", views.strategy, name="strategy"),
-    path("execution.html", views.execution, name="execution"),
+    path("strategy/", views.strategy, name="strategy"),
+    path("execution/", views.execution, name="execution"),
     path(
         "login/",
         auth_views.LoginView.as_view(template_name="life_compass/login.html", redirect_authenticated_user=True),
         name="login",
     ),
-    path("logout/", auth_views.LogoutView.as_view(next_page="life_compass:home"), name="logout"),
+    path("logout/", auth_views.LogoutView.as_view(next_page="/projects/"), name="logout"),
     path("api/data/", views.sync_data, name="sync_data"),
 ]
