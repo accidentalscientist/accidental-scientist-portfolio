@@ -13,10 +13,10 @@
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:type" content="website">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <script type="module" crossorigin src="/static/life_compass/assets/execution-BNsN0HDv.js"></script>
-    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-DcvRPRVZ.js">
+    <script type="module" crossorigin src="/static/life_compass/assets/execution-oU93MsSQ.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-DgmQTVyg.js">
     <link rel="modulepreload" crossorigin href="/static/life_compass/assets/dom-BWdcqXEl.js">
-    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-jn17lG-y.css">
+    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-C4s_rC6m.css">
   </head>
   <body data-page="execution" data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}" data-login-url="{% url 'life_compass:login' %}" data-logout-url="{% url 'life_compass:logout' %}">
     <header class="site-header">
@@ -106,6 +106,21 @@
         <ol class="ledger-list" id="done-ledger"></ol>
       </section>
     </main>
+
+    <dialog class="modal" id="task-picker-modal">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">This Week</p>
+          <h2>Pick today's task</h2>
+        </div>
+        <button class="icon-button" type="button" id="close-task-picker" aria-label="Close task picker">x</button>
+      </div>
+      <input type="text" id="task-picker-search" placeholder="Search open tasks..." autocomplete="off">
+      <ul class="task-picker-list" id="task-picker-list"></ul>
+      <div class="modal-actions">
+        <button class="text-button" type="button" id="clear-task-picker">Clear this slot</button>
+      </div>
+    </dialog>
 
     <dialog class="modal" id="ledger-modal">
       <div class="modal-heading">
