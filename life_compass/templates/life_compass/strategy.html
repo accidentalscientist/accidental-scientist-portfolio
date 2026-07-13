@@ -14,10 +14,10 @@
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:type" content="website">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <script type="module" crossorigin src="/static/life_compass/assets/strategy-DkRWe61w.js"></script>
-    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-DofRgjMN.js">
+    <script type="module" crossorigin src="/static/life_compass/assets/strategy-COs08XuJ.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-CIdAHw3x.js">
     <link rel="modulepreload" crossorigin href="/static/life_compass/assets/dom-BWdcqXEl.js">
-    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-kIPrQlg7.css">
+    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-C9Xa1ijd.css">
   </head>
   <body data-page="strategy" data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}" data-demo-data-url="{% static 'life_compass/data/demo-strategy.json' %}" data-login-url="{% url 'life_compass:login' %}" data-logout-url="{% url 'life_compass:logout' %}">
     <header class="site-header">
@@ -59,7 +59,10 @@
               <p class="eyebrow">Career Compass</p>
               <h2 id="compass-title"></h2>
             </div>
-            <button class="text-button" type="button" data-edit-section="careerCompass" data-edit-only>Edit</button>
+            <div class="button-pair">
+              <button class="text-button" type="button" id="open-compass">View all</button>
+              <button class="text-button" type="button" data-edit-section="careerCompass" data-edit-only>Edit</button>
+            </div>
           </div>
           <div class="compass-list" id="career-compass"></div>
         </article>
@@ -116,6 +119,20 @@
         <div class="tag-row" id="season-tags"></div>
       </section>
     </main>
+
+    <dialog class="modal wide-modal" id="compass-modal">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">Career Compass</p>
+          <h2>Meaningful career direction</h2>
+        </div>
+        <button class="icon-button" type="button" id="close-compass" aria-label="Close career compass">x</button>
+      </div>
+      <div class="compass-grid" id="compass-grid"></div>
+      <div class="modal-actions">
+        <button class="text-button" type="button" id="close-compass-secondary">Close</button>
+      </div>
+    </dialog>
 
     <dialog class="modal wide-modal" id="rules-modal">
       <form method="dialog" id="rules-form">
