@@ -50,7 +50,7 @@ def parse_csv_on_upload(sender, instance, created, **kwargs):
         headers = set(reader.fieldnames or [])
         missing = REQUIRED_COLUMNS - headers
         if missing:
-            _set_result(instance, f"Import failed — missing columns: {', '.join(sorted(missing))}")
+            _set_result(instance, f"Import failed: missing columns: {', '.join(sorted(missing))}")
             return
 
         for line_no, row in enumerate(reader, start=2):
@@ -98,5 +98,5 @@ def parse_csv_on_upload(sender, instance, created, **kwargs):
 
     summary = f"Imported {imported} rows, skipped {skipped}."
     if errors:
-        summary += " Issues — " + "; ".join(errors)
+        summary += " Issues: " + "; ".join(errors)
     _set_result(instance, summary)

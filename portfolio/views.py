@@ -62,7 +62,7 @@ EXTERNAL_TOOLS = [
         'slug': 'portfolio-pulse',
         'url_name': 'portfolio_pulse:dashboard',
         'category': Project.Category.COMMERCIAL,
-        'description': 'Upload a book of business and get an instant health read: portfolio score, NRR/GRR, renewal risk, and silent decliners — with the scoring fully explained.',
+        'description': 'Upload a book of business and get an instant health read: portfolio score, NRR/GRR, renewal risk, and silent decliners, with the scoring fully explained.',
     },
 ]
 
@@ -200,7 +200,7 @@ def contact_view(request):
             throttle_key = f"contact-throttle:{ip}"
             attempts = cache.get(throttle_key, 0)
             if attempts >= CONTACT_MAX_PER_WINDOW:
-                messages.error(request, "You've sent a few messages already — please try again a little later.")
+                messages.error(request, "You've sent a few messages already; please try again a little later.")
                 return render(request, 'portfolio/contact.html', {'form': form})
             cache.set(throttle_key, attempts + 1, CONTACT_WINDOW_SECONDS)
 
@@ -209,8 +209,11 @@ def contact_view(request):
             message = form.cleaned_data['message']
             full_message = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
 
+            sent = 0
             try:
-                EmailMessage(
+                if not settings.CONTACT_EMAIL:
+                    raise ValueError("CONTACT_EMAIL is not configured, nowhere to deliver this message.")
+                sent = EmailMessage(
                     subject=f"Contact form: {name}",
                     body=full_message,
                     from_email=settings.DEFAULT_FROM_EMAIL,
@@ -218,10 +221,17 @@ def contact_view(request):
                     reply_to=[email],
                 ).send(fail_silently=False)
             except Exception:
+                sent = 0
                 logger.exception("Contact form email failed to send")
+
+            if not sent:
+                # EmailMessage.send() returns 0 (no exception) when it has no valid
+                # recipients — that used to look identical to success from here.
+                if not settings.CONTACT_EMAIL:
+                    logger.error("Contact form submission dropped: CONTACT_EMAIL is not set.")
                 messages.error(
                     request,
-                    "Sorry — something went wrong sending your message. "
+                    "Sorry, something went wrong sending your message. "
                     "Please email me directly at contact@accidentalscientist.net.",
                 )
                 return render(request, 'portfolio/contact.html', {'form': form})

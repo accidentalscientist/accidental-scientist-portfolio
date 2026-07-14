@@ -1,18 +1,18 @@
 {% extends "portfolio/base.html" %}
 {% load static %}
 
-{% block title %}NEM Fuel Mix Generation dashboard — Accidental Scientist{% endblock %}
-{% block meta_description %}How electricity is generated across Australia's National Electricity Market — fuel mix by source and region over the last 7 days, plus a 3-month renewables-vs-fossil-fuels trend.{% endblock %}
+{% block title %}NEM Fuel Mix Generation dashboard: Accidental Scientist{% endblock %}
+{% block meta_description %}How electricity is generated across Australia's National Electricity Market: fuel mix by source and region over the last 7 days, plus a 3-month renewables-vs-fossil-fuels trend.{% endblock %}
 
 {% block content %}
 <div class="nem">
 
   <header class="nem-hero">
     <p class="journal-eyebrow">Australian energy · last 7 days</p>
-    <h1>National Electricity Market — Fuel Mix Generation</h1>
+    <h1>National Electricity Market: Fuel Mix Generation</h1>
     <p class="nem-hero__intro">
       The National Electricity Market (NEM) is the interconnected grid spanning Australia's
-      eastern and southern states — New South Wales, Queensland, Victoria, South Australia and
+      eastern and southern states: New South Wales, Queensland, Victoria, South Australia and
       Tasmania. This dashboard tracks <strong>how that electricity is generated</strong>, by fuel
       source and region. The headline breakdown sums the <strong>most recent 7 days</strong> of
       generation, while the chart further down follows the renewables-versus-fossil-fuels balance
@@ -39,7 +39,7 @@
     {# ── Explicit window banner ── #}
     <div class="nem-window">
       <span class="nem-window__pill">Last 7 days</span>
-      <span class="nem-window__range" id="nem-mix-range">—</span>
+      <span class="nem-window__range" id="nem-mix-range">–</span>
     </div>
 
     {# ── Headline categories: Renewables · Coal · Gas ── #}
@@ -47,22 +47,22 @@
     <section class="nem-stats">
       <div class="nem-stat nem-stat--total">
         <p class="nem-stat__label">Total generated</p>
-        <p class="nem-stat__value" id="stat-total">—</p>
+        <p class="nem-stat__value" id="stat-total">–</p>
         <p class="nem-stat__sub">MWh · last 7 days</p>
       </div>
       <div class="nem-stat nem-stat--renew">
         <p class="nem-stat__label">Renewables</p>
-        <p class="nem-stat__value" id="stat-renew">—</p>
+        <p class="nem-stat__value" id="stat-renew">–</p>
         <p class="nem-stat__sub">wind · solar · hydro · biomass</p>
       </div>
       <div class="nem-stat nem-stat--coal">
         <p class="nem-stat__label">Coal</p>
-        <p class="nem-stat__value" id="stat-coal">—</p>
+        <p class="nem-stat__value" id="stat-coal">–</p>
         <p class="nem-stat__sub">black · brown</p>
       </div>
       <div class="nem-stat nem-stat--gas">
         <p class="nem-stat__label">Gas</p>
-        <p class="nem-stat__value" id="stat-gas">—</p>
+        <p class="nem-stat__value" id="stat-gas">–</p>
         <p class="nem-stat__sub">incl. liquid fuel</p>
       </div>
     </section>
@@ -84,7 +84,7 @@
         <span class="nem-window__pill nem-window__pill--alt">Last 3 months</span>
       </div>
       <p class="nem-trend__intro">
-        Daily generation over roughly three months — two lines competing for the grid.
+        Daily generation over roughly three months, two lines competing for the grid.
         <span class="nem-trend__note">(This chart shows 3 months, unlike the 7-day mix above. Battery storage is excluded.)</span>
       </p>
       <div class="nem-trend__canvas">

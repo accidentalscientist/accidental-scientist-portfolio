@@ -1,8 +1,8 @@
 {% extends "portfolio/base.html" %}
 {% load static humanize %}
 
-{% block title %}Portfolio Pulse — book of business health check{% endblock %}
-{% block meta_description %}Upload your book of business as a CSV and get an instant health read: portfolio score, NRR/GRR, renewal risk, and silent decliners — with the scoring fully explained.{% endblock %}
+{% block title %}Portfolio Pulse: book of business health check{% endblock %}
+{% block meta_description %}Upload your book of business as a CSV and get an instant health read: portfolio score, NRR/GRR, renewal risk, and silent decliners, with the scoring fully explained.{% endblock %}
 
 {% block content %}
 <div class="pulse">
@@ -12,8 +12,8 @@
     <h1>Portfolio Pulse</h1>
     <p class="pulse-hero__intro">
       Upload your account list and get an instant read on the health of your book: one score
-      per account, rolled up into a single portfolio number, six charts on state and — if you
-      also upload monthly revenue history — four more on movement over time, including the
+      per account, rolled up into a single portfolio number, six charts on state and (if you
+      also upload monthly revenue history) four more on movement over time, including the
       silent decliners who pay on time while quietly disengaging. Nothing you upload is stored.
     </p>
   </header>
@@ -21,18 +21,18 @@
   <section class="pulse-upload">
     <h2>Upload your book of business</h2>
     <p>
-      <strong>Portfolio Snapshot</strong> (required) — one row per account. Required columns:
+      <strong>Portfolio Snapshot</strong> (required): one row per account. Required columns:
       <code>account_id</code>, <code>account_name</code>, <code>segment</code>, <code>industry</code>,
       <code>csm_owner</code>, <code>customer_since</code>, <code>contract_start</code>,
       <code>renewal_date</code>, <code>auto_renew</code>, plus <code>avg_monthly_revenue_6mo</code>
-      and <code>total_revenue_36mo</code> — unless you also upload a Timeline, in which case
+      and <code>total_revenue_36mo</code>, unless you also upload a Timeline, in which case
       those two are computed from it instead.
     </p>
     <p>
-      <strong>Revenue Timeline</strong> (optional) — one row per account per month:
+      <strong>Revenue Timeline</strong> (optional): one row per account per month:
       <code>account_id</code>, <code>month</code> (<code>YYYY-MM</code>), <code>mrr</code>,
       plus optional usage columns. Uploading it unlocks trends, NRR/GRR, the ARR bridge, and
-      silent-decliner detection. <strong>If both files are uploaded, the Timeline's numbers win</strong> —
+      silent-decliner detection. <strong>If both files are uploaded, the Timeline's numbers win</strong>:
       it's the more granular source of truth.
     </p>
     <form method="post" enctype="multipart/form-data" class="pulse-upload__form">
@@ -111,23 +111,23 @@
       <summary>How health and risk are calculated</summary>
       <div class="pulse-explainer__body">
         <p>
-          Every account starts at 100 points. Five signals — days since contact, an overdue-payment
-          flag, ticket load (weighted up if a lot of those tickets were high-priority), seat
-          utilisation, and active-user rate — subtract points on a <strong>continuous ramp</strong>:
-          the deduction grows smoothly between a "clean" and a "bad" threshold, so an account at 89
-          days since contact scores almost the same as one at 91 days — never a cliff-edge jump. A
+          Every account starts at 100 points. Five signals subtract points on a <strong>continuous
+          ramp</strong>: days since contact, an overdue-payment flag, ticket load (weighted up if a
+          lot of those tickets were high-priority), seat utilisation, and active-user rate. The
+          deduction grows smoothly between a "clean" and a "bad" threshold, so an account at 89
+          days since contact scores almost the same as one at 91 days: never a cliff-edge jump. A
           missing signal contributes <strong>zero</strong> deduction, never a penalty; thresholds are
           also segment-aware (Enterprise tolerates longer gaps than SMB).
         </p>
         <p>
-          Summing those five deductions gives the <strong>Risk score</strong> — the raw, unweighted
+          Summing those five deductions gives the <strong>Risk score</strong>: the raw, unweighted
           signal read, independent of timing. <strong>Health</strong> is calculated from the same
           deductions but adjusted by three multipliers that account for context: renewal
-          proximity (×1.25 if renewal is within 90 days — the same problems matter more when the
+          proximity (×1.25 if renewal is within 90 days, since the same problems matter more when the
           contract is about to turn over), tenure (×1.15 if the account is under 6 months old,
-          ×0.9 if over 3 years — a new relationship is more fragile), and momentum (×1.15 if
+          ×0.9 if over 3 years, since a new relationship is more fragile), and momentum (×1.15 if
           spend is shrinking, ×0.9 if it's growing). <strong>Risk and Health are deliberately
-          different numbers</strong> — an account can carry real risk signals (say, a high ticket
+          different numbers</strong>: an account can carry real risk signals (say, a high ticket
           count) but still show strong Health if its renewal isn't imminent and it's a long-tenured,
           growing account; conversely, the same risk signals right before a renewal date will drag
           Health down harder than Risk alone would suggest.
@@ -135,7 +135,7 @@
         <p>
           The portfolio's headline number is the <strong>ARR-weighted average</strong> Health score
           across every account, so a struggling $500k account moves it more than a struggling $10k
-          one. Every weight and threshold is a plain constant in <code>scoring.py</code> — no ML,
+          one. Every weight and threshold is a plain constant in <code>scoring.py</code>: no ML,
           nothing hidden.
         </p>
       </div>
@@ -143,7 +143,7 @@
 
     <div class="pulse-chart-card">
       <h2 class="pulse-subhead">Revenue tiers</h2>
-      <p class="pulse-chart-intro">Accounts sorted into Gold / Silver / Bronze by ARR rank — how concentrated is the book?</p>
+      <p class="pulse-chart-intro">Accounts sorted into Gold / Silver / Bronze by ARR rank: how concentrated is the book?</p>
       <div class="pulse-canvas"><canvas id="pulse-chart-concentration"></canvas></div>
     </div>
 
@@ -156,13 +156,13 @@
 
       <div class="pulse-chart-card">
         <h2 class="pulse-subhead">Revenue vs. health</h2>
-        <p class="pulse-chart-intro">x = final health score (risk adjusted for renewal timing, tenure, momentum), y = current ARR. Compare against the risk chart — they diverge where context matters.</p>
+        <p class="pulse-chart-intro">x = final health score (risk adjusted for renewal timing, tenure, momentum), y = current ARR. Compare against the risk chart; they diverge where context matters.</p>
         <div class="pulse-canvas"><canvas id="pulse-chart-revenue-health"></canvas></div>
       </div>
 
       <div class="pulse-chart-card">
         <h2 class="pulse-subhead">Renewal wall</h2>
-        <p class="pulse-chart-intro">ARR at risk by forward quarter, segmented by health band — the money question.</p>
+        <p class="pulse-chart-intro">ARR at risk by forward quarter, segmented by health band: the money question.</p>
         <div class="pulse-canvas"><canvas id="pulse-chart-renewal-wall"></canvas></div>
       </div>
 
@@ -174,14 +174,14 @@
 
       <div class="pulse-chart-card pulse-chart-card--wide">
         <h2 class="pulse-subhead">Coverage &amp; engagement</h2>
-        <p class="pulse-chart-intro">Days since contact vs. ARR — high value, long since contact is the neglect zone.</p>
+        <p class="pulse-chart-intro">Days since contact vs. ARR: high value, long since contact is the neglect zone.</p>
         <div class="pulse-canvas"><canvas id="pulse-chart-coverage"></canvas></div>
       </div>
     </div>
 
     <div class="pulse-chart-card">
       <h2 class="pulse-subhead">Momentum / spend trajectory</h2>
-      <p class="pulse-chart-intro">Run-rate vs. lifetime average, per account — the "big-but-shrinking" and "small-but-surging" accounts.</p>
+      <p class="pulse-chart-intro">Run-rate vs. lifetime average, per account: the "big-but-shrinking" and "small-but-surging" accounts.</p>
       <div class="pulse-canvas"><canvas id="pulse-chart-momentum"></canvas></div>
     </div>
 
@@ -197,14 +197,14 @@
 
       <div class="pulse-chart-card">
         <h2 class="pulse-subhead">Portfolio health &amp; NRR trend</h2>
-        <p class="pulse-chart-intro">Trajectory, not a snapshot — up to 36 months.</p>
+        <p class="pulse-chart-intro">Trajectory, not a snapshot: up to 36 months.</p>
         <div class="pulse-canvas"><canvas id="pulse-chart-health-nrr"></canvas></div>
       </div>
 
       <div class="pulse-chart-card pulse-chart-card--wide">
         <h2 class="pulse-subhead">Usage vs. revenue divergence</h2>
         <p class="pulse-chart-intro">
-          x = revenue trend, y = usage trend. The shaded quadrant — revenue flat/up, usage down —
+          x = revenue trend, y = usage trend. The shaded quadrant (revenue flat/up, usage down)
           is where <strong>silent decliners</strong> hide: paying on time while quietly disengaging.
         </p>
         <div class="pulse-canvas"><canvas id="pulse-chart-divergence"></canvas></div>
@@ -218,7 +218,7 @@
 
     <div class="pulse-chart-card">
       <h2 class="pulse-subhead">Revenue by group over time</h2>
-      <p class="pulse-chart-intro">Stacked MRR by segment — which parts of the book are compounding vs. stalling.</p>
+      <p class="pulse-chart-intro">Stacked MRR by segment: which parts of the book are compounding vs. stalling.</p>
       <div class="pulse-group-toggle">
         <button type="button" class="pulse-group-toggle__btn is-active" data-group="by_segment">By segment</button>
         <button type="button" class="pulse-group-toggle__btn" data-group="by_industry">By industry</button>

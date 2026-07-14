@@ -1,7 +1,7 @@
 {% extends 'portfolio/base.html' %}
 {% load static %}
 
-{% block title %}{{ post.title }} — Accidental Scientist{% endblock %}
+{% block title %}{{ post.title }}: Accidental Scientist{% endblock %}
 
 {% block meta_description %}{{ post.summary|default:post.title|truncatewords:30 }}{% endblock %}
 {% block og_title %}{{ post.title }}{% endblock %}
