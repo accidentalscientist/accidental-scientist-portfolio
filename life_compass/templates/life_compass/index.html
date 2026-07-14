@@ -3,34 +3,52 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Life Compass — a local-first strategy and execution dashboard</title>
-    <meta name="description" content="A public demo of Life Compass: a local-first strategy and execution dashboard — North Star, career compass, daily execution, and a kanban board. By Thibault Aymonier-Newman.">
+    <title>Life Compass: a local-first strategy and execution dashboard</title>
+    <meta name="description" content="A public demo of Life Compass: a local-first strategy and execution dashboard, covering the North Star, career compass, daily execution, and a kanban board. By Thibault Aymonier-Newman.">
     <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
     <meta property="og:site_name" content="Accidental Scientist">
-    <meta property="og:title" content="Life Compass — a local-first strategy and execution dashboard">
+    <meta property="og:title" content="Life Compass: a local-first strategy and execution dashboard">
     <meta property="og:description" content="A public demo of a local-first strategy and execution dashboard with generic demo data only.">
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}/static/life_compass/assets/map-hero.png">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:type" content="website">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <script type="module" crossorigin src="/static/life_compass/assets/home-7zXyS56J.js"></script>
-    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-CIyC-x_u.js">
-    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-DsUMV4cg.css">
+    <script type="module" crossorigin src="/static/life_compass/assets/home-YizGY2zw.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-CKvwuINb.js">
+    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-MY6EDqCu.css">
   </head>
   <body data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}" data-login-url="{% url 'life_compass:login' %}" data-logout-url="{% url 'life_compass:logout' %}">
     <header class="site-header">
-      <a class="brand" href="/projects/" aria-label="Back to Accidental Scientist">
-        <span class="brand-mark" aria-hidden="true"></span>
+      <a class="brand" href="{% url 'home' %}" aria-label="Back to Accidental Scientist">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <circle class="brand-mark-ring" cx="16" cy="16" r="14"></circle>
+          <g class="brand-mark-ticks">
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="16" y1="26" x2="16" y2="30"></line>
+            <line x1="2" y1="16" x2="6" y2="16"></line>
+            <line x1="26" y1="16" x2="30" y2="16"></line>
+            <line x1="6.5" y1="6.5" x2="9" y2="9"></line>
+            <line x1="23" y1="23" x2="25.5" y2="25.5"></line>
+            <line x1="6.5" y1="25.5" x2="9" y2="23"></line>
+            <line x1="23" y1="9" x2="25.5" y2="6.5"></line>
+          </g>
+          <path class="brand-mark-north" d="M16 5 L19.6 16 L12.4 16 Z"></path>
+          <path class="brand-mark-south" d="M16 27 L19.6 16 L12.4 16 Z"></path>
+          <circle class="brand-mark-center" cx="16" cy="16" r="2.4"></circle>
+        </svg>
         <span>Back to Accidental Scientist</span>
       </a>
       <nav class="top-nav" aria-label="Primary">
-        <a href="{% url 'life_compass:strategy' %}">Strategy</a>
-        <a href="{% url 'life_compass:execution' %}">Execution</a>
+        <a href="{% url 'life_compass:home' %}" data-nav="home" aria-current="page">Home</a>
+        <a href="{% url 'life_compass:strategy' %}" data-nav="strategy">Strategy</a>
+        <a href="{% url 'life_compass:execution' %}" data-nav="execution">Execution</a>
       </nav>
     </header>
 
     <main class="shell home-grid home-shell">
       <section class="home-hero panel">
+        <img class="hero-watermark" src="/static/life_compass/assets/roman-bireme-explorer.webp" alt="" aria-hidden="true">
+        <div class="hero-scrim" aria-hidden="true"></div>
         <p class="eyebrow">Life Compass</p>
         <h1>Strategy gives direction. Execution creates peace.</h1>
       </section>

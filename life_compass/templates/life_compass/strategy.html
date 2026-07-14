@@ -14,20 +14,36 @@
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:type" content="website">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <script type="module" crossorigin src="/static/life_compass/assets/strategy-CoGPH0ou.js"></script>
-    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-CIyC-x_u.js">
+    <script type="module" crossorigin src="/static/life_compass/assets/strategy-X4afIx6k.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-CKvwuINb.js">
     <link rel="modulepreload" crossorigin href="/static/life_compass/assets/dom-BWdcqXEl.js">
-    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-DsUMV4cg.css">
+    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-MY6EDqCu.css">
   </head>
   <body data-page="strategy" data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}" data-demo-data-url="{% static 'life_compass/data/demo-strategy.json' %}" data-login-url="{% url 'life_compass:login' %}" data-logout-url="{% url 'life_compass:logout' %}">
     <header class="site-header">
-      <a class="brand" href="/projects/" aria-label="Back to Accidental Scientist">
-        <span class="brand-mark" aria-hidden="true"></span>
+      <a class="brand" href="{% url 'home' %}" aria-label="Back to Accidental Scientist">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <circle class="brand-mark-ring" cx="16" cy="16" r="14"></circle>
+          <g class="brand-mark-ticks">
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="16" y1="26" x2="16" y2="30"></line>
+            <line x1="2" y1="16" x2="6" y2="16"></line>
+            <line x1="26" y1="16" x2="30" y2="16"></line>
+            <line x1="6.5" y1="6.5" x2="9" y2="9"></line>
+            <line x1="23" y1="23" x2="25.5" y2="25.5"></line>
+            <line x1="6.5" y1="25.5" x2="9" y2="23"></line>
+            <line x1="23" y1="9" x2="25.5" y2="6.5"></line>
+          </g>
+          <path class="brand-mark-north" d="M16 5 L19.6 16 L12.4 16 Z"></path>
+          <path class="brand-mark-south" d="M16 27 L19.6 16 L12.4 16 Z"></path>
+          <circle class="brand-mark-center" cx="16" cy="16" r="2.4"></circle>
+        </svg>
         <span>Back to Accidental Scientist</span>
       </a>
       <nav class="top-nav" aria-label="Primary">
-        <a href="{% url 'life_compass:strategy' %}" aria-current="page">Strategy</a>
-        <a href="{% url 'life_compass:execution' %}">Execution</a>
+        <a href="{% url 'life_compass:home' %}" data-nav="home">Home</a>
+        <a href="{% url 'life_compass:strategy' %}" data-nav="strategy" aria-current="page">Strategy</a>
+        <a href="{% url 'life_compass:execution' %}" data-nav="execution">Execution</a>
       </nav>
     </header>
 
@@ -54,13 +70,12 @@
 
       <section class="two-column">
         <article class="panel editable-card" data-edit-card="careerCompass">
-          <div class="panel-heading">
+          <div class="panel-heading clickable-heading" id="open-compass" role="button" tabindex="0" aria-label="View all career compass items">
             <div>
               <p class="eyebrow">Career Compass</p>
               <h2 id="compass-title"></h2>
             </div>
             <div class="button-pair">
-              <button class="text-button" type="button" id="open-compass">View all</button>
               <button class="text-button" type="button" data-edit-section="careerCompass" data-edit-only>Edit</button>
             </div>
           </div>
@@ -68,13 +83,10 @@
         </article>
 
         <article class="panel rules-summary-card editable-card">
-          <div class="panel-heading">
+          <div class="panel-heading clickable-heading" id="open-rules" role="button" tabindex="0" aria-label="View all operating principles">
             <div>
-              <p class="eyebrow">Editable set</p>
-              <h2>Operating principles</h2>
-            </div>
-            <div class="button-pair">
-              <button class="text-button" type="button" id="open-rules">View all</button>
+              <p class="eyebrow">Operating Principles</p>
+              <h2>Fixed points you steer by</h2>
             </div>
           </div>
           <div class="rules-preview" id="rules-preview"></div>
@@ -83,7 +95,7 @@
 
       <section class="two-column">
         <article class="panel editable-card" data-edit-card="careerStory">
-          <div class="panel-heading">
+          <div class="panel-heading clickable-heading" id="open-career-story" role="button" tabindex="0" aria-label="View all thinking points">
             <div>
               <p class="eyebrow">Career Story</p>
               <h2 id="career-story-title"></h2>
@@ -95,7 +107,7 @@
         </article>
 
         <article class="panel editable-card" data-edit-card="longTermDirection">
-          <div class="panel-heading">
+          <div class="panel-heading clickable-heading" id="open-long-term-direction" role="button" tabindex="0" aria-label="View all direction points">
             <div>
               <p class="eyebrow">Long-Term Direction</p>
               <h2>Where the map points</h2>
@@ -107,7 +119,7 @@
       </section>
 
       <section class="panel editable-card season-strip" data-edit-card="season">
-        <div class="panel-heading">
+        <div class="panel-heading clickable-heading" id="open-season-points" role="button" tabindex="0" aria-label="View all season points">
           <div>
             <p class="eyebrow">Current Season</p>
             <h2 id="season-title"></h2>
@@ -134,6 +146,48 @@
       </div>
     </dialog>
 
+    <dialog class="modal wide-modal" id="career-story-modal">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">Career Story</p>
+          <h2 id="career-story-modal-title"></h2>
+        </div>
+        <button class="icon-button" type="button" id="close-career-story" aria-label="Close career story">x</button>
+      </div>
+      <div class="compass-grid" id="career-story-grid"></div>
+      <div class="modal-actions">
+        <button class="text-button" type="button" id="close-career-story-secondary">Close</button>
+      </div>
+    </dialog>
+
+    <dialog class="modal wide-modal" id="long-term-direction-modal">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">Long-Term Direction</p>
+          <h2>Where the map points</h2>
+        </div>
+        <button class="icon-button" type="button" id="close-long-term-direction" aria-label="Close long-term direction">x</button>
+      </div>
+      <div class="compass-grid" id="long-term-direction-grid"></div>
+      <div class="modal-actions">
+        <button class="text-button" type="button" id="close-long-term-direction-secondary">Close</button>
+      </div>
+    </dialog>
+
+    <dialog class="modal wide-modal" id="season-points-modal">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">Current Season</p>
+          <h2 id="season-points-modal-title"></h2>
+        </div>
+        <button class="icon-button" type="button" id="close-season-points" aria-label="Close current season">x</button>
+      </div>
+      <div class="compass-grid" id="season-points-grid"></div>
+      <div class="modal-actions">
+        <button class="text-button" type="button" id="close-season-points-secondary">Close</button>
+      </div>
+    </dialog>
+
     <dialog class="modal wide-modal" id="rules-modal">
       <form method="dialog" id="rules-form">
         <div class="modal-heading">
@@ -143,10 +197,10 @@
           </div>
           <button class="icon-button" type="submit" value="cancel" aria-label="Close rules">x</button>
         </div>
-        <div class="rules-grid rules-editor" id="rules-grid"></div>
+        <div class="rules-grid" id="rules-grid"></div>
         <div class="modal-actions">
           <button class="text-button" type="submit" value="cancel">Close</button>
-          <button class="primary-button" type="submit" value="save">Save principles</button>
+          <button class="primary-button" type="submit" value="save" data-edit-only>Save principles</button>
         </div>
       </form>
     </dialog>
