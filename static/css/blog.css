@@ -246,13 +246,14 @@
   line-height: 1.75;
 }
 
+/* Cover images are usually charts — never crop them. Full natural aspect
+   ratio so titles, axes and legends stay intact. */
 .article-detail__image {
   display: block;
   width: 100%;
-  max-height: 440px;
+  height: auto;
   margin: 2.5rem 0;
   border-radius: 8px;
-  object-fit: cover;
 }
 
 /* Takeaway — terracotta left stripe (Indian accent) */
