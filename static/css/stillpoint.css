@@ -285,7 +285,13 @@
   gap: 0.2rem;
 }
 
+/* The numeral and the day-circles are visually very different heights, so
+   each stat's "value" row reserves the same height and centres its content
+   within it — otherwise the two stats read as misaligned with each other. */
 .sp-stat strong {
+  display: flex;
+  align-items: center;
+  min-height: 2.25rem;
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.5rem;
   color: var(--text-primary);
@@ -302,6 +308,8 @@
    a quieter, less quantified alternative to a numeric streak count. */
 .sp-recent-days {
   display: flex;
+  align-items: center;
+  min-height: 2.25rem;
   gap: 0.4rem;
 }
 
