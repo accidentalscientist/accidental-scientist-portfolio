@@ -16,7 +16,7 @@ class PortfolioUploadForm(forms.Form):
         validators=[FileExtensionValidator(['csv']), validate_csv_size],
     )
     timeline_file = forms.FileField(
-        label="Revenue Timeline (optional)",
+        label="ARR Timeline (optional)",
         required=False,
         validators=[FileExtensionValidator(['csv']), validate_csv_size],
     )

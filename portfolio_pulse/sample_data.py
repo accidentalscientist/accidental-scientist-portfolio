@@ -101,47 +101,54 @@ class _AccountBuilder:
         self.timeline = []
         self.snapshot = {}
 
-    def build_timeline(self, n_months, mrr_path, util_path=None, ticket_base=1.0):
+    def build_timeline(self, n_months, monthly_run_rate_path, util_path=None, ticket_base=1.0):
         rng = self.rng
         anchor = _month_start(self.today)
         months = _months_back(anchor, n_months)
         util_path = util_path or (lambda i, n: max(0.0, min(100.0, 55 + rng.uniform(-5, 5))))
         for i, month in enumerate(months):
-            mrr = max(0.0, mrr_path(i, n_months) * (1 + rng.uniform(-0.02, 0.02)))
+            arr = max(0.0, monthly_run_rate_path(i, n_months) * 12 * (1 + rng.uniform(-0.02, 0.02)))
             util = util_path(i, n_months)
             active = max(0.0, min(100.0, util * rng.uniform(0.78, 0.95))) if util else None
             tickets_opened = max(0, round(rng.gauss(ticket_base * INDUSTRIES[self.industry]["ticket_mult"], 0.8)))
             self.timeline.append({
-                "account_id": self.account_id, "month": month, "mrr": round(mrr, 2),
+                "account_id": self.account_id, "month": month, "arr": round(arr, 2),
                 "seat_utilisation_pct": round(util, 1) if util is not None else None,
                 "active_user_pct": round(active, 1) if active is not None else None,
                 "tickets_opened": tickets_opened,
             })
         return self
 
-    def finalize(self, *, term_length_months=12, auto_renew=True,
+    def finalize(self, *, term_length_months=36, auto_renew=True,
                  renewal_in_days=None, last_qbr_days_ago=30, days_since_contact=20,
                  overdue_flag=False, tickets_12mo=None, pct_high_priority=None,
-                 product_tier="Growth", contract_start_days_ago=None):
+                 product_tier="Growth", contract_start_days_ago=None,
+                 customer_since_days_ago=None):
         rng = self.rng
         first_month = self.timeline[0]["month"]
-        customer_since = first_month
+        customer_since = (
+            self.today - timedelta(days=customer_since_days_ago)
+            if customer_since_days_ago is not None
+            else first_month
+        )
         # Usually the same event, but a long-tenured account can sign a new
         # term without that resetting how long they've been a customer.
-        contract_start = (self.today - timedelta(days=contract_start_days_ago)
-                           if contract_start_days_ago is not None else customer_since)
-
         if renewal_in_days is None:
-            renewal_in_days = rng.randint(30, 360)
+            renewal_in_days = rng.randint(60, max(60, term_length_months * 30))
+        if contract_start_days_ago is None:
+            elapsed_days = max(0, term_length_months * 30 - renewal_in_days)
+            contract_start = self.today - timedelta(days=elapsed_days)
+        else:
+            contract_start = self.today - timedelta(days=contract_start_days_ago)
         renewal_date = self.today + timedelta(days=renewal_in_days)
 
         last_row = self.timeline[-1]
         recent = self.timeline[-6:]
         window = self.timeline[-36:]
-        avg_monthly_revenue_6mo = round(sum(r["mrr"] for r in recent) / len(recent), 2)
-        total_revenue_36mo = round(sum(r["mrr"] for r in window), 2)
-
-        entry_mrr = self.timeline[0]["mrr"]
+        current_arr = round(last_row["arr"], 2)
+        avg_monthly_revenue_6mo = round(sum(r["arr"] for r in recent) / len(recent) / 12, 2)
+        total_revenue_36mo = round(sum(r["arr"] / 12 for r in window), 2)
+        entry_arr = self.timeline[0]["arr"]
         seats_lo, seats_hi = SEATS_RANGE[self.segment]
 
         if tickets_12mo is None:
@@ -157,8 +164,9 @@ class _AccountBuilder:
             "seats_purchased": rng.randint(seats_lo, seats_hi),
             "contract_start": contract_start, "renewal_date": renewal_date,
             "term_length_months": term_length_months, "auto_renew": auto_renew,
-            "entry_arr": round(entry_mrr * 12, 2),
+            "entry_arr": round(entry_arr, 2),
             "last_qbr_date": self.today - timedelta(days=last_qbr_days_ago) if last_qbr_days_ago is not None else None,
+            "current_arr": current_arr,
             "avg_monthly_revenue_6mo": avg_monthly_revenue_6mo, "total_revenue_36mo": total_revenue_36mo,
             "tickets_12mo": tickets_12mo, "pct_high_priority": pct_high_priority,
             "days_since_contact": days_since_contact, "overdue_flag": overdue_flag,
@@ -251,7 +259,7 @@ def generate_sample(today=None):
             return s if i < dip else s + (e - s) * ((i - dip) / max(1, (nn - 1 - dip)))
 
         b.build_timeline(n, mrr_path, util_path=lambda i, nn: max(15, 60 - i * 0.6))
-        b.finalize(renewal_in_days=rng.randint(10, 90),
+        b.finalize(term_length_months=12, renewal_in_days=rng.randint(10, 90),
                    last_qbr_days_ago=rng.randint(200, 300), days_since_contact=rng.randint(30, 130),
                    overdue_flag=True, tickets_12mo=rng.randint(14, 24), pct_high_priority=round(rng.uniform(45, 70), 1),
                    auto_renew=False, product_tier="Starter")
@@ -268,7 +276,7 @@ def generate_sample(today=None):
             return s if i < churn else 0.0
 
         b.build_timeline(n, mrr_path, util_path=lambda i, nn: max(5, 50 - i * 1.2))
-        b.finalize(renewal_in_days=rng.randint(-30, 20),
+        b.finalize(term_length_months=12, renewal_in_days=rng.randint(-30, 20),
                    last_qbr_days_ago=rng.randint(250, 400), days_since_contact=rng.randint(180, 400),
                    overdue_flag=rng.random() < 0.5, tickets_12mo=rng.randint(2, 10),
                    auto_renew=False, product_tier="Starter")
@@ -297,35 +305,51 @@ def generate_sample(today=None):
         util_base = 55 + rng.uniform(-8, 8)
         b.build_timeline(n, lambda i, nn, s=start_mrr, e=end_mrr, st=step_at: s if i < st else e,
                           util_path=lambda i, nn, b=util_base: b + rng.uniform(-2, 2))
-        b.finalize(renewal_in_days=rng.randint(30, 200),
+        b.finalize(term_length_months=12, renewal_in_days=rng.randint(30, 200),
                    last_qbr_days_ago=rng.randint(60, 180), days_since_contact=rng.randint(30, 150))
         builders.append(b)
 
-    # Two large, deliberately illustrative accounts: same "big ARR" scale,
-    # opposite risk stories, to make the risk-vs-health distinction concrete.
-
-    # Sterling Capital: an established account (long tenure, so no new-logo
-    # penalty) that just signed a fresh 3-year term: renewal is nowhere near.
-    # Ticket volume is genuinely heavy (raw risk reads elevated), but almost
-    # none of it is high-priority, and with no renewal pressure the final
-    # health lands meaningfully better than the raw signal alone suggests.
+    # Sterling Capital: a long-tenured enterprise customer on a five-year term.
     b = new_builder(name="Sterling Capital", industry="Financial Services", segment="Enterprise")
     used_names.add(b.name)
     n = 36
     start_mrr = rng.uniform(34000, 38000)
     b.build_timeline(n, lambda i, nn, s=start_mrr: s * (1 + 0.008 * i),
                       util_path=lambda i, nn: 74 + rng.uniform(-3, 3))
-    b.finalize(term_length_months=36, contract_start_days_ago=45,
-               renewal_in_days=36 * 30 - 45, last_qbr_days_ago=25,
+    b.finalize(term_length_months=60, contract_start_days_ago=45,
+               renewal_in_days=60 * 30 - 45, last_qbr_days_ago=25,
+               customer_since_days_ago=7 * 365,
                days_since_contact=rng.randint(5, 20), overdue_flag=False,
                tickets_12mo=60, pct_high_priority=60.0,
                auto_renew=True, product_tier="Enterprise")
     builders.append(b)
 
-    # Ridgeline Technologies: established, paying fine, no support noise,
-    # but has been dodging QBRs for over a year, contact has gone cold, and
-    # renewal is a few weeks out. Pure engagement risk, amplified hard by
-    # renewal proximity: raw risk reads moderate, final health reads critical.
+    # Harbor Advisory: deliberately middle-tier ARR, but a five-year contract
+    # makes its total secured contract value far larger than ARR rank suggests.
+    b = new_builder(name="Harbor Advisory", industry="Professional Services", segment="Mid-Market")
+    used_names.add(b.name)
+    n = 36
+    start_mrr = rng.uniform(8500, 11500)
+    b.build_timeline(
+        n,
+        lambda i, nn, s=start_mrr: s * (1 + 0.004 * i),
+        util_path=lambda i, nn: 72 + rng.uniform(-4, 4),
+    )
+    b.finalize(
+        term_length_months=60,
+        contract_start_days_ago=300,
+        renewal_in_days=60 * 30 - 300,
+        customer_since_days_ago=6 * 365,
+        last_qbr_days_ago=55,
+        days_since_contact=20,
+        tickets_12mo=5,
+        pct_high_priority=5.0,
+        product_tier="Growth",
+    )
+    builders.append(b)
+
+    # Ridgeline Technologies: no QBR has ever been recorded and renewal is
+    # imminent, so the QBR fallback uses the account's full tenure.
     b = new_builder(name="Ridgeline Technologies", industry="Technology / SaaS", segment="Enterprise")
     used_names.add(b.name)
     n = 36
@@ -345,7 +369,7 @@ def generate_sample(today=None):
         start_mrr = rng.uniform(3000, 12000)
         b.build_timeline(n, lambda i, nn, s=start_mrr: s * (1 + 0.05 * i),
                           util_path=lambda i, nn: 40 + i * 8)
-        b.finalize(renewal_in_days=rng.randint(300, 360),
+        b.finalize(term_length_months=24, renewal_in_days=rng.randint(300, 540),
                    last_qbr_days_ago=None, days_since_contact=rng.randint(5, 35),
                    tickets_12mo=rng.randint(0, 4))
         builders.append(b)
@@ -359,27 +383,36 @@ def generate_sample(today=None):
         util_base = 62 + rng.uniform(-10, 15)
         b.build_timeline(n, lambda i, nn, s=start_mrr, e=end_mrr: s + (e - s) * (i / (nn - 1)),
                           util_path=lambda i, nn, b=util_base: b + rng.uniform(-3, 3))
-        b.finalize(renewal_in_days=rng.randint(30, 360),
+        is_one_year = rng.random() < 0.10
+        term_months = 12 if is_one_year else 36
+        tenure_override = rng.randint(4 * 365, 9 * 365) if rng.random() < 0.25 else None
+        b.finalize(term_length_months=term_months,
                    last_qbr_days_ago=rng.randint(20, 200), days_since_contact=rng.randint(5, 170),
-                   overdue_flag=rng.random() < 0.05)
+                   overdue_flag=rng.random() < 0.05,
+                   customer_since_days_ago=tenure_override)
         builders.append(b)
 
     # ── Rescale in two groups so the top 5 accounts land at exactly
     #    TOP5_REVENUE_SHARE of total ARR, instead of one flat scale factor
     #    that would leave the book too evenly spread ──
     def _rescale_group(group, target_total):
-        raw_total = sum(b.snapshot["avg_monthly_revenue_6mo"] * 12 for b in group)
+        raw_total = sum(b.snapshot["current_arr"] for b in group)
         scale = target_total / raw_total if raw_total else 1.0
         for b in group:
             for row in b.timeline:
-                row["mrr"] = round(row["mrr"] * scale, 2)
+                row["arr"] = round(row["arr"] * scale, 2)
             recent = b.timeline[-6:]
             window = b.timeline[-36:]
-            b.snapshot["avg_monthly_revenue_6mo"] = round(sum(r["mrr"] for r in recent) / len(recent), 2)
-            b.snapshot["total_revenue_36mo"] = round(sum(r["mrr"] for r in window), 2)
+            b.snapshot["current_arr"] = round(b.timeline[-1]["arr"], 2)
+            b.snapshot["avg_monthly_revenue_6mo"] = round(
+                sum(r["arr"] for r in recent) / len(recent) / 12, 2,
+            )
+            b.snapshot["total_revenue_36mo"] = round(
+                sum(r["arr"] / 12 for r in window), 2,
+            )
             b.snapshot["entry_arr"] = round(b.snapshot["entry_arr"] * scale, 2)
 
-    ranked = sorted(builders, key=lambda b: b.snapshot["avg_monthly_revenue_6mo"], reverse=True)
+    ranked = sorted(builders, key=lambda b: b.snapshot["current_arr"], reverse=True)
     top5, rest = ranked[:5], ranked[5:]
     _rescale_group(top5, TARGET_TOTAL_ARR * TOP5_REVENUE_SHARE)
     _rescale_group(rest, TARGET_TOTAL_ARR * (1 - TOP5_REVENUE_SHARE))
@@ -389,12 +422,12 @@ def generate_sample(today=None):
     #    money clusters in a couple of verticals instead of spreading evenly.
     #    Named-example accounts keep the industry their story is tied to. ──
     dominant_target = TARGET_TOTAL_ARR * DOMINANT_INDUSTRY_SHARE
-    dominant_sum = sum(b.snapshot["avg_monthly_revenue_6mo"] * 12 for b in builders
+    dominant_sum = sum(b.snapshot["current_arr"] for b in builders
                         if b.snapshot["industry"] in DOMINANT_INDUSTRIES)
     reassignable = sorted(
         (b for b in builders if b.name not in FIXED_INDUSTRY_ACCOUNTS
          and b.snapshot["industry"] not in DOMINANT_INDUSTRIES),
-        key=lambda b: b.snapshot["avg_monthly_revenue_6mo"], reverse=True,
+        key=lambda b: b.snapshot["current_arr"], reverse=True,
     )
     toggle = 0
     for b in reassignable:
@@ -402,7 +435,7 @@ def generate_sample(today=None):
             break
         b.snapshot["industry"] = DOMINANT_INDUSTRIES[toggle % 2]
         toggle += 1
-        dominant_sum += b.snapshot["avg_monthly_revenue_6mo"] * 12
+        dominant_sum += b.snapshot["current_arr"]
 
     snapshot = {b.account_id: b.snapshot for b in builders}
     timeline_rows = [row for b in builders for row in b.timeline]
@@ -414,11 +447,11 @@ def generate_sample(today=None):
 SNAPSHOT_COLUMNS = [
     "account_id", "account_name", "segment", "industry", "csm_owner", "customer_since",
     "product_tier", "seats_purchased", "contract_start", "renewal_date", "term_length_months",
-    "auto_renew", "entry_arr", "last_qbr_date", "avg_monthly_revenue_6mo", "total_revenue_36mo",
+    "auto_renew", "entry_arr", "current_arr", "last_qbr_date",
     "tickets_12mo", "pct_high_priority", "days_since_contact", "overdue_flag",
     "seat_utilisation_pct", "active_user_pct",
 ]
-TIMELINE_COLUMNS = ["account_id", "month", "mrr", "seat_utilisation_pct", "active_user_pct", "tickets_opened"]
+TIMELINE_COLUMNS = ["account_id", "month", "arr", "seat_utilisation_pct", "active_user_pct", "tickets_opened"]
 
 
 def _csv_value(v):

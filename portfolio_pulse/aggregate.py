@@ -1,27 +1,22 @@
-"""
-Turns scored accounts (+ optional Timeline metrics) into every payload the
-templates need: the KPI strip, the auto-generated summary sentence, and
-the ten chart payloads (six Snapshot-only, four Timeline-only). Branches
-cleanly on whether a Timeline was uploaded.
-"""
+"""Build every Portfolio Pulse payload from scored accounts and ARR history."""
 from . import metrics
 from .scoring import BANDS, portfolio_health
 
 BAND_LABELS = [label for _, label in BANDS]
-GOLD_SHARE = 0.20
-SILVER_SHARE = 0.30
-RENEWAL_QUARTERS = [
-    ("0-3mo", 0, 91), ("3-6mo", 92, 182), ("6-9mo", 183, 273), ("9-12mo", 274, 365),
+RUNWAY_BUCKETS = [
+    ("0-6 months", None, 183, "Immediate"),
+    ("6-18 months", 184, 548, "Plan now"),
+    ("18-36 months", 549, 1095, "Monitor"),
+    ("36+ months", 1096, None, "Low timing pressure"),
 ]
-MOMENTUM_TOP_N = 15
-SOFTENING_TOP_N = 10  # among the N largest accounts, how many are struggling
-
-
-def _band_for_score(score):
-    for upper, label in BANDS:
-        if score <= upper:
-            return label
-    return BANDS[-1][1]
+TENURE_BUCKETS = [
+    ("<1 year", 0, 364),
+    ("1-3 years", 365, 1094),
+    ("3-5 years", 1095, 1824),
+    ("5-10 years", 1825, 3649),
+    ("10+ years", 3650, None),
+]
+VALUE_TIERS = ("Gold", "Silver", "Bronze")
 
 
 def _money(value):
@@ -33,231 +28,431 @@ def _money(value):
     return f"${value:.0f}"
 
 
+def _contract_value(account):
+    years = (account.get("term_length_months") or 0) / 12
+    return round(account.get("current_arr", 0.0) * years, 2)
+
+
+def _runway_label(days_to_renewal):
+    if days_to_renewal is None:
+        return "Unknown"
+    for label, lower, upper, _ in RUNWAY_BUCKETS:
+        if (lower is None or days_to_renewal >= lower) and (upper is None or days_to_renewal <= upper):
+            return label
+    return "Unknown"
+
+
 def build_dashboard_context(scored_accounts, today, timeline_by_account=None):
     has_timeline = bool(timeline_by_account)
+    # Current-state views describe the live book. Zero-ARR accounts remain in
+    # the timeline so Revenue Story can still explain historical churn, but
+    # they must not inflate current account counts or health distributions.
+    active_accounts = [
+        account for account in scored_accounts
+        if account.get("current_arr", 0.0) > 0
+    ]
 
     if has_timeline:
-        for a in scored_accounts:
-            rows = timeline_by_account.get(a["account_id"], [])
-            a["usage_trend"] = metrics.usage_trend(rows)
-            a["mrr_trend"] = metrics.mrr_trend(rows)
-            a["silent_decliner"] = metrics.is_silent_decliner(rows)
+        for account in scored_accounts:
+            rows = timeline_by_account.get(account["account_id"], [])
+            account["usage_trend"] = metrics.usage_trend(rows)
+            account["arr_trend_pct"] = metrics.arr_trend(rows)
+            account["arr_change_dollars"] = metrics.arr_change_dollars(rows)
+            account["hidden_renewal_risk"] = metrics.is_hidden_renewal_risk(rows)
 
     context = {
         "has_timeline": has_timeline,
-        "kpi": _build_kpi(scored_accounts, today, timeline_by_account),
-        "chart_revenue_concentration": _revenue_tiers(scored_accounts),
-        "chart_revenue_vs_risk": _revenue_vs_risk(scored_accounts),
-        "chart_revenue_vs_health": _revenue_vs_health(scored_accounts),
-        "chart_renewal_wall": _renewal_wall(scored_accounts, today),
-        "chart_industry_breakdown": _industry_breakdown(scored_accounts),
-        "chart_coverage_engagement": _coverage_engagement(scored_accounts),
-        "chart_momentum": _momentum(scored_accounts),
+        "kpi": _build_kpi(active_accounts, timeline_by_account),
+        "chart_concentration": _customer_concentration(active_accounts),
+        "chart_arr_distribution": _arr_distribution(active_accounts),
+        "chart_contract_runway": _contract_runway(active_accounts),
+        "chart_customer_tenure": _customer_tenure(active_accounts),
+        "chart_industry_portfolio": _industry_portfolio(active_accounts),
+        "chart_health_distribution": _health_distribution(active_accounts),
+        "chart_qbr_coverage": _qbr_coverage(active_accounts),
+        "priority_accounts": _priority_accounts(active_accounts),
     }
 
     if has_timeline:
-        months = sorted({r["month"] for rows in timeline_by_account.values() for r in rows})
-        retention = metrics.revenue_retention(timeline_by_account, months[0], months[-1])
-        context["kpi"]["nrr"] = retention["nrr"]
-        context["kpi"]["grr"] = retention["grr"]
-        context["chart_arr_bridge"] = _arr_bridge(retention)
-        context["chart_health_nrr_trend"] = _health_nrr_trend(timeline_by_account)
-        context["chart_usage_revenue_divergence"] = _usage_revenue_divergence(scored_accounts)
-        context["chart_revenue_by_group"] = _revenue_by_group(scored_accounts, timeline_by_account)
-        context["silent_decliners"] = [a for a in scored_accounts if a.get("silent_decliner")]
+        context.update({
+            "chart_growers_decliners": _growers_decliners(scored_accounts),
+            "chart_usage_arr_divergence": _usage_arr_divergence(active_accounts),
+            "hidden_renewal_risks": [
+                account for account in active_accounts
+                if account.get("hidden_renewal_risk")
+            ],
+            "chart_arr_trend": _arr_trend(timeline_by_account),
+            "chart_health_trend": _health_trend(timeline_by_account),
+            "chart_arr_movement": _arr_movement(timeline_by_account),
+            "chart_arr_by_group": metrics.revenue_by_group(
+                scored_accounts, timeline_by_account,
+            ),
+        })
 
-    context["summary_sentence"] = _summary_sentence(context["kpi"], has_timeline)
+    context["summary_sentence"] = _summary_sentence(context["kpi"])
     return context
 
 
-def _build_kpi(scored_accounts, today, timeline_by_account):
-    health = portfolio_health(scored_accounts)
-    total_arr = sum(a.get("current_arr", 0.0) for a in scored_accounts)
+def _build_kpi(accounts, timeline_by_account):
+    health = portfolio_health(accounts)
+    total_arr = sum(account.get("current_arr", 0.0) for account in accounts)
+    ranked = sorted(accounts, key=lambda account: account.get("current_arr", 0.0), reverse=True)
+    top5_arr = sum(account.get("current_arr", 0.0) for account in ranked[:5])
+
+    immediate_arr = sum(
+        account.get("current_arr", 0.0)
+        for account in accounts
+        if account.get("days_to_renewal") is not None
+        and account["days_to_renewal"] <= 183
+    )
+    planning_arr = sum(
+        account.get("current_arr", 0.0)
+        for account in accounts
+        if account.get("days_to_renewal") is not None
+        and account["days_to_renewal"] <= 548
+    )
+    one_year_arr = sum(
+        account.get("current_arr", 0.0)
+        for account in accounts
+        if (account.get("term_length_months") or 0) <= 12
+    )
+    immediate_count = sum(
+        1 for account in accounts
+        if account.get("days_to_renewal") is not None
+        and account["days_to_renewal"] <= 183
+    )
+    established_accounts = [
+        account for account in accounts
+        if account.get("tenure_days") is not None
+        and account["tenure_days"] >= 365 * 5
+    ]
+    established_arr = sum(
+        account.get("current_arr", 0.0) for account in established_accounts
+    )
 
     band_counts = {label: 0 for label in BAND_LABELS}
     band_arr = {label: 0.0 for label in BAND_LABELS}
-    for a in scored_accounts:
-        band_counts[a["band"]] += 1
-        band_arr[a["band"]] += a.get("current_arr", 0.0)
+    for account in accounts:
+        band_counts[account["band"]] += 1
+        band_arr[account["band"]] += account.get("current_arr", 0.0)
 
-    arr_renewing_next_quarter = metrics.arr_at_risk(scored_accounts, today, days_ahead=91)
-
-    top_accounts = sorted(scored_accounts, key=lambda a: a.get("current_arr", 0.0), reverse=True)[:SOFTENING_TOP_N]
-    softening_count = sum(1 for a in top_accounts if a["band"] in ("Critical", "At-risk"))
-
-    # A list, not a dict keyed by band label: Django templates can't dot into
-    # a dict key containing a hyphen ("At-risk"), but looping a list is fine.
     band_rows = [
-        {"label": label, "slug": label.lower().replace("-", ""),
-         "count": band_counts[label], "arr": round(band_arr[label], 2)}
+        {
+            "label": label,
+            "slug": label.lower().replace("-", ""),
+            "count": band_counts[label],
+            "arr": round(band_arr[label], 2),
+        }
         for label in BAND_LABELS
     ]
+    critical_watch_arr = sum(
+        row["arr"] for row in band_rows
+        if row["label"] in ("Critical", "Watch")
+    )
 
+    arr_change = arr_change_pct = None
+    if timeline_by_account:
+        series = metrics.portfolio_arr_series(timeline_by_account)
+        if len(series) >= 2:
+            start = series[-min(len(series), 13)]["arr"]
+            end = series[-1]["arr"]
+            arr_change = round(end - start, 2)
+            arr_change_pct = round(arr_change / start * 100, 1) if start else None
+
+    completeness = (
+        round(sum(account["data_completeness"] for account in accounts) / len(accounts), 1)
+        if accounts else 0
+    )
     return {
         "health_weighted": health["weighted"],
         "health_unweighted": health["unweighted"],
+        "data_completeness": completeness,
         "total_arr": round(total_arr, 2),
-        "account_count": len(scored_accounts),
-        "avg_arr": round(total_arr / len(scored_accounts), 2) if scored_accounts else 0,
-        "arr_renewing_next_quarter": arr_renewing_next_quarter,
-        "softening_count": softening_count,
-        "nrr": None,
-        "grr": None,
+        "account_count": len(accounts),
+        "avg_arr": round(total_arr / len(accounts), 2) if accounts else 0,
+        "immediate_arr": round(immediate_arr, 2),
+        "immediate_count": immediate_count,
+        "planning_arr": round(planning_arr, 2),
+        "planning_pct": round(planning_arr / total_arr * 100, 1) if total_arr else 0,
+        "top5_share": round(top5_arr / total_arr * 100, 1) if total_arr else 0,
+        "one_year_arr": round(one_year_arr, 2),
+        "critical_watch_arr": round(critical_watch_arr, 2),
+        "critical_watch_pct": round(critical_watch_arr / total_arr * 100, 1) if total_arr else 0,
+        "established_arr": round(established_arr, 2),
+        "established_count": len(established_accounts),
+        "arr_change": arr_change,
+        "arr_change_pct": arr_change_pct,
         "band_rows": band_rows,
     }
 
 
-def _summary_sentence(kpi, has_timeline):
-    parts = [f"Book is {kpi['health_weighted']:.0f}% healthy at {_money(kpi['total_arr'])} ARR"]
-    if has_timeline and kpi.get("nrr") is not None:
-        parts[0] += f", running {kpi['nrr']:.0f}% NRR"
-
-    renewal_clause = f"{_money(kpi['arr_renewing_next_quarter'])} renews next quarter"
-    if kpi["softening_count"]:
-        n = kpi["softening_count"]
-        renewal_clause += f" with {n} large account{'s' if n != 1 else ''} softening"
-
-    return parts[0] + "; " + renewal_clause + "."
-
-
-def _revenue_tiers(accounts):
-    """Accounts sorted into Gold/Silver/Bronze by ARR rank alone: the top
-    20% by ARR are Gold, the next 30% Silver, the remaining 50% Bronze.
-    """
-    ranked = sorted(accounts, key=lambda a: a.get("current_arr", 0.0), reverse=True)
-    n = len(ranked)
-    gold_n = max(1, round(n * GOLD_SHARE)) if n else 0
-    silver_n = max(1, round(n * SILVER_SHARE)) if n else 0
-    tier_groups = [
-        ("Gold", ranked[:gold_n]),
-        ("Silver", ranked[gold_n:gold_n + silver_n]),
-        ("Bronze", ranked[gold_n + silver_n:]),
-    ]
-
-    total_arr = sum(a.get("current_arr", 0.0) for a in ranked)
-    tiers = []
-    for label, group in tier_groups:
-        arr = sum(a.get("current_arr", 0.0) for a in group)
-        tiers.append({
-            "tier": label, "arr": round(arr, 2), "count": len(group),
-            "pct_of_total": round(arr / total_arr * 100, 1) if total_arr else 0,
-            "top_accounts": [a["account_name"] for a in group[:5]],
-        })
-    return {"tiers": tiers}
+def _summary_sentence(kpi):
+    sentence = (
+        f"Portfolio holds {_money(kpi['total_arr'])} ARR at "
+        f"{kpi['health_weighted']:.0f} health; "
+        f"{_money(kpi['planning_arr'])} ({kpi['planning_pct']:.0f}%) "
+        "needs renewal planning within 18 months"
+    )
+    if kpi.get("arr_change") is not None:
+        direction = "up" if kpi["arr_change"] >= 0 else "down"
+        sentence += f", with ARR {direction} {_money(abs(kpi['arr_change']))} over 12 months"
+    return sentence + "."
 
 
-def _revenue_vs_risk(accounts):
-    return [
-        {"name": a["account_name"], "risk_score": a["risk_score"], "current_arr": round(a.get("current_arr", 0.0), 2),
-         "historic_value": round(a.get("historic_value", 0.0), 2), "risk_band": a["risk_band"]}
-        for a in accounts
-    ]
-
-
-def _revenue_vs_health(accounts):
-    return [
-        {"name": a["account_name"], "score": a["score"], "current_arr": round(a.get("current_arr", 0.0), 2),
-         "historic_value": round(a.get("historic_value", 0.0), 2), "band": a["band"]}
-        for a in accounts
-    ]
-
-
-def _renewal_wall(accounts, today):
-    labels = [q[0] for q in RENEWAL_QUARTERS]
-    series = {label: [0.0] * len(RENEWAL_QUARTERS) for label in BAND_LABELS}
-    for a in accounts:
-        days_to = a.get("days_to_renewal")
-        if days_to is None or days_to < 0:
-            continue
-        for i, (_, lo, hi) in enumerate(RENEWAL_QUARTERS):
-            if lo <= days_to <= hi:
-                series[a["band"]][i] += a.get("current_arr", 0.0)
-                break
-    return {"labels": labels, "series": {k: [round(v, 2) for v in vals] for k, vals in series.items()}}
-
-
-def _industry_breakdown(accounts):
-    by_industry = {}
-    for a in accounts:
-        bucket = by_industry.setdefault(a["industry"], {"arr": 0.0, "scores": [], "count": 0})
-        bucket["arr"] += a.get("current_arr", 0.0)
-        bucket["scores"].append(a["score"])
-        bucket["count"] += 1
-
+def _customer_concentration(accounts):
+    ranked = sorted(accounts, key=lambda account: account.get("current_arr", 0.0), reverse=True)
+    total_arr = sum(account.get("current_arr", 0.0) for account in ranked)
+    running = 0.0
     rows = []
-    for industry, b in by_industry.items():
-        avg_score = sum(b["scores"]) / len(b["scores"])
+    for account in ranked[:50]:
+        arr = account.get("current_arr", 0.0)
+        running += arr
         rows.append({
-            "industry": industry, "arr": round(b["arr"], 2), "account_count": b["count"],
-            "avg_health": round(avg_score, 1), "band": _band_for_score(avg_score),
+            "name": account["account_name"],
+            "arr": round(arr, 2),
+            "health": account["score"],
+            "band": account["band"],
+            "contract_value": _contract_value(account),
+            "term_months": account.get("term_length_months"),
         })
-    rows.sort(key=lambda r: r["arr"], reverse=True)
+    return {
+        "accounts": rows,
+        "largest_share": round(rows[0]["arr"] / total_arr * 100, 1) if rows and total_arr else 0,
+        "top5_share": round(
+            sum(account.get("current_arr", 0.0) for account in ranked[:5])
+            / total_arr * 100, 1,
+        ) if total_arr else 0,
+        "top10_share": round(
+            sum(account.get("current_arr", 0.0) for account in ranked[:10])
+            / total_arr * 100, 1,
+        ) if total_arr else 0,
+        "shown_count": len(rows),
+        "portfolio_count": len(ranked),
+        "shown_arr_share": round(running / total_arr * 100, 1) if total_arr else 0,
+    }
+
+
+def _arr_distribution(accounts):
+    """Split the ARR-ranked book into balanced Gold / Silver / Bronze cohorts."""
+    ranked = sorted(
+        accounts,
+        key=lambda account: account.get("current_arr", 0.0),
+        reverse=True,
+    )
+    base, remainder = divmod(len(ranked), len(VALUE_TIERS))
+    tier_sizes = [
+        base + (1 if index < remainder else 0)
+        for index in range(len(VALUE_TIERS))
+    ]
+    rows = []
+    cursor = 0
+    for label, size in zip(VALUE_TIERS, tier_sizes):
+        group = ranked[cursor:cursor + size]
+        cursor += size
+        total = sum(account.get("current_arr", 0.0) for account in group)
+        values = [account.get("current_arr", 0.0) for account in group]
+        rows.append({
+            "label": label,
+            "count": len(group),
+            "average_arr": round(total / len(group), 2) if group else 0,
+            "total_arr": round(total, 2),
+            "highest_arr": round(max(values), 2) if values else 0,
+            "lowest_arr": round(min(values), 2) if values else 0,
+        })
     return rows
 
 
-def _coverage_engagement(accounts):
-    return [
-        {"name": a["account_name"], "days_since_contact": a["days_since_contact"],
-         "current_arr": round(a.get("current_arr", 0.0), 2), "band": a["band"]}
-        for a in accounts if a.get("days_since_contact") is not None
+def _contract_runway(accounts):
+    rows = []
+    for label, lower, upper, action in RUNWAY_BUCKETS:
+        group = [
+            account for account in accounts
+            if account.get("days_to_renewal") is not None
+            and (lower is None or account["days_to_renewal"] >= lower)
+            and (upper is None or account["days_to_renewal"] <= upper)
+        ]
+        arr = sum(account.get("current_arr", 0.0) for account in group)
+        rows.append({
+            "label": label,
+            "action": action,
+            "arr": round(arr, 2),
+            "count": len(group),
+            "resign_value": round(arr * 3, 2),
+            "secured_value": round(sum(_contract_value(account) for account in group), 2),
+            "one_year_arr": round(sum(
+                account.get("current_arr", 0.0)
+                for account in group
+                if (account.get("term_length_months") or 0) <= 12
+            ), 2),
+        })
+    return rows
+
+
+def _customer_tenure(accounts):
+    rows = []
+    for label, lower, upper in TENURE_BUCKETS:
+        group = [
+            account for account in accounts
+            if account.get("tenure_days") is not None
+            and account["tenure_days"] >= lower
+            and (upper is None or account["tenure_days"] <= upper)
+        ]
+        rows.append({
+            "label": label,
+            "arr": round(sum(account.get("current_arr", 0.0) for account in group), 2),
+            "count": len(group),
+            "contract_value": round(sum(_contract_value(account) for account in group), 2),
+        })
+    return rows
+
+
+def _industry_portfolio(accounts):
+    by_industry = {}
+    for account in accounts:
+        bucket = by_industry.setdefault(account["industry"], {
+            "count": 0,
+            "total_arr": 0.0,
+            "weighted_health": 0.0,
+            "bands": {label: 0.0 for label in BAND_LABELS},
+            "largest_arr": 0.0,
+        })
+        arr = account.get("current_arr", 0.0)
+        bucket["count"] += 1
+        bucket["total_arr"] += arr
+        bucket["weighted_health"] += account["score"] * arr
+        bucket["bands"][account["band"]] += arr
+        bucket["largest_arr"] = max(bucket["largest_arr"], arr)
+
+    rows = []
+    for industry, bucket in by_industry.items():
+        total = bucket["total_arr"]
+        rows.append({
+            "industry": industry,
+            "count": bucket["count"],
+            "total_arr": round(total, 2),
+            "healthy_arr": round(bucket["bands"].get("Healthy", 0.0), 2),
+            "watch_arr": round(bucket["bands"].get("Watch", 0.0), 2),
+            "critical_arr": round(bucket["bands"].get("Critical", 0.0), 2),
+            "avg_health": round(bucket["weighted_health"] / total, 1) if total else 0,
+            "largest_share": round(bucket["largest_arr"] / total * 100, 1) if total else 0,
+        })
+    rows.sort(key=lambda row: row["total_arr"], reverse=True)
+    return rows
+
+
+def _health_distribution(accounts):
+    rows = []
+    for label in BAND_LABELS:
+        group = [account for account in accounts if account["band"] == label]
+        rows.append({
+            "band": label,
+            "count": len(group),
+            "arr": round(sum(account.get("current_arr", 0.0) for account in group), 2),
+        })
+    return rows
+
+
+def _qbr_coverage(accounts):
+    return [{
+        "name": account["account_name"],
+        "days_since_qbr": account.get("days_since_qbr"),
+        "arr": round(account.get("current_arr", 0.0), 2),
+        "runway": _runway_label(account.get("days_to_renewal")),
+        "renewal_days": account.get("days_to_renewal"),
+        "health": account["score"],
+        "qbr_inferred": account.get("qbr_inferred", False),
+        "owner": account.get("csm_owner"),
+    } for account in accounts if account.get("days_since_qbr") is not None]
+
+
+def _priority_accounts(accounts):
+    rows = []
+    for account in accounts:
+        days = account.get("days_to_renewal")
+        if days is None or days > 1095:
+            renewal_factor = 1.0
+        elif days <= 183:
+            renewal_factor = 2.0
+        elif days <= 548:
+            renewal_factor = 1.5
+        else:
+            renewal_factor = 1.15
+        severity = max(1.0, 100 - account["score"])
+        priority = account.get("current_arr", 0.0) * severity * renewal_factor
+        drivers = [driver["signal"] for driver in account.get("health_drivers", [])[:3]]
+        rows.append({
+            "name": account["account_name"],
+            "arr": round(account.get("current_arr", 0.0), 2),
+            "contract_value": _contract_value(account),
+            "health": account["score"],
+            "band": account["band"],
+            "runway": _runway_label(days),
+            "days_to_renewal": days,
+            "days_since_qbr": account.get("days_since_qbr"),
+            "qbr_inferred": account.get("qbr_inferred", False),
+            "drivers": drivers or ["No material deductions"],
+            "owner": account.get("csm_owner") or "Unassigned",
+            "data_completeness": account["data_completeness"],
+            "term_months": account.get("term_length_months"),
+            "priority": priority,
+        })
+    rows.sort(key=lambda row: row["priority"], reverse=True)
+    return rows[:6]
+
+
+def _growers_decliners(accounts):
+    comparable = [
+        account for account in accounts
+        if account.get("arr_change_dollars") is not None
     ]
+    decliners = sorted(comparable, key=lambda account: account["arr_change_dollars"])[:5]
+    growers = sorted(
+        comparable, key=lambda account: account["arr_change_dollars"], reverse=True,
+    )[:5]
+    combined = decliners + list(reversed(growers))
+    return [{
+        "name": account["account_name"],
+        "change": round(account["arr_change_dollars"], 2),
+        "change_pct": account.get("arr_trend_pct"),
+        "arr": round(account.get("current_arr", 0.0), 2),
+    } for account in combined]
 
 
-def _momentum(accounts):
-    with_momentum = [a for a in accounts if a.get("momentum_ratio") is not None]
-    ranked = sorted(with_momentum, key=lambda a: a.get("current_arr", 0.0), reverse=True)[:MOMENTUM_TOP_N]
-    ranked.sort(key=lambda a: a["momentum_ratio"])
-    return [
-        {"name": a["account_name"], "deviation_pct": round((a["momentum_ratio"] - 1) * 100, 1),
-         "current_arr": round(a.get("current_arr", 0.0), 2), "band": a["band"]}
-        for a in ranked
-    ]
+def _usage_arr_divergence(accounts):
+    return [{
+        "name": account["account_name"],
+        "arr_trend": account.get("arr_trend_pct"),
+        "usage_trend": account.get("usage_trend"),
+        "hidden_renewal_risk": account.get("hidden_renewal_risk", False),
+        "arr": round(account.get("current_arr", 0.0), 2),
+    } for account in accounts
+        if account.get("arr_trend_pct") is not None
+        and account.get("usage_trend") is not None]
 
 
-def _arr_bridge(retention):
+def _arr_trend(timeline_by_account):
+    series = metrics.portfolio_arr_series(timeline_by_account)
     return {
-        "start": retention["start"], "expansion": retention["expansion"],
-        "contraction": retention["contraction"], "churn": retention["churn"], "end": retention["end"],
+        "labels": [point["month"].strftime("%b %Y") for point in series],
+        "arr": [point["arr"] for point in series],
     }
 
 
-def _health_nrr_trend(timeline_by_account):
-    health_series = metrics.health_trend_series(timeline_by_account)
-    nrr_series = metrics.monthly_nrr_series(timeline_by_account)
+def _health_trend(timeline_by_account):
+    series = metrics.health_trend_series(timeline_by_account)
     return {
-        "health_labels": [p["month"].strftime("%b %Y") for p in health_series],
-        "health": [p["health"] for p in health_series],
-        "nrr_labels": [p["month"].strftime("%b %Y") for p in nrr_series],
-        "nrr": [p["nrr"] for p in nrr_series],
+        "labels": [point["month"].strftime("%b %Y") for point in series],
+        "health": [point["health"] for point in series],
     }
 
 
-def _usage_revenue_divergence(accounts):
-    return [
-        {"name": a["account_name"], "mrr_trend": a.get("mrr_trend"), "usage_trend": a.get("usage_trend"),
-         "silent_decliner": a.get("silent_decliner", False), "current_arr": round(a.get("current_arr", 0.0), 2)}
-        for a in accounts if a.get("mrr_trend") is not None and a.get("usage_trend") is not None
-    ]
-
-
-def _revenue_by_group(accounts, timeline_by_account):
-    account_group = {a["account_id"]: {"segment": a["segment"], "industry": a["industry"]} for a in accounts}
-    months = sorted({r["month"] for rows in timeline_by_account.values() for r in rows})
-
-    def _series_for(key):
-        groups = sorted({g[key] for g in account_group.values()})
-        series = {g: [0.0] * len(months) for g in groups}
-        month_index = {m: i for i, m in enumerate(months)}
-        for account_id, rows in timeline_by_account.items():
-            group = account_group.get(account_id, {}).get(key)
-            if group is None:
-                continue
-            for r in rows:
-                series[group][month_index[r["month"]]] += r["mrr"]
-        return {g: [round(v, 2) for v in vals] for g, vals in series.items()}
-
+def _arr_movement(timeline_by_account):
+    series = metrics.monthly_arr_movement(timeline_by_account)
     return {
-        "labels": [m.strftime("%b %Y") for m in months],
-        "by_segment": _series_for("segment"),
-        "by_industry": _series_for("industry"),
+        "labels": [point["month"].strftime("%b %Y") for point in series],
+        "new": [point["new"] for point in series],
+        "expansion": [point["expansion"] for point in series],
+        "contraction": [point["contraction"] for point in series],
+        "churn": [point["churn"] for point in series],
+        "net": [point["net"] for point in series],
     }

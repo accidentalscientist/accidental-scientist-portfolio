@@ -26,16 +26,18 @@ SNAPSHOT_REQUIRED_BASE = {
     "account_id", "account_name", "segment", "industry", "csm_owner",
     "customer_since", "contract_start", "renewal_date", "auto_renew",
 }
-# Required only when no Timeline is uploaded (otherwise computed from it).
-SNAPSHOT_REVENUE_FIELDS = {"avg_monthly_revenue_6mo", "total_revenue_36mo"}
+# ARR-native uploads use current_arr. The legacy monthly fields remain accepted.
+SNAPSHOT_REVENUE_FIELDS = {"current_arr"}
+SNAPSHOT_LEGACY_REVENUE_FIELDS = {"avg_monthly_revenue_6mo", "total_revenue_36mo"}
 SNAPSHOT_OPTIONAL = {
     "product_tier", "seats_purchased", "term_length_months", "entry_arr",
     "last_qbr_date", "tickets_12mo", "pct_high_priority", "days_since_contact",
     "overdue_flag", "seat_utilisation_pct", "active_user_pct",
+    "avg_monthly_revenue_6mo", "total_revenue_36mo",
 }
 
 # ── Timeline schema ────────────────────────────────────────────────────
-TIMELINE_REQUIRED = {"account_id", "month", "mrr"}
+TIMELINE_REQUIRED = {"account_id", "month"}
 TIMELINE_OPTIONAL = {"seat_utilisation_pct", "active_user_pct", "tickets_opened"}
 
 
@@ -109,11 +111,18 @@ def parse_snapshot(file_obj, require_revenue_fields=True):
 
     headers = set(reader.fieldnames or [])
     required = set(SNAPSHOT_REQUIRED_BASE)
-    if require_revenue_fields:
-        required |= SNAPSHOT_REVENUE_FIELDS
     missing = required - headers
     if missing:
         return {}, [f"Snapshot is missing required column(s): {', '.join(sorted(missing))}"]
+    if (
+        require_revenue_fields
+        and "current_arr" not in headers
+        and not SNAPSHOT_LEGACY_REVENUE_FIELDS.issubset(headers)
+    ):
+        return {}, [
+            "Snapshot requires current_arr (or both legacy fields "
+            "avg_monthly_revenue_6mo and total_revenue_36mo)."
+        ]
 
     accounts = {}
     errors = []
@@ -142,8 +151,11 @@ def parse_snapshot(file_obj, require_revenue_fields=True):
 
         avg_monthly_revenue_6mo = _parse_float(row.get("avg_monthly_revenue_6mo"), lo=0)
         total_revenue_36mo = _parse_float(row.get("total_revenue_36mo"), lo=0)
-        if require_revenue_fields and (avg_monthly_revenue_6mo is None or total_revenue_36mo is None):
-            errors.append(f"Snapshot line {line_no}: non-numeric revenue field for '{name}'")
+        current_arr = _parse_float(row.get("current_arr"), lo=0)
+        if current_arr is None and avg_monthly_revenue_6mo is not None:
+            current_arr = avg_monthly_revenue_6mo * 12
+        if require_revenue_fields and current_arr is None:
+            errors.append(f"Snapshot line {line_no}: non-numeric current_arr for '{name}'")
             continue
 
         accounts[account_id] = {
@@ -161,6 +173,7 @@ def parse_snapshot(file_obj, require_revenue_fields=True):
             "auto_renew": auto_renew,
             "entry_arr": _parse_float(row.get("entry_arr"), lo=0),
             "last_qbr_date": _parse_date(row.get("last_qbr_date")),
+            "current_arr": current_arr,
             "avg_monthly_revenue_6mo": avg_monthly_revenue_6mo,
             "total_revenue_36mo": total_revenue_36mo,
             "tickets_12mo": _parse_int(row.get("tickets_12mo")),
@@ -185,6 +198,8 @@ def parse_timeline(file_obj, known_account_ids):
     missing = TIMELINE_REQUIRED - headers
     if missing:
         return [], [f"Timeline is missing required column(s): {', '.join(sorted(missing))}"], 0
+    if "arr" not in headers and "mrr" not in headers:
+        return [], ["Timeline requires arr (or legacy mrr)."], 0
 
     rows = []
     errors = []
@@ -192,10 +207,13 @@ def parse_timeline(file_obj, known_account_ids):
     for line_no, row in enumerate(reader, start=2):
         account_id = _clean(row.get("account_id"))
         month = _parse_month(row.get("month"))
-        mrr = _parse_float(row.get("mrr"), lo=0)
+        arr = _parse_float(row.get("arr"), lo=0)
+        if arr is None:
+            legacy_mrr = _parse_float(row.get("mrr"), lo=0)
+            arr = legacy_mrr * 12 if legacy_mrr is not None else None
 
-        if not account_id or month is None or mrr is None:
-            errors.append(f"Timeline line {line_no}: bad account_id/month/mrr")
+        if not account_id or month is None or arr is None:
+            errors.append(f"Timeline line {line_no}: bad account_id/month/arr")
             continue
         if account_id not in known_account_ids:
             orphan_count += 1
@@ -204,7 +222,7 @@ def parse_timeline(file_obj, known_account_ids):
         rows.append({
             "account_id": account_id,
             "month": month,
-            "mrr": mrr,
+            "arr": arr,
             "seat_utilisation_pct": _parse_float(row.get("seat_utilisation_pct"), lo=0, hi=100),
             "active_user_pct": _parse_float(row.get("active_user_pct"), lo=0, hi=100),
             "tickets_opened": _parse_int(row.get("tickets_opened")),

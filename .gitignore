@@ -12,6 +12,9 @@ media/
 staticfiles/
 docs/
 
+# Private Portfolio Pulse product thesis
+portfolio_pulse/PORTFOLIO_PULSE_THESIS.md
+
 # Environment
 .env
 venv/
@@ -24,6 +27,6 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Private docs — design reports, security audits, deployment & next-steps notes
+# Private docs: design reports, security audits, deployment and next-steps notes
 # (keep these out of the public repo per the IP policy)
 docs/

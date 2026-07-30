@@ -1,285 +1,652 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const get = id => { const el = document.getElementById(id); return el ? JSON.parse(el.textContent) : null; };
+  const get = id => {
+    const element = document.getElementById(id);
+    return element ? JSON.parse(element.textContent) : null;
+  };
   if (typeof Chart === 'undefined') return;
 
-  const BAND_COLORS = { Critical: '#c0392b', 'At-risk': '#d4772a', Healthy: '#2d6a2d' };
-  const gridColor = 'rgba(26,46,26,0.06)';
-  const money = v => '$' + Math.round(v).toLocaleString();
-
-  // Animation is switched off globally rather than hooked to onComplete:
-  // it removes the render-race with PDF export entirely and satisfies the
-  // reduced-motion quality bar in one move.
+  const COLORS = {
+    Critical: '#c0392b',
+    Watch: '#d4772a',
+    Healthy: '#2d6a2d',
+    ink: '#26372c',
+    blue: '#3f7da6',
+    muted: '#8a9e82',
+    green: '#5a9e5a',
+    red: '#c0392b',
+    amber: '#d4772a',
+    neutral: '#66736d',
+  };
+  const RUNWAY_ORDER = ['0-6 months', '6-18 months', '18-36 months', '36+ months'];
+  const RUNWAY_COLORS = {
+    '0-6 months': '#c0392b',
+    '6-18 months': '#c99518',
+    '18-36 months': '#78a66d',
+    '36+ months': '#234b32',
+  };
+  const TENURE_COLORS = ['#e4ca69', '#b8c879', '#84aa6b', '#4f8153', '#214b34'];
+  const VALUE_TIER_COLORS = ['#c99518', '#98a18c', '#a8673a'];
+  const GROUP_COLORS = ['#2d6a2d', '#b84a1a', '#3f7da6', '#8e7cc3', '#d4772a', '#5a9e5a', '#9a9488'];
+  const gridColor = 'rgba(26,46,26,0.07)';
+  const money = value => '$' + Math.round(value || 0).toLocaleString();
+  const compactMoney = value => {
+    const abs = Math.abs(value || 0);
+    if (abs >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+    if (abs >= 1000) return '$' + Math.round(value / 1000) + 'k';
+    return money(value);
+  };
   const baseOptions = {
     responsive: true,
     maintainAspectRatio: false,
     animation: false,
-    plugins: { legend: { labels: { boxWidth: 12, usePointStyle: true, font: { size: 12 } } } },
+    plugins: {
+      legend: {
+        labels: { boxWidth: 11, usePointStyle: true, font: { size: 11 } },
+      },
+    },
   };
 
-  // 1. Revenue tiers: Gold / Silver / Bronze by ARR rank
-  const tiersData = get('pulse-data-concentration');
-  const tiersCanvas = document.getElementById('pulse-chart-concentration');
-  const TIER_COLORS = { Gold: '#c9962b', Silver: '#8a9e82', Bronze: '#b0703a' };
-  if (tiersData && tiersCanvas) {
-    const tiers = tiersData.tiers;
-    new Chart(tiersCanvas, {
+  const concentration = get('pulse-data-concentration');
+  const concentrationCanvas = document.getElementById('pulse-chart-concentration');
+  if (concentration && concentrationCanvas) {
+    const accounts = concentration.accounts;
+    new Chart(concentrationCanvas, {
       type: 'bar',
       data: {
-        labels: tiers.map(t => t.tier),
-        datasets: [{ label: 'ARR', data: tiers.map(t => t.arr), backgroundColor: tiers.map(t => TIER_COLORS[t.tier]) }],
+        labels: accounts.map(account => account.name),
+        datasets: [{
+          label: 'Current ARR',
+          data: accounts.map(account => account.arr),
+          backgroundColor: accounts.map(account => COLORS[account.band]),
+          borderRadius: 2,
+          maxBarThickness: 28,
+        }],
+      },
+      options: {
+        ...baseOptions,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: items => accounts[items[0].dataIndex].name,
+              label: context => `${compactMoney(context.raw)} current ARR`,
+              afterBody: items => {
+                const account = accounts[items[0].dataIndex];
+                return [
+                  `Health ${account.health}`,
+                  `${account.term_months || '?'}-month term`,
+                  `${compactMoney(account.contract_value)} secured contract value`,
+                ];
+              },
+            },
+          },
+        },
+        scales: {
+          x: { ticks: { display: false }, grid: { display: false }, border: { display: false } },
+          y: { beginAtZero: true, ticks: { callback: compactMoney }, grid: { color: gridColor } },
+        },
+      },
+    });
+  }
+
+  const distribution = get('pulse-data-arr-distribution');
+  const distributionCanvas = document.getElementById('pulse-chart-arr-distribution');
+  if (distribution && distributionCanvas) {
+    new Chart(distributionCanvas, {
+      type: 'bar',
+      data: {
+        labels: distribution.map(row => row.label),
+        datasets: [{
+          label: 'Average ARR',
+          data: distribution.map(row => row.average_arr),
+          backgroundColor: VALUE_TIER_COLORS,
+          borderRadius: 3,
+        }],
       },
       options: {
         ...baseOptions,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: {
-            label: ctx => `${money(ctx.parsed.y)} · ${tiers[ctx.dataIndex].pct_of_total}% of book · ${tiers[ctx.dataIndex].count} accounts`,
-            afterLabel: ctx => tiers[ctx.dataIndex].top_accounts.length ? 'Top: ' + tiers[ctx.dataIndex].top_accounts.join(', ') : '',
-          } },
+          tooltip: {
+            callbacks: {
+              label: context => `${compactMoney(context.raw)} average ARR`,
+              afterLabel: context => {
+                const row = distribution[context.dataIndex];
+                return [
+                  `${row.count} accounts`,
+                  `${compactMoney(row.total_arr)} total ARR`,
+                  `${compactMoney(row.lowest_arr)} to ${compactMoney(row.highest_arr)}`,
+                ];
+              },
+            },
+          },
         },
         scales: {
           x: { grid: { display: false } },
-          y: { beginAtZero: true, ticks: { callback: money }, grid: { color: gridColor } },
+          y: { beginAtZero: true, ticks: { callback: compactMoney }, title: { display: true, text: 'Average ARR' }, grid: { color: gridColor } },
         },
       },
     });
   }
 
-  // ── 2a/2b. Revenue vs. risk, and revenue vs. health (bubble, side by side) ──
-  function buildRevenueBubble(canvasId, dataId, xField, bandField, xLabel) {
-    const rows = get(dataId);
-    const canvas = document.getElementById(canvasId);
-    if (!rows || !canvas || !rows.length) return;
-    const maxHistoric = Math.max(1, ...rows.map(a => a.historic_value));
-    const byBand = {};
-    rows.forEach(a => {
-      (byBand[a[bandField]] = byBand[a[bandField]] || []).push({
-        x: a[xField], y: a.current_arr, r: 4 + (a.historic_value / maxHistoric) * 22, name: a.name,
-      });
-    });
-    new Chart(canvas, {
-      type: 'bubble',
-      data: { datasets: Object.keys(byBand).map(band => ({
-        label: band, data: byBand[band], backgroundColor: (BAND_COLORS[band] || '#999') + 'b3', borderColor: BAND_COLORS[band] || '#999',
-      })) },
+  const runway = get('pulse-data-contract-runway');
+  const runwayCanvas = document.getElementById('pulse-chart-contract-runway');
+  if (runway && runwayCanvas) {
+    new Chart(runwayCanvas, {
+      type: 'bar',
+      data: {
+        labels: runway.map(row => row.label),
+        datasets: [{
+          label: 'Current ARR',
+          data: runway.map(row => row.arr),
+          backgroundColor: runway.map(row => RUNWAY_COLORS[row.label]),
+        }],
+      },
       options: {
         ...baseOptions,
-        plugins: { ...baseOptions.plugins, tooltip: { callbacks: { label: ctx => `${ctx.raw.name}: ${xLabel.toLowerCase()} ${ctx.raw.x}, ${money(ctx.raw.y)}` } } },
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: context => `${compactMoney(context.raw)} ARR`,
+              afterLabel: context => {
+                const row = runway[context.dataIndex];
+                return [
+                  `${row.count} accounts - ${row.action}`,
+                  `${compactMoney(row.resign_value)} at a three-year re-sign`,
+                  `${compactMoney(row.secured_value)} current secured value`,
+                  `${compactMoney(row.one_year_arr)} on one-year terms`,
+                ];
+              },
+            },
+          },
+        },
         scales: {
-          x: { min: 0, max: 100, title: { display: true, text: xLabel }, grid: { color: gridColor } },
-          y: { beginAtZero: true, title: { display: true, text: 'Current ARR' }, grid: { color: gridColor }, ticks: { callback: money } },
+          x: { beginAtZero: true, ticks: { callback: compactMoney }, grid: { color: gridColor } },
+          y: { grid: { display: false } },
         },
       },
     });
   }
-  buildRevenueBubble('pulse-chart-revenue-risk', 'pulse-data-revenue-risk', 'risk_score', 'risk_band', 'Risk score');
-  buildRevenueBubble('pulse-chart-revenue-health', 'pulse-data-revenue-health', 'score', 'band', 'Health score');
 
-  // ── 3. Renewal wall (stacked $, by health band) ──
-  const renewalWall = get('pulse-data-renewal-wall');
-  const renewalWallCanvas = document.getElementById('pulse-chart-renewal-wall');
-  if (renewalWall && renewalWallCanvas) {
-    new Chart(renewalWallCanvas, {
+  const tenure = get('pulse-data-tenure');
+  const tenureCanvas = document.getElementById('pulse-chart-tenure');
+  if (tenure && tenureCanvas) {
+    new Chart(tenureCanvas, {
       type: 'bar',
-      data: { labels: renewalWall.labels, datasets: Object.keys(renewalWall.series).map(band => ({
-        label: band, data: renewalWall.series[band], backgroundColor: BAND_COLORS[band] || '#999',
-      })) },
-      options: { ...baseOptions,
-        scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, ticks: { callback: money }, grid: { color: gridColor } } } },
+      data: {
+        labels: tenure.map(row => row.label),
+        datasets: [{
+          label: 'Current ARR',
+          data: tenure.map(row => row.arr),
+          backgroundColor: tenure.map((row, index) => TENURE_COLORS[index]),
+          borderRadius: 3,
+        }],
+      },
+      options: {
+        ...baseOptions,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: context => `${compactMoney(context.raw)} ARR`,
+              afterLabel: context => {
+                const row = tenure[context.dataIndex];
+                return [`${row.count} accounts`, `${compactMoney(row.contract_value)} secured contract value`];
+              },
+            },
+          },
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, ticks: { callback: compactMoney }, grid: { color: gridColor } },
+        },
+      },
     });
   }
 
-  // ── 4. Industry breakdown ──
   const industry = get('pulse-data-industry');
   const industryCanvas = document.getElementById('pulse-chart-industry');
   if (industry && industryCanvas) {
     new Chart(industryCanvas, {
       type: 'bar',
-      data: { labels: industry.map(r => r.industry), datasets: [{
-        label: 'ARR', data: industry.map(r => r.arr), backgroundColor: industry.map(r => BAND_COLORS[r.band] || '#999'),
-      }] },
+      data: {
+        labels: industry.map(row => row.industry),
+        datasets: [
+          { label: 'Critical', data: industry.map(row => row.critical_arr), backgroundColor: COLORS.Critical },
+          { label: 'Watch', data: industry.map(row => row.watch_arr), backgroundColor: COLORS.Watch },
+          { label: 'Healthy', data: industry.map(row => row.healthy_arr), backgroundColor: COLORS.Healthy },
+        ],
+      },
+      options: {
+        ...baseOptions,
+        indexAxis: 'y',
+        plugins: {
+          ...baseOptions.plugins,
+          tooltip: {
+            callbacks: {
+              label: context => `${context.dataset.label}: ${compactMoney(context.raw)}`,
+              afterBody: items => {
+                const row = industry[items[0].dataIndex];
+                return [
+                  `Average health ${row.avg_health}`,
+                  `${row.count} accounts`,
+                  `Largest customer ${row.largest_share}% of industry ARR`,
+                ];
+              },
+            },
+          },
+        },
+        scales: {
+          x: { stacked: true, beginAtZero: true, ticks: { callback: compactMoney }, grid: { color: gridColor } },
+          y: { stacked: true, grid: { display: false }, ticks: { font: { size: 9 } } },
+        },
+      },
+    });
+  }
+
+  const healthDistribution = get('pulse-data-health-distribution');
+  const healthDistributionCanvas = document.getElementById('pulse-chart-health-distribution');
+  if (healthDistribution && healthDistributionCanvas) {
+    const healthRevenueLabels = {
+      id: 'healthRevenueLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '600 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        meta.data.forEach((bar, index) => {
+          if (!healthDistribution[index].count) return;
+          const middle = bar.y + (bar.base - bar.y) / 2;
+          ctx.fillText(compactMoney(healthDistribution[index].arr), bar.x, middle);
+        });
+        ctx.restore();
+      },
+    };
+    new Chart(healthDistributionCanvas, {
+      type: 'bar',
+      data: {
+        labels: healthDistribution.map(row => row.band),
+        datasets: [{
+          label: 'Accounts',
+          data: healthDistribution.map(row => row.count),
+          backgroundColor: healthDistribution.map(row => COLORS[row.band]),
+        }],
+      },
       options: {
         ...baseOptions,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => `${money(ctx.parsed.y)} · avg health ${industry[ctx.dataIndex].avg_health} · ${industry[ctx.dataIndex].account_count} accounts` } },
+          tooltip: {
+            callbacks: {
+              afterLabel: context => `${compactMoney(healthDistribution[context.dataIndex].arr)} ARR exposure`,
+            },
+          },
         },
         scales: {
-          x: { ticks: { autoSkip: false, maxRotation: 60, minRotation: 30, font: { size: 10 } }, grid: { display: false } },
-          y: { beginAtZero: true, ticks: { callback: money }, grid: { color: gridColor } },
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: 'Account count' }, grid: { color: gridColor } },
         },
       },
+      plugins: [healthRevenueLabels],
     });
   }
 
-  // ── 5. Coverage & engagement ──
-  const coverage = get('pulse-data-coverage');
-  const coverageCanvas = document.getElementById('pulse-chart-coverage');
-  if (coverage && coverageCanvas && coverage.length) {
-    const byBand = {};
-    coverage.forEach(a => (byBand[a.band] = byBand[a.band] || []).push({ x: a.days_since_contact, y: a.current_arr, name: a.name }));
-    new Chart(coverageCanvas, {
+  const qbr = get('pulse-data-qbr');
+  const qbrCanvas = document.getElementById('pulse-chart-qbr');
+  if (qbr && qbrCanvas) {
+    const grouped = {};
+    qbr.forEach(account => {
+      (grouped[account.runway] = grouped[account.runway] || []).push({
+        x: account.days_since_qbr,
+        y: account.arr,
+        name: account.name,
+        owner: account.owner,
+        health: account.health,
+        inferred: account.qbr_inferred,
+        renewalDays: account.renewal_days,
+      });
+    });
+    new Chart(qbrCanvas, {
       type: 'scatter',
-      data: { datasets: Object.keys(byBand).map(band => ({
-        label: band, data: byBand[band], backgroundColor: (BAND_COLORS[band] || '#999') + 'cc', pointRadius: 5,
-      })) },
+      data: {
+        datasets: RUNWAY_ORDER.filter(label => grouped[label]).map(label => ({
+          label,
+          data: grouped[label],
+          backgroundColor: `${RUNWAY_COLORS[label] || '#777777'}bf`,
+          borderColor: RUNWAY_COLORS[label] || '#777777',
+          borderWidth: 1.25,
+          pointRadius: 7,
+          pointHoverRadius: 9,
+        })),
+      },
       options: {
         ...baseOptions,
-        plugins: { ...baseOptions.plugins, tooltip: { callbacks: { label: ctx => `${ctx.raw.name}: ${ctx.raw.x}d, ${money(ctx.raw.y)}` } } },
+        plugins: {
+          ...baseOptions.plugins,
+          tooltip: {
+            callbacks: {
+              label: context => `${context.raw.name}: ${context.raw.x} days, ${compactMoney(context.raw.y)} ARR`,
+              afterLabel: context => [
+                context.raw.inferred ? 'No QBR recorded - using customer tenure' : 'QBR date recorded',
+                `Health ${context.raw.health}`,
+                `Owner ${context.raw.owner}`,
+              ],
+            },
+          },
+        },
         scales: {
-          x: { title: { display: true, text: 'Days since contact' }, grid: { color: gridColor } },
-          y: { beginAtZero: true, title: { display: true, text: 'Current ARR' }, ticks: { callback: money }, grid: { color: gridColor } },
+          x: { beginAtZero: true, title: { display: true, text: 'Days since last QBR' }, grid: { color: gridColor } },
+          y: { beginAtZero: true, title: { display: true, text: 'Current ARR' }, ticks: { callback: compactMoney }, grid: { color: gridColor } },
         },
       },
     });
   }
 
-  // ── 6. Momentum / spend trajectory (diverging) ──
-  const momentum = get('pulse-data-momentum');
-  const momentumCanvas = document.getElementById('pulse-chart-momentum');
-  if (momentum && momentumCanvas) {
-    new Chart(momentumCanvas, {
+  const growers = get('pulse-data-growers');
+  const growersCanvas = document.getElementById('pulse-chart-growers');
+  if (growers && growersCanvas) {
+    const maxGrowerMovement = Math.max(1, ...growers.map(account => Math.abs(account.change)));
+    const symmetricLimit = Math.ceil(maxGrowerMovement / 50000) * 50000;
+    new Chart(growersCanvas, {
       type: 'bar',
-      data: { labels: momentum.map(a => a.name), datasets: [{
-        label: 'Momentum vs. lifetime avg', data: momentum.map(a => a.deviation_pct),
-        backgroundColor: momentum.map(a => (a.deviation_pct >= 0 ? '#5a9e5a' : '#c0392b')),
-      }] },
+      data: {
+        labels: growers.map(account => account.name),
+        datasets: [{
+          label: '12-month ARR change',
+          data: growers.map(account => account.change),
+          backgroundColor: growers.map(account => account.change < 0 ? COLORS.red : COLORS.green),
+        }],
+      },
       options: {
         ...baseOptions,
-        plugins: { legend: { display: false } },
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: context => `${compactMoney(context.raw)} ARR (${growers[context.dataIndex].change_pct}%)`,
+              afterLabel: context => `${compactMoney(growers[context.dataIndex].arr)} current ARR`,
+            },
+          },
+        },
         scales: {
-          x: { ticks: { autoSkip: false, maxRotation: 60, minRotation: 30, font: { size: 10 } }, grid: { display: false } },
-          y: { title: { display: true, text: '% vs. lifetime average' }, ticks: { callback: v => v + '%' }, grid: { color: gridColor } },
+          x: { min: -symmetricLimit, max: symmetricLimit, ticks: { callback: compactMoney }, grid: { color: gridColor } },
+          y: { grid: { display: false }, ticks: { font: { size: 9 } } },
         },
       },
     });
   }
 
-  // ── 7. ARR bridge (floating-bar waterfall) ──
-  const bridge = get('pulse-data-arr-bridge');
-  const bridgeCanvas = document.getElementById('pulse-chart-arr-bridge');
-  if (bridge && bridgeCanvas) {
-    let running = bridge.start;
-    const steps = [
-      { label: 'Start', base: 0, value: bridge.start, color: '#8a9e82' },
-      { label: 'Expansion', base: running, value: bridge.expansion, color: '#5a9e5a' },
-    ];
-    running += bridge.expansion;
-    steps.push({ label: 'Contraction', base: running - bridge.contraction, value: bridge.contraction, color: '#d4772a' });
-    running -= bridge.contraction;
-    steps.push({ label: 'Churn', base: running - bridge.churn, value: bridge.churn, color: '#c0392b' });
-    running -= bridge.churn;
-    steps.push({ label: 'End', base: 0, value: bridge.end, color: '#8a9e82' });
-
-    new Chart(bridgeCanvas, {
-      type: 'bar',
-      data: {
-        labels: steps.map(s => s.label),
-        datasets: [{ data: steps.map(s => [s.base, s.base + s.value]), backgroundColor: steps.map(s => s.color) }],
+  const divergence = get('pulse-data-divergence');
+  const divergenceCanvas = document.getElementById('pulse-chart-divergence');
+  if (divergence && divergenceCanvas) {
+    const maxArr = Math.max(1, ...divergence.map(account => account.arr));
+    const quadrantPlugin = {
+      id: 'quadrants',
+      beforeDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea) return;
+        const x0 = scales.x.getPixelForValue(0);
+        const y0 = scales.y.getPixelForValue(0);
+        const areas = [
+          [x0, chartArea.top, chartArea.right - x0, y0 - chartArea.top, 'rgba(76,142,96,0.12)', 'Compounding', 'right'],
+          [x0, y0, chartArea.right - x0, chartArea.bottom - y0, 'rgba(215,165,70,0.15)', 'Hidden renewal risk', 'right'],
+          [chartArea.left, y0, x0 - chartArea.left, chartArea.bottom - y0, 'rgba(105,119,135,0.12)', 'Active decline', 'left'],
+          [chartArea.left, chartArea.top, x0 - chartArea.left, y0 - chartArea.top, 'rgba(126,113,169,0.11)', 'Commercial mismatch', 'left'],
+        ];
+        ctx.save();
+        areas.forEach(([x, y, w, h, fill]) => {
+          ctx.fillStyle = fill;
+          ctx.fillRect(x, y, w, h);
+        });
+        ctx.restore();
       },
-      options: {
-        ...baseOptions,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => money(steps[ctx.dataIndex].value) } } },
-        scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { callback: money }, grid: { color: gridColor } } },
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea) return;
+        const x0 = scales.x.getPixelForValue(0);
+        const y0 = scales.y.getPixelForValue(0);
+        const labels = [
+          [x0, chartArea.top, chartArea.right - x0, 'Compounding', 'right'],
+          [x0, y0, chartArea.right - x0, 'Hidden renewal risk', 'right'],
+          [chartArea.left, y0, x0 - chartArea.left, 'Active decline', 'left'],
+          [chartArea.left, chartArea.top, x0 - chartArea.left, 'Commercial mismatch', 'left'],
+        ];
+        ctx.save();
+        labels.forEach(([x, y, w, label, align]) => {
+          ctx.fillStyle = 'rgba(38,55,44,0.72)';
+          ctx.font = '600 10px sans-serif';
+          ctx.textAlign = align;
+          ctx.fillText(label, align === 'right' ? x + w - 10 : x + 10, y + 16);
+        });
+        ctx.restore();
       },
-    });
-  }
-
-  // ── 8. Portfolio health & NRR trend (dual line) ──
-  const healthNrr = get('pulse-data-health-nrr');
-  const healthNrrCanvas = document.getElementById('pulse-chart-health-nrr');
-  if (healthNrr && healthNrrCanvas) {
-    const nrrByLabel = {};
-    healthNrr.nrr_labels.forEach((label, i) => { nrrByLabel[label] = healthNrr.nrr[i]; });
-    const nrrAligned = healthNrr.health_labels.map(label => (label in nrrByLabel ? nrrByLabel[label] : null));
-
-    new Chart(healthNrrCanvas, {
+    };
+    const points = accounts => accounts.map(account => ({
+      x: Math.max(-100, Math.min(100, account.arr_trend)),
+      y: Math.max(-100, Math.min(100, account.usage_trend)),
+      r: 4 + (account.arr / maxArr) * 13,
+      name: account.name,
+      arr: account.arr,
+      rawX: account.arr_trend,
+      rawY: account.usage_trend,
+    }));
+    const standardAccounts = divergence.filter(account => !account.hidden_renewal_risk);
+    const hiddenRenewalRisks = divergence.filter(account => account.hidden_renewal_risk);
+    new Chart(divergenceCanvas, {
+      type: 'bubble',
       data: {
-        labels: healthNrr.health_labels,
         datasets: [
-          { type: 'line', label: 'Health', data: healthNrr.health, borderColor: '#2d6a2d', backgroundColor: 'rgba(45,106,45,0.1)',
-            borderWidth: 2.5, pointRadius: 0, tension: 0.3, yAxisID: 'y' },
-          { type: 'line', label: 'NRR %', data: nrrAligned, borderColor: '#b84a1a', backgroundColor: 'rgba(184,74,26,0.1)',
-            borderWidth: 2.5, pointRadius: 0, tension: 0.3, yAxisID: 'y1', spanGaps: true },
+          {
+            label: 'Portfolio accounts',
+            data: points(standardAccounts),
+            backgroundColor: 'rgba(66,105,142,0.60)',
+            borderColor: '#355a78',
+            borderWidth: 1,
+          },
+          {
+            label: 'Hidden renewal risk',
+            data: points(hiddenRenewalRisks),
+            backgroundColor: 'rgba(185,62,50,0.82)',
+            borderColor: '#983126',
+            borderWidth: 1.2,
+          },
+        ],
+      },
+      options: {
+        ...baseOptions,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { usePointStyle: true, boxWidth: 8 },
+          },
+          tooltip: {
+            callbacks: {
+              label: context => `${context.raw.name}: ARR ${context.raw.rawX}%, usage ${context.raw.rawY}%`,
+              afterLabel: context => `${compactMoney(context.raw.arr)} current ARR`,
+            },
+          },
+        },
+        scales: {
+          x: { min: -100, max: 100, title: { display: true, text: 'ARR change %' }, ticks: { callback: value => value + '%' }, grid: { color: gridColor } },
+          y: { min: -100, max: 100, title: { display: true, text: 'Usage change %' }, ticks: { callback: value => value + '%' }, grid: { color: gridColor } },
+        },
+      },
+      plugins: [quadrantPlugin],
+    });
+  }
+
+  const arrTrend = get('pulse-data-arr-trend');
+  const healthTrend = get('pulse-data-health-trend');
+  const portfolioTrendCanvas = document.getElementById('pulse-chart-portfolio-trend');
+  if (arrTrend && healthTrend && portfolioTrendCanvas) {
+    const portfolioHealthBands = {
+      id: 'portfolioHealthBands',
+      beforeDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea) return;
+        const y100 = scales.y1.getPixelForValue(100);
+        const y75 = scales.y1.getPixelForValue(75);
+        const y50 = scales.y1.getPixelForValue(50);
+        const y0 = scales.y1.getPixelForValue(0);
+        ctx.save();
+        ctx.fillStyle = 'rgba(45,106,45,0.08)';
+        ctx.fillRect(chartArea.left, y100, chartArea.width, y75 - y100);
+        ctx.fillStyle = 'rgba(201,149,24,0.08)';
+        ctx.fillRect(chartArea.left, y75, chartArea.width, y50 - y75);
+        ctx.fillStyle = 'rgba(192,57,43,0.06)';
+        ctx.fillRect(chartArea.left, y50, chartArea.width, y0 - y50);
+        ctx.restore();
+      },
+    };
+    new Chart(portfolioTrendCanvas, {
+      type: 'line',
+      data: {
+        labels: arrTrend.labels,
+        datasets: [
+          {
+            label: 'Portfolio ARR',
+            data: arrTrend.arr,
+            borderColor: COLORS.ink,
+            backgroundColor: COLORS.ink,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            borderWidth: 3,
+            tension: 0.22,
+            yAxisID: 'y',
+          },
+          {
+            label: 'Signal health',
+            data: healthTrend.health,
+            borderColor: COLORS.blue,
+            backgroundColor: COLORS.blue,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            borderWidth: 2.5,
+            tension: 0.2,
+            yAxisID: 'y1',
+          },
+        ],
+      },
+      options: {
+        ...baseOptions,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          ...baseOptions.plugins,
+          tooltip: {
+            callbacks: {
+              label: context => context.dataset.yAxisID === 'y'
+                ? `Portfolio ARR: ${compactMoney(context.raw)}`
+                : `Signal health: ${context.raw}`,
+            },
+          },
+        },
+        scales: {
+          x: { ticks: { maxTicksLimit: 9, font: { size: 9 } }, grid: { display: false } },
+          y: {
+            position: 'left',
+            beginAtZero: false,
+            title: { display: true, text: 'Portfolio ARR' },
+            ticks: { callback: compactMoney },
+            grid: { color: gridColor },
+          },
+          y1: {
+            position: 'right',
+            min: 0,
+            max: 100,
+            title: { display: true, text: 'Health score' },
+            ticks: { stepSize: 25 },
+            grid: { display: false },
+          },
+        },
+      },
+      plugins: [portfolioHealthBands],
+    });
+  }
+
+  const movement = get('pulse-data-arr-movement');
+  const movementCanvas = document.getElementById('pulse-chart-arr-movement');
+  if (movement && movementCanvas) {
+    new Chart(movementCanvas, {
+      data: {
+        labels: movement.labels,
+        datasets: [
+          { type: 'bar', label: 'New ARR', data: movement.new, backgroundColor: '#7fb37f', stack: 'movement' },
+          { type: 'bar', label: 'Expansion', data: movement.expansion, backgroundColor: COLORS.green, stack: 'movement' },
+          { type: 'bar', label: 'Contraction', data: movement.contraction, backgroundColor: COLORS.amber, stack: 'movement' },
+          { type: 'bar', label: 'Churn', data: movement.churn, backgroundColor: COLORS.red, stack: 'movement' },
+          { type: 'line', label: 'Net change', data: movement.net, borderColor: COLORS.ink, backgroundColor: COLORS.ink, pointRadius: 2, borderWidth: 1.8, tension: 0.1 },
         ],
       },
       options: {
         ...baseOptions,
         interaction: { mode: 'index', intersect: false },
         scales: {
-          x: { ticks: { maxTicksLimit: 10, autoSkip: true, font: { size: 10 } }, grid: { display: false } },
-          y: { position: 'left', min: 0, max: 100, title: { display: true, text: 'Health' }, grid: { color: gridColor } },
-          y1: { position: 'right', title: { display: true, text: 'NRR %' }, grid: { display: false } },
+          x: { stacked: true, ticks: { maxTicksLimit: 12, font: { size: 9 } }, grid: { display: false } },
+          y: { stacked: true, ticks: { callback: compactMoney }, grid: { color: gridColor } },
         },
       },
     });
   }
 
-  // ── 9. Usage vs. revenue divergence ──
-  const divergence = get('pulse-data-divergence');
-  const divergenceCanvas = document.getElementById('pulse-chart-divergence');
-  if (divergence && divergenceCanvas && divergence.length) {
-    const danger = { id: 'dangerQuadrant', beforeDraw(chart) {
-      const { ctx, chartArea, scales } = chart;
-      const xZero = scales.x.getPixelForValue(0);
-      const yZero = scales.y.getPixelForValue(0);
-      ctx.save();
-      ctx.fillStyle = 'rgba(192,57,43,0.06)';
-      ctx.fillRect(xZero, chartArea.top, chartArea.right - xZero, yZero - chartArea.top);
-      ctx.restore();
-    } };
-    const normal = divergence.filter(a => !a.silent_decliner).map(a => ({ x: a.mrr_trend, y: a.usage_trend, name: a.name }));
-    const flagged = divergence.filter(a => a.silent_decliner).map(a => ({ x: a.mrr_trend, y: a.usage_trend, name: a.name }));
+  const arrGroup = get('pulse-data-arr-group');
+  const arrGroupCanvas = document.getElementById('pulse-chart-arr-group');
+  let arrGroupChart = null;
 
-    new Chart(divergenceCanvas, {
-      type: 'scatter',
-      data: {
-        datasets: [
-          { label: 'Accounts', data: normal, backgroundColor: 'rgba(90,158,90,0.6)', pointRadius: 5 },
-          { label: 'Silent decliners', data: flagged, backgroundColor: '#c0392b', pointRadius: 8, pointStyle: 'triangle' },
-        ],
-      },
+  function groupedSeries(key) {
+    const raw = arrGroup[key];
+    if (key !== 'by_industry' || Object.keys(raw).length <= 6) return raw;
+    const groups = Object.keys(raw).sort((a, b) => raw[b][raw[b].length - 1] - raw[a][raw[a].length - 1]);
+    const top = groups.slice(0, 5);
+    const other = groups.slice(5);
+    const result = {};
+    top.forEach(group => { result[group] = raw[group]; });
+    result.Other = arrGroup.labels.map((_, index) => other.reduce((sum, group) => sum + raw[group][index], 0));
+    return result;
+  }
+
+  function buildArrGroupChart(key) {
+    if (!arrGroup || !arrGroupCanvas) return;
+    const series = groupedSeries(key);
+    const datasets = Object.keys(series).map((group, index) => ({
+      label: group,
+      data: series[group],
+      borderColor: GROUP_COLORS[index % GROUP_COLORS.length],
+      backgroundColor: GROUP_COLORS[index % GROUP_COLORS.length],
+      fill: false,
+      tension: 0.2,
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      borderWidth: 3,
+    }));
+    if (arrGroupChart) arrGroupChart.destroy();
+    arrGroupChart = new Chart(arrGroupCanvas, {
+      type: 'line',
+      data: { labels: arrGroup.labels, datasets },
       options: {
         ...baseOptions,
-        plugins: { ...baseOptions.plugins, tooltip: { callbacks: { label: ctx => `${ctx.raw.name}: MRR ${ctx.raw.x}%, usage ${ctx.raw.y}%` } } },
+        interaction: { mode: 'index', intersect: false },
         scales: {
-          x: { title: { display: true, text: 'MRR trend %' }, grid: { color: gridColor } },
-          y: { title: { display: true, text: 'Utilisation trend %' }, grid: { color: gridColor } },
+          x: { ticks: { maxTicksLimit: 10, font: { size: 9 } }, grid: { display: false } },
+          y: { beginAtZero: true, ticks: { callback: compactMoney }, grid: { color: gridColor } },
         },
       },
-      plugins: [danger],
     });
   }
 
-  // ── 10. Revenue by group over time (stacked area, toggle segment/industry) ──
-  const revenueGroup = get('pulse-data-revenue-group');
-  const revenueGroupCanvas = document.getElementById('pulse-chart-revenue-group');
-  let revenueGroupChart = null;
-  const groupPalette = ['#2d6a2d', '#b84a1a', '#5a9e5a', '#8e7cc3', '#d4772a', '#3f7da6', '#c0392b', '#9a9488'];
-
-  function buildRevenueGroupChart(key) {
-    if (!revenueGroup || !revenueGroupCanvas) return;
-    const series = revenueGroup[key];
-    const datasets = Object.keys(series).map((group, i) => ({
-      label: group, data: series[group], borderColor: groupPalette[i % groupPalette.length],
-      backgroundColor: groupPalette[i % groupPalette.length] + '55', fill: true, tension: 0.25, pointRadius: 0,
-    }));
-    if (revenueGroupChart) revenueGroupChart.destroy();
-    revenueGroupChart = new Chart(revenueGroupCanvas, {
-      type: 'line',
-      data: { labels: revenueGroup.labels, datasets },
-      options: { ...baseOptions,
-        scales: { x: { ticks: { maxTicksLimit: 10, autoSkip: true, font: { size: 10 } }, grid: { display: false } },
-          y: { stacked: true, beginAtZero: true, ticks: { callback: money }, grid: { color: gridColor } } } },
-    });
-  }
-  buildRevenueGroupChart('by_segment');
-
-  document.querySelectorAll('.pulse-group-toggle__btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.pulse-group-toggle__btn').forEach(b => b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      buildRevenueGroupChart(btn.dataset.group);
+  if (arrGroup) buildArrGroupChart('by_industry');
+  document.querySelectorAll('.pulse-group-toggle__btn').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.pulse-group-toggle__btn').forEach(item => item.classList.remove('is-active'));
+      button.classList.add('is-active');
+      buildArrGroupChart(button.dataset.group);
     });
   });
 });
