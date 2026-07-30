@@ -13,10 +13,10 @@
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:type" content="website">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <script type="module" crossorigin src="/static/life_compass/assets/execution-zbzZucDA.js"></script>
-    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-CGczBPaC.js">
+    <script type="module" crossorigin src="/static/life_compass/assets/execution-MLYmfKy_.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-DhRl8kmx.js">
     <link rel="modulepreload" crossorigin href="/static/life_compass/assets/dom-Sxd6wgz5.js">
-    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-CRTX45Dp.css">
+    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-1GJT3dt7.css">
   </head>
   <body data-page="execution" data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}" data-login-url="{% url 'life_compass:login' %}" data-logout-url="{% url 'life_compass:logout' %}">
     <header class="site-header">
@@ -72,7 +72,6 @@
             <p class="eyebrow">Three Daily Tasks</p>
             <h2 id="today-label">Today</h2>
           </div>
-          <button class="icon-button" id="reset-day" type="button" title="Reset daily tasks" aria-label="Reset daily tasks" data-edit-only>R</button>
         </div>
         <div class="daily-task-list" id="daily-task-list"></div>
       </section>
@@ -118,7 +117,6 @@
             <h2>Recent completions</h2>
           </div>
         </div>
-        <div class="ledger-filter-slot" id="ledger-filter-slot"></div>
         <ol class="ledger-list" id="done-ledger"></ol>
       </section>
     </main>
@@ -146,7 +144,6 @@
         </div>
         <button class="icon-button" type="button" id="close-ledger-archive" aria-label="Close completed task archive">x</button>
       </div>
-      <div class="ledger-filter-slot" id="ledger-archive-filter-slot"></div>
       <ol class="ledger-list archive-list" id="ledger-archive"></ol>
     </dialog>
 
@@ -179,6 +176,19 @@
           <button class="primary-button" type="submit" value="save">Save this week's focus</button>
         </div>
       </form>
+    </dialog>
+
+    <dialog class="modal confirm-modal" id="confirm-modal">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow" id="confirm-eyebrow">Are you sure</p>
+          <h2 id="confirm-message"></h2>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="text-button" type="button" id="confirm-cancel">Cancel</button>
+        <button class="primary-button" type="button" id="confirm-ok">Confirm</button>
+      </div>
     </dialog>
 
     <dialog class="modal" id="work-modal">
