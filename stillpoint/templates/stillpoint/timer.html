@@ -51,18 +51,6 @@
     <button class="sp-duration" data-min="60">60</button>
   </div>
 
-  {# ── Master: interval bells + volume ── #}
-  <div class="stillpoint__options" id="sp-options">
-    <label class="sp-option">
-      <input type="checkbox" id="sp-bells">
-      Interval bells every 5 minutes
-    </label>
-    <label class="sp-option sp-option--volume">
-      Volume
-      <input type="range" id="sp-volume" min="0" max="100" value="80" aria-label="Chime volume">
-    </label>
-  </div>
-
   {# ── Student: guided session picker ── #}
   <div class="stillpoint__guided" id="sp-guided" hidden>
     {% if guided_sessions %}
@@ -86,13 +74,19 @@
 
   {# ── Local session history, no account needed ── #}
   <div class="stillpoint__stats" id="sp-stats">
-    <div class="sp-stat"><strong id="sp-stat-streak">0</strong><span>day streak</span></div>
     <div class="sp-stat"><strong id="sp-stat-sessions">0</strong><span>sessions</span></div>
-    <div class="sp-stat"><strong id="sp-stat-minutes">0</strong><span>minutes</span></div>
+    <div class="sp-stat sp-stat--recent">
+      <div class="sp-recent-days" id="sp-recent-days" aria-label="Sessions in the last three days">
+        <span class="sp-day"></span>
+        <span class="sp-day"></span>
+        <span class="sp-day"></span>
+      </div>
+      <span>last 3 days</span>
+    </div>
   </div>
 
 </div>
 
 <script>window.STILLPOINT_HAS_AUDIO = {% if guided_sessions %}true{% else %}false{% endif %};</script>
-<script src="{% static 'stillpoint/js/timer.js' %}?v=3"></script>
+<script src="{% static 'stillpoint/js/timer.js' %}?v=4"></script>
 {% endblock %}

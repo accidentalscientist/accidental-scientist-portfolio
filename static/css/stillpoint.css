@@ -149,15 +149,17 @@
   animation: spIdle 8s ease-in-out infinite;
 }
 
+/* The ring itself expands and contracts like a lung — a shorter inhale, a
+   brief hold at the top, then a longer exhale (roughly a 5-breath-per-minute
+   resonant pace, not a flat symmetric sine) — with a faint green glow at
+   the same rhythm, echoing the app's own accent colour rather than an
+   unrelated hue. */
 .stillpoint__ring.is-breathing {
-  animation: spRingGlow 12s ease-in-out infinite;
+  animation: spBreathRing 12s ease-in-out infinite;
 }
 
-/* Roughly a 5-breath-per-minute resonant-breathing pace: a shorter inhale,
-   a brief hold at the top, then a longer exhale — not a flat symmetric
-   sine — so the pulse actually reads as a breath rather than a heartbeat. */
 .stillpoint__ring.is-breathing .stillpoint__readout {
-  animation: spBreath 12s ease-in-out infinite;
+  animation: spBreathText 12s ease-in-out infinite;
 }
 
 @keyframes spIdle {
@@ -165,18 +167,20 @@
   50%      { opacity: 1; }
 }
 
-@keyframes spRingGlow {
-  0%   { filter: drop-shadow(0 0 0 transparent); }
-  33%  { filter: drop-shadow(0 0 14px var(--accent-warm-bg)); }
-  50%  { filter: drop-shadow(0 0 14px var(--accent-warm-bg)); }
-  100% { filter: drop-shadow(0 0 0 transparent); }
+@keyframes spBreathRing {
+  0%   { transform: scale(0.94); filter: drop-shadow(0 0 0 transparent); }
+  33%  { transform: scale(1.06); filter: drop-shadow(0 0 22px var(--accent-glow)); }
+  50%  { transform: scale(1.06); filter: drop-shadow(0 0 22px var(--accent-glow)); }
+  100% { transform: scale(0.94); filter: drop-shadow(0 0 0 transparent); }
 }
 
-@keyframes spBreath {
-  0%   { transform: scale(0.95); opacity: 0.8; }
-  33%  { transform: scale(1.05); opacity: 1; }
-  50%  { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.8; }
+/* Opacity only — the ring (its parent) already handles the scale, so the
+   readout doesn't need its own transform on top of the parent's. */
+@keyframes spBreathText {
+  0%   { opacity: 0.85; }
+  33%  { opacity: 1; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.85; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -217,34 +221,6 @@
   border-color: var(--accent-color);
   color: var(--accent-color);
   background: var(--accent-warm-bg);
-}
-
-/* Master options: interval bells + volume */
-.stillpoint__options {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  margin: -1.25rem 0 2.25rem;
-}
-
-.sp-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-
-.sp-option input[type="checkbox"] {
-  accent-color: var(--accent-color);
-}
-
-.sp-option--volume input[type="range"] {
-  width: 110px;
-  accent-color: var(--accent-color);
 }
 
 /* Guided picker */
@@ -320,6 +296,26 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-secondary);
+}
+
+/* Today plus the two days before it, oldest to newest (left to right) —
+   a quieter, less quantified alternative to a numeric streak count. */
+.sp-recent-days {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.sp-day {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-color);
+  background: transparent;
+}
+
+.sp-day.is-done {
+  border-color: var(--accent-color);
+  background: var(--accent-color);
 }
 
 @media (max-width: 720px) {

@@ -8,15 +8,11 @@ document.addEventListener('DOMContentLoaded', function () {
   const beginBtn = $('sp-begin');
   const resetBtn = $('sp-reset');
   const durationsEl = $('sp-durations');
-  const optionsEl = $('sp-options');
   const guidedEl = $('sp-guided');
   const select = $('sp-audio-select');
   const audio = $('sp-audio');
-  const bellsInput = $('sp-bells');
-  const volumeInput = $('sp-volume');
-  const statStreak = $('sp-stat-streak');
   const statSessions = $('sp-stat-sessions');
-  const statMinutes = $('sp-stat-minutes');
+  const recentDaysEl = $('sp-recent-days');
 
   const R = 110;
   const CIRC = 2 * Math.PI * R;
@@ -30,8 +26,6 @@ document.addEventListener('DOMContentLoaded', function () {
   let rafId = null;
   let completionTimer = null;
   let wakeLock = null;
-  let volume = parseFloat(localStorage.getItem('stillpoint.volume') || '0.8');
-  let bellsEnabled = localStorage.getItem('stillpoint.bells') === 'true';
   let bellTimers = [];
 
   // ── Soft synthesized bell (no audio file needed) ──
@@ -47,9 +41,9 @@ document.addEventListener('DOMContentLoaded', function () {
         osc.frequency.value = freq;
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        const vol = (i === 0 ? 0.35 : 0.12) * volume;
+        const vol = i === 0 ? 0.35 : 0.12;
         gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, vol), now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(vol, now + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.5);
         osc.start(now);
         osc.stop(now + 3.6);
@@ -70,22 +64,21 @@ document.addEventListener('DOMContentLoaded', function () {
       osc.frequency.value = 528;
       osc.connect(gain);
       gain.connect(audioCtx.destination);
-      const vol = 0.18 * volume;
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, vol), now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.18, now + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
       osc.start(now);
       osc.stop(now + 2.3);
     } catch (e) { /* audio not available: stay silent */ }
   }
 
-  // Interval bells are scheduled from the point a session (re)starts, not
-  // from a fixed session start, so resuming after a pause only schedules
-  // whatever marks are still ahead rather than replaying missed ones.
+  // Interval bells always run in Master mode, no toggle — scheduled from
+  // the point a session (re)starts, not from a fixed session start, so
+  // resuming after a pause only schedules whatever marks are still ahead
+  // rather than replaying missed ones.
   function scheduleIntervalBells() {
     clearIntervalBells();
-    if (!bellsEnabled) return;
-    const intervalSec = 5 * 60;
+    const intervalSec = 2 * 60;
     const elapsedAtStart = durationSec - remaining;
     for (let mark = intervalSec; mark < durationSec; mark += intervalSec) {
       if (mark <= elapsedAtStart) continue;
@@ -114,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
     wakeLock = null;
   }
 
-  // ── Local session history + streaks (localStorage only, no account) ──
+  // ── Local session history (localStorage only, no account) ──
   function isoDateFor(date) {
     return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
   }
@@ -124,31 +117,27 @@ document.addEventListener('DOMContentLoaded', function () {
       return Array.isArray(parsed) ? parsed : [];
     } catch (e) { return []; }
   }
-  function recordSession(minutes) {
+  function recordSession() {
     const sessions = loadSessions();
-    sessions.push({ date: isoDateFor(new Date()), minutes: Math.round(minutes) });
+    sessions.push({ date: isoDateFor(new Date()) });
     localStorage.setItem('stillpoint.sessions', JSON.stringify(sessions));
     renderStats();
   }
-  function computeStreak(sessions) {
-    const days = new Set(sessions.map(s => s.date));
-    const cursor = new Date();
-    // If today has no session yet, count from yesterday so the streak
-    // doesn't read as broken before the day is actually over.
-    if (!days.has(isoDateFor(cursor))) cursor.setDate(cursor.getDate() - 1);
-    let streak = 0;
-    while (days.has(isoDateFor(cursor))) {
-      streak += 1;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-    return streak;
-  }
+  // A quieter alternative to a numeric streak: today plus the two days
+  // before it, oldest to newest, filled in if a session happened that day.
   function renderStats() {
-    if (!statStreak) return;
+    if (!statSessions) return;
     const sessions = loadSessions();
-    statStreak.textContent = computeStreak(sessions);
     statSessions.textContent = sessions.length;
-    statMinutes.textContent = sessions.reduce((sum, s) => sum + (s.minutes || 0), 0);
+    if (!recentDaysEl) return;
+    const days = new Set(sessions.map(s => s.date));
+    const dayEls = recentDaysEl.querySelectorAll('.sp-day');
+    dayEls.forEach((el, index) => {
+      const offset = dayEls.length - 1 - index;
+      const cursor = new Date();
+      cursor.setDate(cursor.getDate() - offset);
+      el.classList.toggle('is-done', days.has(isoDateFor(cursor)));
+    });
   }
 
   // ── Rendering ──
@@ -221,7 +210,6 @@ document.addEventListener('DOMContentLoaded', function () {
     setBeginLabel('Resume');
   }
   function finish() {
-    const completedMinutes = durationSec / 60;
     running = false;
     cancelAnimationFrame(rafId);
     clearTimeout(completionTimer);
@@ -231,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function () {
     chime();
     phaseEl.textContent = 'Complete';
     setBeginLabel('Begin');
-    recordSession(completedMinutes);
+    recordSession();
   }
 
   // ── Student mode (audio-led) ──
@@ -254,14 +242,13 @@ document.addEventListener('DOMContentLoaded', function () {
     setBeginLabel('Resume');
   }
   function finishStudent() {
-    const completedMinutes = (durationSec || 0) / 60;
     running = false;
     releaseWakeLock();
     ring.classList.remove('is-breathing');
     chime();
     phaseEl.textContent = 'Complete';
     setBeginLabel('Begin');
-    recordSession(completedMinutes);
+    recordSession();
   }
 
   if (audio) {
@@ -352,23 +339,6 @@ document.addEventListener('DOMContentLoaded', function () {
     load();
   }
 
-  // Interval bells + volume (master), persisted across visits
-  if (bellsInput) {
-    bellsInput.checked = bellsEnabled;
-    bellsInput.addEventListener('change', () => {
-      bellsEnabled = bellsInput.checked;
-      localStorage.setItem('stillpoint.bells', String(bellsEnabled));
-      if (running && mode === 'master') scheduleIntervalBells();
-    });
-  }
-  if (volumeInput) {
-    volumeInput.value = String(Math.round(volume * 100));
-    volumeInput.addEventListener('input', () => {
-      volume = volumeInput.value / 100;
-      localStorage.setItem('stillpoint.volume', String(volume));
-    });
-  }
-
   // Mode switching
   document.querySelectorAll('.stillpoint__mode').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -381,7 +351,6 @@ document.addEventListener('DOMContentLoaded', function () {
         b.setAttribute('aria-selected', active ? 'true' : 'false');
       });
       if (durationsEl) durationsEl.hidden = mode !== 'master';
-      if (optionsEl) optionsEl.hidden = mode !== 'master';
       if (guidedEl) guidedEl.hidden = mode !== 'student';
 
       // Disable begin in guided mode when no audio is configured.
