@@ -13,10 +13,10 @@
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:type" content="website">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <script type="module" crossorigin src="/static/life_compass/assets/execution-C4DvzWOq.js"></script>
-    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-CKvwuINb.js">
-    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/dom-BWdcqXEl.js">
-    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-MY6EDqCu.css">
+    <script type="module" crossorigin src="/static/life_compass/assets/execution-zbzZucDA.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-CGczBPaC.js">
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/dom-Sxd6wgz5.js">
+    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-CRTX45Dp.css">
   </head>
   <body data-page="execution" data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}" data-login-url="{% url 'life_compass:login' %}" data-logout-url="{% url 'life_compass:logout' %}">
     <header class="site-header">
@@ -103,7 +103,10 @@
             <p class="eyebrow">Projects Kanban</p>
             <h2>Ideas to complete</h2>
           </div>
-          <button class="text-button wrap-button" type="button" id="open-new-project" data-edit-only>Develop an idea into a project</button>
+          <div class="button-pair">
+            <button class="text-button" type="button" id="open-archive">Archive (0)</button>
+            <button class="text-button wrap-button" type="button" id="open-new-project" data-edit-only>Develop an idea into a project</button>
+          </div>
         </div>
         <div class="kanban-board" id="kanban-board"></div>
       </section>
@@ -115,6 +118,7 @@
             <h2>Recent completions</h2>
           </div>
         </div>
+        <div class="ledger-filter-slot" id="ledger-filter-slot"></div>
         <ol class="ledger-list" id="done-ledger"></ol>
       </section>
     </main>
@@ -142,7 +146,39 @@
         </div>
         <button class="icon-button" type="button" id="close-ledger-archive" aria-label="Close completed task archive">x</button>
       </div>
+      <div class="ledger-filter-slot" id="ledger-archive-filter-slot"></div>
       <ol class="ledger-list archive-list" id="ledger-archive"></ol>
+    </dialog>
+
+    <dialog class="modal" id="archive-modal">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">Kanban</p>
+          <h2>Archived projects</h2>
+        </div>
+        <button class="icon-button" type="button" id="close-archive" aria-label="Close project archive">x</button>
+      </div>
+      <ol class="ledger-list archive-list" id="archive-list"></ol>
+    </dialog>
+
+    <dialog class="modal" id="weekly-focus-prompt-modal">
+      <form method="dialog" id="weekly-focus-prompt-form">
+        <div class="modal-heading">
+          <div>
+            <p class="eyebrow">New week</p>
+            <h2>It's a new week &mdash; write this week's focus</h2>
+          </div>
+        </div>
+        <div class="edit-fields">
+          <label>Main<input id="new-focus-main" type="text" autocomplete="off" placeholder="What's the main push this week?"></label>
+          <label>Secondary<input id="new-focus-secondary" type="text" autocomplete="off" placeholder="Secondary focus"></label>
+          <label>Health Focus<input id="new-focus-health" type="text" autocomplete="off" placeholder="Health focus"></label>
+        </div>
+        <div class="modal-actions">
+          <button class="text-button" type="submit" value="skip">Skip for now</button>
+          <button class="primary-button" type="submit" value="save">Save this week's focus</button>
+        </div>
+      </form>
     </dialog>
 
     <dialog class="modal" id="work-modal">
@@ -167,11 +203,27 @@
         </div>
         <div class="modal-actions">
           <button class="text-button parking-action" type="button" id="park-project" data-edit-only>Move to Parking Lot</button>
+          <button class="text-button archive-action" type="button" id="archive-project" data-edit-only>Archive</button>
           <button class="text-button" type="submit" value="cancel">Cancel</button>
           <button class="primary-button" type="submit" value="save" data-edit-only>Save</button>
         </div>
       </form>
     </dialog>
+
+    <div class="pomodoro-overlay" id="pomodoro-overlay" hidden>
+      <div class="pomodoro-backdrop"></div>
+      <div class="pomodoro-panel" role="dialog" aria-modal="true" aria-labelledby="pomodoro-task-title">
+        <p class="eyebrow" id="pomodoro-task-label">Focusing on</p>
+        <h2 id="pomodoro-task-title"></h2>
+        <svg class="pomodoro-ring" viewBox="0 0 240 240" aria-hidden="true">
+          <circle class="pomodoro-ring-track" cx="120" cy="120" r="110"></circle>
+          <circle class="pomodoro-ring-progress" id="pomodoro-progress" cx="120" cy="120" r="110"></circle>
+        </svg>
+        <p class="pomodoro-time" id="pomodoro-time">50:00</p>
+        <p class="pomodoro-message" id="pomodoro-message" hidden></p>
+        <button class="text-button" type="button" id="stop-pomodoro">Stop Focusing</button>
+      </div>
+    </div>
 
   </body>
 </html>

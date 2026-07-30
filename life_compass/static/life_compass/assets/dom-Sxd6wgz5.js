@@ -1,0 +1,1 @@
+function c(e){const t=document.getElementById(e);if(!t)throw new Error(`Missing element #${e}`);return t}function m(e){return document.getElementById(e)}function r(e,t="",n=""){const o=document.createElement(e);return t&&(o.className=t),n&&(o.textContent=n),o}function s(e,t){const n=document.getElementById(e);n&&(n.textContent=t||"")}export{c as b,r as c,m as o,s};
