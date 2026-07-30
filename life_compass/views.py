@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 
 from .models import LifeCompassData
 
-# Generous but bounded — a real strategy+execution export is a few KB; this
+# Generous but bounded: a real strategy+execution export is a few KB; this
 # just stops an abusive or corrupt payload from growing the row unbounded.
 MAX_PAYLOAD_BYTES = 512_000
 
@@ -30,7 +30,7 @@ def execution(request):
 @require_http_methods(["GET", "POST"])
 def sync_data(request):
     """The frontend's entire lifeCompass.* localStorage export, as one blob,
-    scoped to the logged-in user only — never visible to anonymous visitors
+    scoped to the logged-in user only: never visible to anonymous visitors
     or to any other account.
     """
     obj, _ = LifeCompassData.objects.get_or_create(user=request.user)

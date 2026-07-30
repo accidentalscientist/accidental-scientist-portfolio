@@ -3,7 +3,7 @@ from django.db import models
 
 
 class LifeCompassData(models.Model):
-    """One row per user — the full lifeCompass.* localStorage export as a
+    """One row per user: the full lifeCompass.* localStorage export as a
     single JSON blob. Keeping it as one opaque blob (rather than modelling
     strategy/tasks/kanban as separate fields) means the frontend's storage
     format can keep evolving without needing a matching migration here.
