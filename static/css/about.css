@@ -110,7 +110,7 @@
   max-width: 560px;
 }
 
-/* Honeypot — kept in the DOM for bots, moved off-screen for humans. */
+/* Honeypot: kept in the DOM for bots, moved off-screen for humans. */
 .hp-wrap {
   position: absolute;
   left: -10000px;

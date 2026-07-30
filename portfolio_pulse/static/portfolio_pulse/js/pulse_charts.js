@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const gridColor = 'rgba(26,46,26,0.06)';
   const money = v => '$' + Math.round(v).toLocaleString();
 
-  // Animation is switched off globally rather than hooked to onComplete —
+  // Animation is switched off globally rather than hooked to onComplete:
   // it removes the render-race with PDF export entirely and satisfies the
   // reduced-motion quality bar in one move.
   const baseOptions = {
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
     plugins: { legend: { labels: { boxWidth: 12, usePointStyle: true, font: { size: 12 } } } },
   };
 
-  // ── 1. Revenue tiers — Gold / Silver / Bronze by ARR rank ──
+  // 1. Revenue tiers: Gold / Silver / Bronze by ARR rank
   const tiersData = get('pulse-data-concentration');
   const tiersCanvas = document.getElementById('pulse-chart-concentration');
   const TIER_COLORS = { Gold: '#c9962b', Silver: '#8a9e82', Bronze: '#b0703a' };

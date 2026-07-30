@@ -67,7 +67,7 @@ def _fuel_mix(queryset, range_label):
         if mw > 0:
             fuels[fuel] = {"mw": round(mw, 1), "pct": pct(mw)}
 
-    # Grouped breakdown — always include all groups so segments stay stable.
+    # Grouped breakdown: always include all groups so segments stay stable.
     groups = {}
     for g in GROUP_DEFS:
         mw = sum(max(lookup.get(f, 0.0) or 0.0, 0.0) for f in g["fuels"])

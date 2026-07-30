@@ -1,25 +1,25 @@
 """
-Portfolio Pulse scoring engine — v2.
+Portfolio Pulse scoring engine: v2.
 
-Every input is objective — a number or date pulled straight from a
+Every input is objective: a number or date pulled straight from a
 billing/CRM export (or, for `momentum_ratio`, computed upstream by
 metrics.py). There is no manual "CSM says it's red" field: the health
 score is always derived from the data itself.
 
 Continuous ramps replace v1's step buckets so an account at 89 vs 91 days
 differs by ~1 point, not a whole band. Missing optional signals contribute
-zero deduction — never a penalty — and are tracked via `data_completeness`
+zero deduction (never a penalty) and are tracked via `data_completeness`
 so a data-poor score is understood in context rather than taken at face
 value.
 """
 from datetime import date
 
-# ── Health/risk bands (0-100) — 3 tiers, kept simple by design ───────
+# ── Health/risk bands (0-100): 3 tiers, kept simple by design ───────
 BANDS = [(50, "Critical"), (75, "At-risk"), (100, "Healthy")]
 
 # ── Per-signal ramp thresholds and max deduction weight ─────────────
 # Each signal's max deduction is sized so a worst-case, fully-present
-# account bottoms out near 0 — the pool sums to 100.
+# account bottoms out near 0: the pool sums to 100.
 SEGMENT_THRESHOLDS = {
     "Enterprise": {"contact_clean": 60, "contact_bad": 365, "tickets_clean": 4, "tickets_bad": 25},
     "Mid-Market": {"contact_clean": 45, "contact_bad": 270, "tickets_clean": 2, "tickets_bad": 18},
@@ -67,7 +67,7 @@ def _ramp_up(value, clean, bad, max_penalty):
 
 
 def _ramp_down(value, bad, clean, max_penalty):
-    """`max_penalty` at/below `bad`, 0 at/above `clean` — for signals where low is bad."""
+    """`max_penalty` at/below `bad`, 0 at/above `clean`: for signals where low is bad."""
     if value >= clean:
         return 0.0
     if value <= bad:
@@ -173,7 +173,7 @@ def score_portfolio(accounts, today=None):
 def portfolio_health(scored_accounts):
     """ARR-weighted and unweighted (logo) portfolio health averages.
 
-    The gap between the two is itself informative — a wide gap means a few
+    The gap between the two is itself informative: a wide gap means a few
     large accounts are propping up (or dragging down) a headline number
     that doesn't reflect the typical account.
     """

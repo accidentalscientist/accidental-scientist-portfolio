@@ -1,5 +1,5 @@
 /* ============================
-   Editorial — journal hero
+   Editorial: journal hero
    ============================ */
 .journal-hero {
   max-width: 700px;
@@ -19,7 +19,7 @@
   text-transform: uppercase;
 }
 
-/* Blog page H1 — Playfair italic, French editorial */
+/* Blog page H1: Playfair italic, French editorial */
 .journal-hero h1 {
   font-family: 'Playfair Display', Georgia, serif;
   font-style: italic;
@@ -126,7 +126,7 @@
   letter-spacing: 0.02em;
 }
 
-/* Card titles — Playfair */
+/* Card titles: Playfair */
 .article-card h3 {
   font-family: 'Playfair Display', Georgia, serif;
   font-weight: 700;
@@ -246,7 +246,7 @@
   line-height: 1.75;
 }
 
-/* Cover images are usually charts — never crop them. Full natural aspect
+/* Cover images are usually charts: never crop them. Full natural aspect
    ratio so titles, axes and legends stay intact. */
 .article-detail__image {
   display: block;
@@ -256,7 +256,7 @@
   border-radius: 8px;
 }
 
-/* Takeaway — terracotta left stripe (Indian accent) */
+/* Takeaway: terracotta left stripe (Indian accent) */
 .article-takeaway {
   margin: 2.5rem 0;
   padding: 1.25rem 1.6rem;
@@ -370,7 +370,7 @@
 .back-link:hover { color: var(--accent-color); }
 
 /* ============================
-   Responsive — editorial
+   Responsive: editorial
    ============================ */
 @media (max-width: 768px) {
   .journal-hero     { padding-top: 2rem; }
@@ -384,7 +384,7 @@
 }
 
 /* ============================
-   Category filter — square-edged stamps
+   Category filter: square-edged stamps
    Austrian geometry, not pill-shaped
    ============================ */
 .category-filter {
@@ -397,7 +397,7 @@
 .category-pill {
   padding: 0.28rem 0.8rem;
   border: 1px solid var(--border-color);
-  border-radius: 3px;          /* square, not round — Austrian precision */
+  border-radius: 3px;          /* square, not round: Austrian precision */
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -462,7 +462,7 @@
 }
 
 /* ============================
-   Buttons — global
+   Buttons: global
    ============================ */
 .btn-primary {
   background-color: var(--accent-color) !important;
@@ -489,14 +489,14 @@
 }
 
 /* ============================
-   Dark mode — footer bg override
+   Dark mode: footer bg override
    ============================ */
 [data-theme='dark'] footer {
   background-color: var(--bg-footer) !important;
 }
 
 /* ============================
-   Blog pager — next / previous (blended editorial style)
+   Blog pager: next / previous (blended editorial style)
    ============================ */
 .blog-pager {
   display: flex;
@@ -536,7 +536,7 @@
 }
 
 /* ============================
-   Featured writing — single article with intro (home & blog)
+   Featured writing: single article with intro (home & blog)
    ============================ */
 .featured-single {
   margin-top: 3rem;

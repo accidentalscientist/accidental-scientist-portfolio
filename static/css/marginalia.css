@@ -2,7 +2,7 @@
    Austro-indo-french marginalia (faint, decorative, non-interactive)
    ───────────────────────────────────────────────────────────── */
 
-/* Terracotta brick ribbon — left edge */
+/* Terracotta brick ribbon: left edge */
 .edge-brick {
   position: fixed;
   left: 0;
@@ -17,7 +17,7 @@
 
 .edge-brick svg { display: block; height: 100%; }
 
-/* Kolam + Tamil Om — footer corner */
+/* Kolam + Tamil Om: footer corner */
 .footer-kolam {
   position: absolute;
   right: 18px;
@@ -36,7 +36,7 @@
   line-height: 1;
 }
 
-/* Coastal-abbey watermark — faint backdrop behind the home hero */
+/* Coastal-abbey watermark: faint backdrop behind the home hero */
 .hero-castle {
   position: absolute;
   left: -5%;
@@ -50,7 +50,7 @@
   user-select: none;
 }
 
-/* Favicon page-mark — a small signature, placed differently per page */
+/* Favicon page-mark: a small signature, placed differently per page */
 .page-mark {
   position: fixed;
   width: 34px;
@@ -87,7 +87,7 @@
     transform: none !important;
   }
 }
-/* Fleur-de-lys — footer bottom-left (mirrors the kolam on the right) */
+/* Fleur-de-lys: footer bottom-left (mirrors the kolam on the right) */
 .footer-fleur {
   position: absolute;
   left: 14px;

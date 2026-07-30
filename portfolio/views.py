@@ -32,7 +32,7 @@ def _client_ip(request):
 
 
 def robots_txt(request):
-    """Served at /robots.txt — allows crawling and points to the sitemap."""
+    """Served at /robots.txt: allows crawling and points to the sitemap."""
     from django.http import HttpResponse
     lines = [
         "User-agent: *",
@@ -47,7 +47,7 @@ def robots_txt(request):
 
 # Tools with no Project row of their own (standalone apps, not admin-managed
 # portfolio entries). One definition here drives both the homepage's daily
-# rotation and the "external tool" rows on the Projects page — add a tool
+# rotation and the "external tool" rows on the Projects page: add a tool
 # once here rather than wiring a new template block + view flag for it.
 EXTERNAL_TOOLS = [
     {
@@ -94,7 +94,7 @@ def _homepage_tools():
 
 def home(request):
     tools = _homepage_tools()
-    # Deterministic per-day rotation (not per-visit) — stable all day, changes
+    # Deterministic per-day rotation (not per-visit): stable all day, changes
     # daily, and needs no stored state.
     current_project = tools[timezone.localdate().toordinal() % len(tools)] if tools else None
     featured_post = BlogPost.objects.filter(
@@ -138,7 +138,7 @@ def blog_list(request):
 
     featured_post = published_qs.filter(is_featured=True).order_by('?').first()
 
-    # All posts go into the list — the featured post is highlighted above, not removed
+    # All posts go into the list: the featured post is highlighted above, not removed
     paginator = Paginator(filtered_qs.order_by('-published'), 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
@@ -189,7 +189,7 @@ def contact_view(request):
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
-            # Honeypot: a bot filled the hidden field — pretend success, send nothing.
+            # Honeypot: a bot filled the hidden field, pretend success, send nothing.
             if form.cleaned_data.get('website'):
                 logger.info("Contact honeypot triggered from %s", _client_ip(request))
                 messages.success(request, "Thanks for your message. I'll get back to you soon!")
@@ -226,7 +226,7 @@ def contact_view(request):
 
             if not sent:
                 # EmailMessage.send() returns 0 (no exception) when it has no valid
-                # recipients — that used to look identical to success from here.
+                # recipients: that used to look identical to success from here.
                 if not settings.CONTACT_EMAIL:
                     logger.error("Contact form submission dropped: CONTACT_EMAIL is not set.")
                 messages.error(

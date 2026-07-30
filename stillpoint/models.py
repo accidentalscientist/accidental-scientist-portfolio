@@ -5,7 +5,7 @@ from django.db import models
 class GuidedMeditation(models.Model):
     """An audio-led session used by Stillpoint's 'Guide me' mode.
 
-    Upload MP3 files through the Django admin — they appear automatically
+    Upload MP3 files through the Django admin: they appear automatically
     in the guided-session picker on the timer page. MP3 only, for fast
     web delivery (WAV and other heavy formats are rejected).
     """

@@ -201,7 +201,7 @@ class SilentDeclinerTests(TestCase):
         self.assertFalse(metrics.is_silent_decliner(rows))
 
     def test_does_not_flag_obvious_decline_revenue_also_dropping(self):
-        # Revenue itself is dropping, so this isn't "silent" — it's already visible.
+        # Revenue itself is dropping, so this isn't "silent": it's already visible.
         rows = self._rows([1000, 800, 600, 400], [80, 60, 40, 20])
         self.assertFalse(metrics.is_silent_decliner(rows))
 
@@ -299,7 +299,7 @@ class SampleDataDistributionTests(TestCase):
         # renewal pressure) means final health reads no worse than raw risk.
         self.assertGreaterEqual(rank[sterling["band"]], rank[sterling["risk_band"]])
 
-        # Ridgeline: moderate raw risk, but renewal proximity amplifies it —
+        # Ridgeline: moderate raw risk, but renewal proximity amplifies it:
         # final health reads worse than the raw signal alone would suggest.
         self.assertLess(rank[ridgeline["band"]], rank[ridgeline["risk_band"]])
 

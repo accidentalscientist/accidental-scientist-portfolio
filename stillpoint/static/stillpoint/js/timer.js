@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
         osc.start(now);
         osc.stop(now + 3.6);
       });
-    } catch (e) { /* audio not available — stay silent */ }
+    } catch (e) { /* audio not available: stay silent */ }
   }
 
   // ── Rendering ──

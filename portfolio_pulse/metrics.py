@@ -1,5 +1,5 @@
 """
-Derived and temporal metrics — pure functions, computed at request time,
+Derived and temporal metrics: pure functions, computed at request time,
 never stored. Snapshot-only metrics (current_arr, historic_value,
 momentum_ratio, arr_at_risk) work with just the Snapshot file. Everything
 else here (nrr, grr, the ARR bridge, usage_trend, silent_decliner,
@@ -36,7 +36,7 @@ def historic_value(account):
 
 
 def momentum_ratio(account):
-    """Run-rate vs. lifetime monthly average — the 'poor-man's trend' that
+    """Run-rate vs. lifetime monthly average: the 'poor-man's trend' that
     works without a Timeline. >1.05 growing, <0.95 declining, else flat.
     """
     total_36mo = account.get("total_revenue_36mo")
@@ -106,7 +106,7 @@ def _cohort_start_end(rows, start_month, end_month):
 def revenue_retention(timeline_by_account, start_month, end_month):
     """NRR/GRR and the ARR-bridge components over [start_month, end_month],
     restricted to the cohort of accounts that existed at start_month
-    (standard retention definition — excludes new-logo growth in the window).
+    (standard retention definition: excludes new-logo growth in the window).
     """
     starting_mrr = expansion = contraction = churn = 0.0
 
@@ -158,7 +158,7 @@ def mrr_trend(rows):
 
 
 def is_silent_decliner(rows):
-    """MRR flat-or-up while usage quietly collapses — pays on time,
+    """MRR flat-or-up while usage quietly collapses: pays on time,
     disengaging under the hood. The flagship leading indicator.
     """
     mrr_points = [r["mrr"] for r in rows]
@@ -173,7 +173,7 @@ def health_trend_series(timeline_by_account):
     """A simplified, ARR-weighted monthly health proxy for the trend line.
 
     Only signals available at monthly granularity (mrr momentum vs. a
-    trailing 3-month average, and seat_utilisation_pct) feed this — the
+    trailing 3-month average, and seat_utilisation_pct) feed this: the
     Snapshot-only signals (contact recency, tickets, overdue) have no
     monthly history to reconstruct, so this is a proxy, not a replay of
     the full score.
@@ -213,7 +213,7 @@ def health_trend_series(timeline_by_account):
 
 
 def monthly_nrr_series(timeline_by_account):
-    """Month-over-month net retention rate — a simplified NRR trend line
+    """Month-over-month net retention rate: a simplified NRR trend line
     (not a trailing-12-month figure; the headline NRR/GRR KPI uses the
     full uploaded window via revenue_retention() instead).
     """

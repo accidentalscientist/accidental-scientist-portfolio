@@ -15,7 +15,7 @@
 
 .portfolio-hero__content { padding: 0.75rem 0; }
 
-/* Eyebrow — typewriter line is larger, more presence */
+/* Eyebrow: typewriter line is larger, more presence */
 .portfolio-hero__eyebrow {
   margin-bottom: 0.9rem;
   color: var(--text-secondary);
@@ -33,7 +33,7 @@
   text-transform: uppercase;
 }
 
-/* Hero H1 — Playfair, authoritative but not monumental */
+/* Hero H1: Playfair, authoritative but not monumental */
 .portfolio-hero h1 {
   font-family: 'Playfair Display', Georgia, serif;
   font-style: italic;
@@ -97,7 +97,7 @@
   padding: 1.75rem;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  /* Left terracotta stripe — Indian accent */
+  /* Left terracotta stripe: Indian accent */
   border-left: 3px solid var(--accent-warm);
   border-radius: 0 8px 8px 0;
 }

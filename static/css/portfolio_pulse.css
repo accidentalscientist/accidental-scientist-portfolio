@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────────────────────
-   Portfolio Pulse — book of business health dashboard
+   Portfolio Pulse: book of business health dashboard
    ───────────────────────────────────────────────────────────── */
 .pulse {
   max-width: 100%;
@@ -122,7 +122,7 @@
 .pulse-kpi--score .pulse-kpi__value { color: var(--accent-color); }
 .pulse-kpi__sub { font-size: 0.72rem; color: var(--text-secondary); margin: 0; }
 
-/* Health/risk band strip — 3 tiers ──────────────────────────── */
+/* Health/risk band strip: 3 tiers ──────────────────────────── */
 .pulse-band-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

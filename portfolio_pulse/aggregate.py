@@ -85,7 +85,7 @@ def _build_kpi(scored_accounts, today, timeline_by_account):
     top_accounts = sorted(scored_accounts, key=lambda a: a.get("current_arr", 0.0), reverse=True)[:SOFTENING_TOP_N]
     softening_count = sum(1 for a in top_accounts if a["band"] in ("Critical", "At-risk"))
 
-    # A list, not a dict keyed by band label — Django templates can't dot into
+    # A list, not a dict keyed by band label: Django templates can't dot into
     # a dict key containing a hyphen ("At-risk"), but looping a list is fine.
     band_rows = [
         {"label": label, "slug": label.lower().replace("-", ""),
@@ -121,7 +121,7 @@ def _summary_sentence(kpi, has_timeline):
 
 
 def _revenue_tiers(accounts):
-    """Accounts sorted into Gold/Silver/Bronze by ARR rank alone — the top
+    """Accounts sorted into Gold/Silver/Bronze by ARR rank alone: the top
     20% by ARR are Gold, the next 30% Silver, the remaining 50% Bronze.
     """
     ranked = sorted(accounts, key=lambda a: a.get("current_arr", 0.0), reverse=True)

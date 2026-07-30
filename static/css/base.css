@@ -1,5 +1,5 @@
 /* ============================
-   Navbar  — Austrian masthead
+   Navbar: Austrian masthead
    Seamless surface, double hairline below (newspaper rule)
    ============================ */
 .navbar {
@@ -17,7 +17,7 @@
 
 .navbar-shrink { padding-top: 0.5rem; }
 
-/* Brand — Playfair italic, like a French journal title */
+/* Brand: Playfair italic, like a French journal title */
 .navbar-brand {
   font-family: 'Playfair Display', Georgia, serif;
   font-style: italic;
@@ -31,7 +31,7 @@
 
 .navbar-brand:hover { color: var(--accent-color) !important; }
 
-/* Nav links — Inter, tiny, wide-tracked caps */
+/* Nav links: Inter, tiny, wide-tracked caps */
 .nav-link {
   font-family: 'Inter', sans-serif;
   font-size: 0.72rem;
@@ -78,7 +78,7 @@
 }
 
 /* ============================
-   Footer  — French minimalism with Indian ornament
+   Footer: French minimalism with Indian ornament
    ============================ */
 footer {
   background-color: var(--bg-footer) !important;
@@ -293,7 +293,7 @@ footer {
 }
 
 /* ============================
-   Shared page width — keeps every main page the same width
+   Shared page width: keeps every main page the same width
    ============================ */
 main.container {
   max-width: var(--page-width);

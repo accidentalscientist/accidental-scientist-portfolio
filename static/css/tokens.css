@@ -1,5 +1,5 @@
 /* ============================================================
-   ACCIDENTAL SCIENTIST — DESIGN SYSTEM
+   ACCIDENTAL SCIENTIST: DESIGN SYSTEM
    Austro-Indo-French · Earth & Energy
 
    Austrian  → precise grid, mathematical spacing, restrained geometry
@@ -19,27 +19,27 @@
   --page-width: 1140px;
 
   /* Surfaces */
-  --bg-primary:   #f4f0e6;   /* warm linen — body */
-  --bg-navbar:    #faf8f2;   /* slightly lighter — navbar */
-  --bg-footer:    #ebe5d4;   /* slightly darker — footer */
-  --bg-secondary: #faf8f2;   /* lightest cream — cards */
-  --bg-tertiary:  #ede7d5;   /* deeper linen — code, callouts */
+  --bg-primary:   #f4f0e6;   /* warm linen: body */
+  --bg-navbar:    #faf8f2;   /* slightly lighter: navbar */
+  --bg-footer:    #ebe5d4;   /* slightly darker: footer */
+  --bg-secondary: #faf8f2;   /* lightest cream: cards */
+  --bg-tertiary:  #ede7d5;   /* deeper linen: code, callouts */
 
   /* Ink */
   --text-primary:   #1a2e1a; /* forest ink */
   --text-secondary: #5a6e52; /* sage mid-tone */
 
   /* Accents */
-  --accent-color:  #2d6a2d;  /* forest green — energy mission */
+  --accent-color:  #2d6a2d;  /* forest green: energy mission */
   --accent-hover:  #1e4d1e;
-  --accent-warm:   #b84a1a;  /* terracotta — Indian warmth */
+  --accent-warm:   #b84a1a;  /* terracotta: Indian warmth */
   --accent-warm-bg: rgba(184, 74, 26, 0.08);
 
   /* Lines */
   --border-color: rgba(26, 46, 26, 0.1);
   --border-strong: rgba(26, 46, 26, 0.18);
 
-  /* Elevation — nearly flat */
+  /* Elevation: nearly flat */
   --card-shadow: 0 1px 4px rgba(26, 46, 26, 0.07);
 
   --transition: all 0.22s ease;

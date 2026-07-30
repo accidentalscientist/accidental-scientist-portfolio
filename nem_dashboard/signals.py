@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from .models import FuelDataUpload, FuelGenerationData
 
-# AEMO exports come in a couple of flavours — 24-hour and 12-hour am/pm.
+# AEMO exports come in a couple of flavours: 24-hour and 12-hour am/pm.
 TIMESTAMP_FORMATS = (
     "%d/%m/%Y %H:%M",        # 28/07/2025 17:55
     "%d/%m/%Y %I:%M %p",     # 25/06/2026 10:10 am

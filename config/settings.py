@@ -42,7 +42,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: v.split(','))
 # ── Production security (applied only when DEBUG is off) ──────────────
 # The zero-risk headers are always on in production. SSL redirect and HSTS
 # are opt-in via env so there is no chance of locking the site out before
-# HTTPS is confirmed stable — flip them on after the first clean deploy.
+# HTTPS is confirmed stable: flip them on after the first clean deploy.
 if not config('DEBUG', default=False, cast=bool):
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True

@@ -1,5 +1,5 @@
 """
-Deterministic sample portfolio generator — a Snapshot + a matching Timeline
+Deterministic sample portfolio generator: a Snapshot + a matching Timeline
 for ~50 accounts, industry-grouped, seeded with named narrative patterns
 (healthy expanders, silent decliners, obvious fires, churns, whales, new
 accounts) so every chart on the dashboard has real signal on first load.
@@ -7,7 +7,7 @@ accounts) so every chart on the dashboard has real signal on first load.
 The Snapshot's revenue fields are computed from the generated Timeline
 (never hand-set), the same single-source-of-truth rule real uploads follow.
 Runs through the exact same parse -> score -> aggregate pipeline as a real
-upload — see views.py's `?sample=1` route.
+upload: see views.py's `?sample=1` route.
 """
 import csv
 import io
@@ -274,7 +274,7 @@ def generate_sample(today=None):
                    auto_renew=False, product_tier="Starter")
         builders.append(b)
 
-    # Clean expansions / contractions — step changes, populate the ARR bridge.
+    # Clean expansions / contractions: step changes, populate the ARR bridge.
     for _ in range(3):
         b = new_builder()
         n = rng.randint(24, 34)
@@ -301,11 +301,11 @@ def generate_sample(today=None):
                    last_qbr_days_ago=rng.randint(60, 180), days_since_contact=rng.randint(30, 150))
         builders.append(b)
 
-    # Two large, deliberately illustrative accounts — same "big ARR" scale,
+    # Two large, deliberately illustrative accounts: same "big ARR" scale,
     # opposite risk stories, to make the risk-vs-health distinction concrete.
 
     # Sterling Capital: an established account (long tenure, so no new-logo
-    # penalty) that just signed a fresh 3-year term — renewal is nowhere near.
+    # penalty) that just signed a fresh 3-year term: renewal is nowhere near.
     # Ticket volume is genuinely heavy (raw risk reads elevated), but almost
     # none of it is high-priority, and with no renewal pressure the final
     # health lands meaningfully better than the raw signal alone suggests.
@@ -322,10 +322,10 @@ def generate_sample(today=None):
                auto_renew=True, product_tier="Enterprise")
     builders.append(b)
 
-    # Ridgeline Technologies: established, paying fine, no support noise —
+    # Ridgeline Technologies: established, paying fine, no support noise,
     # but has been dodging QBRs for over a year, contact has gone cold, and
     # renewal is a few weeks out. Pure engagement risk, amplified hard by
-    # renewal proximity — raw risk reads moderate, final health reads critical.
+    # renewal proximity: raw risk reads moderate, final health reads critical.
     b = new_builder(name="Ridgeline Technologies", industry="Technology / SaaS", segment="Enterprise")
     used_names.add(b.name)
     n = 36
@@ -338,7 +338,7 @@ def generate_sample(today=None):
                auto_renew=True, product_tier="Enterprise")
     builders.append(b)
 
-    # New accounts — short tenure, partial (ragged) history.
+    # New accounts: short tenure, partial (ragged) history.
     for _ in range(3):
         b = new_builder(segment=rng.choice(["Mid-Market", "SMB"]))
         n = rng.randint(2, 5)

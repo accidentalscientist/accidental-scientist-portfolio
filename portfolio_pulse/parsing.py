@@ -1,6 +1,6 @@
 """
-Parses the two Portfolio Pulse CSV shapes — the Snapshot (one row per
-account) and the Timeline (one row per account per month) — into plain
+Parses the two Portfolio Pulse CSV shapes: the Snapshot (one row per
+account) and the Timeline (one row per account per month), into plain
 dicts. Pure and Django-free: no persistence, no HTTP.
 
 Tolerant by design: a bad row is skipped and counted rather than aborting

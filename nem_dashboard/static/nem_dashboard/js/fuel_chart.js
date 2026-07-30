@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     item.innerHTML = `
       <span class="nem-legend__swatch" style="background-color:${g.color}"></span>
       <span class="nem-legend__label">${g.label}</span>
-      <span class="nem-legend__val">—</span>`;
+      <span class="nem-legend__val">-</span>`;
     legendEl.appendChild(item);
     legendValues[g.key] = item.querySelector('.nem-legend__val');
   });
@@ -57,8 +57,8 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="nem-bar__fill" style="background-color:${f.color}"></div>
       </div>
       <div class="nem-bar__value">
-        <span class="nem-bar__pct">—</span>
-        <span class="nem-bar__mw">—</span>
+        <span class="nem-bar__pct">-</span>
+        <span class="nem-bar__mw">-</span>
       </div>`;
     barsEl.appendChild(row);
     fuelRows[f.fuel] = {
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
       legendValues[g.key].textContent = v.pct + '%';
     });
 
-    // Detailed fuel bars — widths morph smoothly between regions
+    // Detailed fuel bars: widths morph smoothly between regions
     fuelMeta.forEach(f => {
       const cell = fuelRows[f.fuel];
       const v = r.fuels[f.fuel];
