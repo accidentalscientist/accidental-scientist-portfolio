@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let running = false;
   let endAt = 0;
   let rafId = null;
+  let completionTimer = null;
 
   // ── Soft synthesized bell (no audio file needed) ──
   let audioCtx = null;
@@ -64,6 +65,21 @@ document.addEventListener('DOMContentLoaded', function () {
   function showReset(show) { resetBtn.hidden = !show; }
 
   // ── Master mode (silent countdown) ──
+  // requestAnimationFrame is throttled or fully suspended once a tab is
+  // backgrounded or a phone screen locks, so it can't be trusted alone to
+  // ever call finish() — a session that ends while hidden would otherwise
+  // silently never chime. scheduleCompletionCheck() is a setTimeout keyed
+  // to the real end time as a backstop, and the visibilitychange listener
+  // below catches up (and fires finish() if it's already overdue) the
+  // instant the tab becomes visible again, independent of whether rAF or
+  // the timeout actually fired while hidden.
+  function scheduleCompletionCheck() {
+    clearTimeout(completionTimer);
+    const msRemaining = endAt - Date.now();
+    completionTimer = setTimeout(() => {
+      if (running && Date.now() >= endAt) finish();
+    }, Math.max(0, msRemaining) + 50);
+  }
   function tick() {
     if (!running) return;
     remaining = (endAt - Date.now()) / 1000;
@@ -85,10 +101,12 @@ document.addEventListener('DOMContentLoaded', function () {
     setBeginLabel('Pause');
     showReset(true);
     rafId = requestAnimationFrame(tick);
+    scheduleCompletionCheck();
   }
   function pauseMaster() {
     running = false;
     cancelAnimationFrame(rafId);
+    clearTimeout(completionTimer);
     remaining = (endAt - Date.now()) / 1000;
     ring.classList.remove('is-breathing');
     phaseEl.textContent = 'Paused';
@@ -97,6 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function finish() {
     running = false;
     cancelAnimationFrame(rafId);
+    clearTimeout(completionTimer);
     ring.classList.remove('is-breathing');
     chime();
     phaseEl.textContent = 'Complete';
@@ -149,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function reset() {
     running = false;
     cancelAnimationFrame(rafId);
+    clearTimeout(completionTimer);
     ring.classList.remove('is-breathing');
     if (mode === 'student' && audio) { audio.pause(); audio.currentTime = 0; }
     if (mode === 'student' && audio && !isNaN(audio.duration)) {
@@ -160,6 +180,24 @@ document.addEventListener('DOMContentLoaded', function () {
     setBeginLabel('Begin');
     showReset(false);
   }
+
+  // Master mode's rAF loop can go stale or fully stop while the tab is
+  // hidden; recompute and catch up (including firing a now-overdue finish())
+  // the moment the tab is visible again, rather than trusting rAF to have
+  // kept ticking the whole time.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible' || mode !== 'master' || !running) return;
+    remaining = (endAt - Date.now()) / 1000;
+    if (remaining <= 0) {
+      remaining = 0;
+      renderTime();
+      finish();
+      return;
+    }
+    renderTime();
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(tick);
+  });
 
   // ── Controls ──
   beginBtn.addEventListener('click', () => {
