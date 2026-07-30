@@ -23,6 +23,37 @@
   margin: 0 auto;
 }
 
+.stillpoint__guide {
+  max-width: 42ch;
+  margin: 1.25rem auto 0;
+  text-align: left;
+}
+
+.stillpoint__guide summary {
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  list-style: none;
+}
+
+.stillpoint__guide summary::-webkit-details-marker {
+  display: none;
+}
+
+.stillpoint__guide summary:hover {
+  color: var(--text-primary);
+}
+
+.stillpoint__guide-body p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0.9rem 0 0;
+}
+
 /* Mode toggle */
 .stillpoint__modes {
   display: inline-flex;
@@ -111,13 +142,49 @@
   color: var(--text-secondary);
 }
 
+/* A faint idle pulse before a session starts, so the page feels alive at
+   rest rather than static; replaced entirely by the active breathing
+   animation once a session is running (see is-breathing below). */
+.stillpoint__ring {
+  animation: spIdle 8s ease-in-out infinite;
+}
+
+.stillpoint__ring.is-breathing {
+  animation: spRingGlow 12s ease-in-out infinite;
+}
+
+/* Roughly a 5-breath-per-minute resonant-breathing pace: a shorter inhale,
+   a brief hold at the top, then a longer exhale — not a flat symmetric
+   sine — so the pulse actually reads as a breath rather than a heartbeat. */
 .stillpoint__ring.is-breathing .stillpoint__readout {
-  animation: spBreath 9s ease-in-out infinite;
+  animation: spBreath 12s ease-in-out infinite;
+}
+
+@keyframes spIdle {
+  0%, 100% { opacity: 0.94; }
+  50%      { opacity: 1; }
+}
+
+@keyframes spRingGlow {
+  0%   { filter: drop-shadow(0 0 0 transparent); }
+  33%  { filter: drop-shadow(0 0 14px var(--accent-warm-bg)); }
+  50%  { filter: drop-shadow(0 0 14px var(--accent-warm-bg)); }
+  100% { filter: drop-shadow(0 0 0 transparent); }
 }
 
 @keyframes spBreath {
-  0%, 100% { transform: scale(0.95); opacity: 0.8; }
-  50%      { transform: scale(1.05); opacity: 1; }
+  0%   { transform: scale(0.95); opacity: 0.8; }
+  33%  { transform: scale(1.05); opacity: 1; }
+  50%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stillpoint__ring,
+  .stillpoint__ring.is-breathing,
+  .stillpoint__ring.is-breathing .stillpoint__readout {
+    animation: none;
+  }
 }
 
 /* Duration presets */
@@ -150,6 +217,34 @@
   border-color: var(--accent-color);
   color: var(--accent-color);
   background: var(--accent-warm-bg);
+}
+
+/* Master options: interval bells + volume */
+.stillpoint__options {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: -1.25rem 0 2.25rem;
+}
+
+.sp-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.sp-option input[type="checkbox"] {
+  accent-color: var(--accent-color);
+}
+
+.sp-option--volume input[type="range"] {
+  width: 110px;
+  accent-color: var(--accent-color);
 }
 
 /* Guided picker */
@@ -196,6 +291,36 @@
 }
 
 .stillpoint__controls .btn { min-width: 130px; }
+
+/* Local session history — no account needed, just localStorage */
+.stillpoint__stats {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  margin-top: 2.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.sp-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.sp-stat strong {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+.sp-stat span {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
 
 @media (max-width: 720px) {
   .stillpoint__ring { width: 250px; height: 250px; }

@@ -11,6 +11,14 @@
     <p class="journal-eyebrow">Stillpoint</p>
     <h1>A quiet place to sit.</h1>
     <p class="stillpoint__intro">A simple meditation timer. Choose silence and keep your own time, or let a guide lead the way.</p>
+    <details class="stillpoint__guide">
+      <summary>How to meditate</summary>
+      <div class="stillpoint__guide-body">
+        <p>Sit somewhere you won't be interrupted. Spine upright, shoulders soft, hands resting wherever they're comfortable. Close your eyes, or let your gaze rest low and unfocused.</p>
+        <p>Bring your attention to the breath, not controlling it, just noticing it. In. Out. When your mind wanders, and it will, repeatedly, that's not a failure. Just notice where it went and come back to the breath. That noticing and returning is the practice, not a distraction from it.</p>
+        <p>There's no state to achieve. A session where your mind wandered forty times isn't worse than one where it wandered twice. Begin when ready, and let the bell tell you when to stop.</p>
+      </div>
+    </details>
   </header>
 
   {# ── Mode toggle ── #}
@@ -28,7 +36,7 @@
       </svg>
       <div class="stillpoint__readout">
         <span class="stillpoint__time" id="sp-time">15:00</span>
-        <span class="stillpoint__phase" id="sp-phase">Press begin</span>
+        <span class="stillpoint__phase" id="sp-phase" role="status" aria-live="polite">Press begin</span>
       </div>
     </div>
   </div>
@@ -43,6 +51,18 @@
     <button class="sp-duration" data-min="60">60</button>
   </div>
 
+  {# ── Master: interval bells + volume ── #}
+  <div class="stillpoint__options" id="sp-options">
+    <label class="sp-option">
+      <input type="checkbox" id="sp-bells">
+      Interval bells every 5 minutes
+    </label>
+    <label class="sp-option sp-option--volume">
+      Volume
+      <input type="range" id="sp-volume" min="0" max="100" value="80" aria-label="Chime volume">
+    </label>
+  </div>
+
   {# ── Student: guided session picker ── #}
   <div class="stillpoint__guided" id="sp-guided" hidden>
     {% if guided_sessions %}
@@ -52,7 +72,7 @@
           <option value="{{ session.audio.url }}">{{ session.title }}</option>
         {% endfor %}
       </select>
-      <audio id="sp-audio" preload="none"></audio>
+      <audio id="sp-audio" preload="metadata"></audio>
     {% else %}
       <p class="stillpoint__empty">No guided sessions yet. Add an audio file in the admin to enable guided mode.</p>
     {% endif %}
@@ -64,8 +84,15 @@
     <button class="btn btn-outline-primary" id="sp-reset" hidden>Reset</button>
   </div>
 
+  {# ── Local session history, no account needed ── #}
+  <div class="stillpoint__stats" id="sp-stats">
+    <div class="sp-stat"><strong id="sp-stat-streak">0</strong><span>day streak</span></div>
+    <div class="sp-stat"><strong id="sp-stat-sessions">0</strong><span>sessions</span></div>
+    <div class="sp-stat"><strong id="sp-stat-minutes">0</strong><span>minutes</span></div>
+  </div>
+
 </div>
 
 <script>window.STILLPOINT_HAS_AUDIO = {% if guided_sessions %}true{% else %}false{% endif %};</script>
-<script src="{% static 'stillpoint/js/timer.js' %}?v=2"></script>
+<script src="{% static 'stillpoint/js/timer.js' %}?v=3"></script>
 {% endblock %}
