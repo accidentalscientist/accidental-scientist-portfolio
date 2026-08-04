@@ -5,8 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const progress = $('sp-progress');
   const timeEl = $('sp-time');
   const phaseEl = $('sp-phase');
-  const beginBtn = $('sp-begin');
-  const resetBtn = $('sp-reset');
+  const pillEl = $('sp-begin');
   const durationsEl = $('sp-durations');
   const guidedEl = $('sp-guided');
   const select = $('sp-audio-select');
@@ -22,31 +21,45 @@ document.addEventListener('DOMContentLoaded', function () {
   let durationSec = 15 * 60;
   let remaining = durationSec;
   let running = false;
+  let armed = false;
   let endAt = 0;
   let rafId = null;
   let completionTimer = null;
+  let armTimer = null;
+  let disarmTextTimer = null;
   let wakeLock = null;
   let bellTimers = [];
 
-  // ── Soft synthesized bell (no audio file needed) ──
+  // ── Bell: soft start, swells, slowly fades over ~12s (no audio file
+  // needed). Four inharmonic partials, each a pair of oscillators a
+  // fraction of a Hz apart, so the pair slowly beats against itself —
+  // the shimmer you get from a struck singing bowl rather than a flat tone.
   let audioCtx = null;
   function chime() {
     try {
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
       const now = audioCtx.currentTime;
-      [432, 648].forEach((freq, i) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        const vol = i === 0 ? 0.35 : 0.12;
-        gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(vol, now + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.5);
-        osc.start(now);
-        osc.stop(now + 3.6);
+      const duration = 12;
+      const partials = [
+        { freq: 220, gain: 0.30 },
+        { freq: 396, gain: 0.16 },
+        { freq: 583, gain: 0.10 },
+        { freq: 887, gain: 0.06 }
+      ];
+      partials.forEach(({ freq, gain }) => {
+        [-0.6, 0.6].forEach(detune => {
+          const osc = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq + detune;
+          osc.connect(g);
+          g.connect(audioCtx.destination);
+          g.gain.setValueAtTime(0.0001, now);
+          g.gain.exponentialRampToValueAtTime(gain / 2, now + 3.2);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+          osc.start(now);
+          osc.stop(now + duration + 0.2);
+        });
       });
     } catch (e) { /* audio not available: stay silent */ }
   }
@@ -123,8 +136,10 @@ document.addEventListener('DOMContentLoaded', function () {
     localStorage.setItem('stillpoint.sessions', JSON.stringify(sessions));
     renderStats();
   }
-  // A quieter alternative to a numeric streak: today plus the two days
-  // before it, oldest to newest, filled in if a session happened that day.
+  // A quieter alternative to a numeric streak: the last two days trail to
+  // the left, today is the rightmost dot with nothing after it — filled in
+  // if a session happened that day.
+  const RECENT_DAY_OFFSETS = [2, 1, 0]; // two days ago, yesterday, today (rightmost)
   function renderStats() {
     if (!statSessions) return;
     const sessions = loadSessions();
@@ -133,10 +148,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const days = new Set(sessions.map(s => s.date));
     const dayEls = recentDaysEl.querySelectorAll('.sp-day');
     dayEls.forEach((el, index) => {
-      const offset = dayEls.length - 1 - index;
+      const offset = RECENT_DAY_OFFSETS[index];
       const cursor = new Date();
       cursor.setDate(cursor.getDate() - offset);
       el.classList.toggle('is-done', days.has(isoDateFor(cursor)));
+      el.classList.toggle('is-today', offset === 0);
     });
   }
 
@@ -154,8 +170,22 @@ document.addEventListener('DOMContentLoaded', function () {
     timeEl.textContent = fmt(remaining);
     setProgress(durationSec ? remaining / durationSec : 0);
   }
-  function setBeginLabel(text) { beginBtn.textContent = text; }
-  function showReset(show) { resetBtn.hidden = !show; }
+  // The pill is a plain <span> inside the ring, not its own control — the
+  // ring itself is the button, so clicking the pill or anywhere else on
+  // the circle does the exact same thing.
+  function setPillLabel(text) { pillEl.textContent = text; }
+  // Blank/hidden at idle rather than "Press begin" — the pill already says
+  // that; this caption is reserved for actual state (Breathe, Guided,
+  // Complete, the end-early confirm) so it's never just repeating the pill.
+  function setPhase(text) {
+    if (text) {
+      phaseEl.textContent = text;
+      phaseEl.hidden = false;
+    } else {
+      phaseEl.textContent = '';
+      phaseEl.hidden = true;
+    }
+  }
 
   // ── Master mode (silent countdown) ──
   // requestAnimationFrame is throttled or fully suspended once a tab is
@@ -190,36 +220,39 @@ document.addEventListener('DOMContentLoaded', function () {
     endAt = Date.now() + remaining * 1000;
     chime();
     ring.classList.add('is-breathing');
-    phaseEl.textContent = 'Breathe';
-    setBeginLabel('Pause');
-    showReset(true);
+    setPhase('Breathe');
+    setPillLabel('End early');
+    ring.setAttribute('aria-label', 'End meditation early');
+    document.body.classList.add('sp-focus');
     rafId = requestAnimationFrame(tick);
     scheduleCompletionCheck();
     scheduleIntervalBells();
     acquireWakeLock();
   }
-  function pauseMaster() {
-    running = false;
-    cancelAnimationFrame(rafId);
-    clearTimeout(completionTimer);
-    clearIntervalBells();
-    releaseWakeLock();
-    remaining = (endAt - Date.now()) / 1000;
-    ring.classList.remove('is-breathing');
-    phaseEl.textContent = 'Paused';
-    setBeginLabel('Resume');
-  }
   function finish() {
     running = false;
+    armed = false;
+    clearTimeout(armTimer);
     cancelAnimationFrame(rafId);
     clearTimeout(completionTimer);
     clearIntervalBells();
     releaseWakeLock();
-    ring.classList.remove('is-breathing');
+    ring.classList.remove('is-breathing', 'is-armed');
+    document.body.classList.remove('sp-focus', 'is-armed');
+    document.body.classList.add('is-complete');
     chime();
-    phaseEl.textContent = 'Complete';
-    setBeginLabel('Begin');
+    setPhase('Complete');
+    setPillLabel('Begin');
+    ring.setAttribute('aria-label', 'Begin a new session');
     recordSession();
+  }
+  function endMasterEarly() {
+    cancelAnimationFrame(rafId);
+    clearTimeout(completionTimer);
+    clearIntervalBells();
+    remaining = durationSec;
+    renderTime();
+    endEarlyCommon();
   }
 
   // ── Student mode (audio-led) ──
@@ -228,27 +261,72 @@ document.addEventListener('DOMContentLoaded', function () {
     running = true;
     audio.play();
     ring.classList.add('is-breathing');
-    phaseEl.textContent = 'Guided';
-    setBeginLabel('Pause');
-    showReset(true);
+    setPhase('Guided');
+    setPillLabel('End early');
+    ring.setAttribute('aria-label', 'End meditation early');
+    document.body.classList.add('sp-focus');
     acquireWakeLock();
-  }
-  function pauseStudent() {
-    running = false;
-    audio.pause();
-    releaseWakeLock();
-    ring.classList.remove('is-breathing');
-    phaseEl.textContent = 'Paused';
-    setBeginLabel('Resume');
   }
   function finishStudent() {
     running = false;
+    armed = false;
+    clearTimeout(armTimer);
     releaseWakeLock();
-    ring.classList.remove('is-breathing');
+    ring.classList.remove('is-breathing', 'is-armed');
+    document.body.classList.remove('sp-focus', 'is-armed');
+    document.body.classList.add('is-complete');
     chime();
-    phaseEl.textContent = 'Complete';
-    setBeginLabel('Begin');
+    setPhase('Complete');
+    setPillLabel('Begin');
+    ring.setAttribute('aria-label', 'Begin a new session');
     recordSession();
+  }
+  function endStudentEarly() {
+    if (audio) { audio.pause(); audio.currentTime = 0; }
+    endEarlyCommon();
+  }
+
+  // ── Ending early: a light guilt trip, not a hard stop. The first click
+  // while running arms a confirmation (amber accent, gentle nudge, pill
+  // stays visible instead of only-on-hover); a second click within the
+  // window actually ends the session. Nothing is recorded to the session
+  // history — the point is that it's not the same as sitting the whole
+  // time.
+  const GUILT_MESSAGE = "The bell hasn't rung yet — end early?";
+  function armEndEarly() {
+    armed = true;
+    clearTimeout(armTimer);
+    document.body.classList.add('is-armed');
+    ring.classList.add('is-armed');
+    setPhase(GUILT_MESSAGE);
+    setPillLabel('Yes, end early');
+    ring.setAttribute('aria-label', 'Confirm end session early');
+    armTimer = setTimeout(disarmEndEarly, 4000);
+  }
+  function disarmEndEarly() {
+    if (!armed) return;
+    armed = false;
+    clearTimeout(armTimer);
+    document.body.classList.remove('is-armed');
+    ring.classList.remove('is-armed');
+    setPhase(mode === 'master' ? 'Breathe' : 'Guided');
+    setPillLabel('End early');
+    ring.setAttribute('aria-label', 'End meditation early');
+  }
+  function endEarlyCommon() {
+    running = false;
+    armed = false;
+    clearTimeout(armTimer);
+    releaseWakeLock();
+    ring.classList.remove('is-breathing', 'is-armed');
+    document.body.classList.remove('sp-focus', 'is-armed');
+    setPhase('Ended early. The stillness will keep.');
+    setPillLabel('Begin');
+    ring.setAttribute('aria-label', 'Begin meditation');
+    clearTimeout(disarmTextTimer);
+    disarmTextTimer = setTimeout(() => {
+      if (!running) setPhase('');
+    }, 2600);
   }
 
   if (audio) {
@@ -268,23 +346,27 @@ document.addEventListener('DOMContentLoaded', function () {
     audio.addEventListener('ended', finishStudent);
   }
 
-  // ── Shared reset ──
-  function reset() {
+  // ── Shared idle state ── used for mode switches and before a fresh start
+  function goIdle() {
     running = false;
+    armed = false;
     cancelAnimationFrame(rafId);
     clearTimeout(completionTimer);
+    clearTimeout(armTimer);
+    clearTimeout(disarmTextTimer);
     clearIntervalBells();
     releaseWakeLock();
-    ring.classList.remove('is-breathing');
+    ring.classList.remove('is-breathing', 'is-armed');
+    document.body.classList.remove('sp-focus', 'is-armed', 'is-complete');
     if (mode === 'student' && audio) { audio.pause(); audio.currentTime = 0; }
     if (mode === 'student' && audio && !isNaN(audio.duration)) {
       durationSec = audio.duration;
     }
     remaining = durationSec;
     renderTime();
-    phaseEl.textContent = 'Press begin';
-    setBeginLabel('Begin');
-    showReset(false);
+    setPhase('');
+    setPillLabel('Begin');
+    ring.setAttribute('aria-label', 'Begin meditation');
   }
 
   // Master mode's rAF loop can go stale or fully stop while the tab is
@@ -308,15 +390,21 @@ document.addEventListener('DOMContentLoaded', function () {
     rafId = requestAnimationFrame(tick);
   });
 
-  // ── Controls ──
-  beginBtn.addEventListener('click', () => {
-    if (mode === 'master') {
-      running ? pauseMaster() : startMaster();
-    } else {
-      running ? pauseStudent() : startStudent();
+  // ── Controls ── the ring is the only control (the pill inside it is just
+  // its visible label) — Begin / End early, no pause, no separate reset.
+  ring.addEventListener('click', () => {
+    if (running) {
+      if (armed) {
+        clearTimeout(armTimer);
+        if (mode === 'master') endMasterEarly(); else endStudentEarly();
+      } else {
+        armEndEarly();
+      }
+      return;
     }
+    goIdle();
+    if (mode === 'master') startMaster(); else startStudent();
   });
-  resetBtn.addEventListener('click', reset);
 
   // Duration presets (master)
   if (durationsEl) {
@@ -328,6 +416,8 @@ document.addEventListener('DOMContentLoaded', function () {
         durationSec = parseInt(btn.dataset.min, 10) * 60;
         remaining = durationSec;
         renderTime();
+        document.body.classList.remove('is-complete');
+        setPhase('');
       });
     });
   }
@@ -354,10 +444,10 @@ document.addEventListener('DOMContentLoaded', function () {
       if (guidedEl) guidedEl.hidden = mode !== 'student';
 
       // Disable begin in guided mode when no audio is configured.
-      beginBtn.disabled = (mode === 'student' && !window.STILLPOINT_HAS_AUDIO);
+      ring.disabled = (mode === 'student' && !window.STILLPOINT_HAS_AUDIO);
 
       if (mode === 'master') { durationSec = (parseInt((durationsEl.querySelector('.sp-duration--active') || {}).dataset?.min, 10) || 15) * 60; }
-      reset();
+      goIdle();
     });
   });
 

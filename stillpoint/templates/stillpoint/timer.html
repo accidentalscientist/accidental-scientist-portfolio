@@ -9,13 +9,12 @@
 
   <header class="stillpoint__hero">
     <p class="journal-eyebrow">StillPoint</p>
-    <h1>A quiet place to sit.</h1>
-    <p class="stillpoint__intro">A simple meditation timer. Choose silence and keep your own time, or let a guide lead the way.</p>
+    <h1>Quieten Your Mind Through Stillness.</h1>
     <details class="stillpoint__guide">
       <summary>How to meditate</summary>
       <div class="stillpoint__guide-body">
-        <p>Sit somewhere you won't be interrupted. Spine upright, shoulders soft, hands resting wherever they're comfortable. Close your eyes, or let your gaze rest low and unfocused.</p>
-        <p>Bring your attention to the breath, not controlling it, just noticing it. In. Out. When your mind wanders, and it will, repeatedly, that's not a failure. Just notice where it went and come back to the breath. That noticing and returning is the practice, not a distraction from it.</p>
+        <p>Sit somewhere and take a very deep breathe. Close your eyes and feel every part of your body as it makes contact with the world.</p>
+        <p>Focus on breathing, do not control it, just notice it. In. Out. When your mind wanders, and it will, repeatedly, that's not a failure. Just notice where it went and come back to the breath. That noticing and returning is the practice, not a distraction from it.</p>
         <p>There's no state to achieve. A session where your mind wandered forty times isn't worse than one where it wandered twice. Begin when ready, and let the bell tell you when to stop.</p>
       </div>
     </details>
@@ -27,18 +26,19 @@
     <button class="stillpoint__mode" data-mode="student" role="tab" aria-selected="false">Guide me</button>
   </div>
 
-  {# ── Timer ring ── #}
+  {# ── Timer ring: the ring is the Begin/End-early control; the pill inside it is the same control's visible label, not a second one ── #}
   <div class="stillpoint__stage">
-    <div class="stillpoint__ring" id="sp-ring">
+    <button type="button" class="stillpoint__ring" id="sp-ring" aria-label="Begin meditation">
       <svg viewBox="0 0 240 240" aria-hidden="true">
         <circle class="sp-ring__track" cx="120" cy="120" r="110"></circle>
         <circle class="sp-ring__progress" id="sp-progress" cx="120" cy="120" r="110"></circle>
       </svg>
       <div class="stillpoint__readout">
         <span class="stillpoint__time" id="sp-time">15:00</span>
-        <span class="stillpoint__phase" id="sp-phase" role="status" aria-live="polite">Press begin</span>
+        <span class="stillpoint__phase" id="sp-phase" role="status" aria-live="polite" hidden></span>
+        <span class="stillpoint__pill" id="sp-begin">Begin</span>
       </div>
-    </div>
+    </button>
   </div>
 
   {# ── Master: duration presets ── #}
@@ -65,12 +65,6 @@
     {% endif %}
   </div>
 
-  {# ── Controls ── #}
-  <div class="stillpoint__controls">
-    <button class="btn btn-primary" id="sp-begin">Begin</button>
-    <button class="btn btn-outline-primary" id="sp-reset" hidden>Reset</button>
-  </div>
-
   {# ── Local session history, no account needed ── #}
   <div class="stillpoint__stats" id="sp-stats">
     <div class="sp-stat"><strong id="sp-stat-sessions">0</strong><span>sessions</span></div>
@@ -79,6 +73,7 @@
         <span class="sp-day"></span>
         <span class="sp-day"></span>
         <span class="sp-day"></span>
+        <span class="sp-recent-days__spacer" aria-hidden="true"></span>
       </div>
       <span>last 3 days</span>
     </div>
@@ -87,5 +82,5 @@
 </div>
 
 <script>window.STILLPOINT_HAS_AUDIO = {% if guided_sessions %}true{% else %}false{% endif %};</script>
-<script src="{% static 'stillpoint/js/timer.js' %}?v=4"></script>
+<script src="{% static 'stillpoint/js/timer.js' %}?v=8"></script>
 {% endblock %}

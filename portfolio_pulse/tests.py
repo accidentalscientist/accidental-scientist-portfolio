@@ -8,7 +8,10 @@ from django.test import TestCase
 from . import metrics, sample_data
 from .aggregate import build_dashboard_context
 from .parsing import group_timeline_by_account, parse_snapshot, parse_timeline
-from .scoring import BANDS, _band, portfolio_health, score_account, score_portfolio
+from .scoring import (
+    BANDS, DEFAULT_HEALTH_MODEL, HEALTH_MODELS, _band, portfolio_health,
+    score_account, score_portfolio,
+)
 
 TODAY = date(2026, 7, 30)
 
@@ -94,10 +97,10 @@ class ScoreAccountTests(TestCase):
             contract_start=date(2026, 1, 1),
             term_length_months=24,
         )
-        self.assertGreater(
-            score_account(new_customer, TODAY)["score"],
-            score_account(established_renewal, TODAY)["score"],
-        )
+        new_result = score_account(new_customer, TODAY)
+        established_result = score_account(established_renewal, TODAY)
+        self.assertNotIn("24-month contract", [driver["signal"] for driver in new_result["health_drivers"]])
+        self.assertIn("24-month contract", [driver["signal"] for driver in established_result["health_drivers"]])
 
     def test_renewal_proximity_amplifies_existing_health_deductions(self):
         troubled = _account(last_qbr_date=date(2025, 1, 1))
@@ -110,9 +113,34 @@ class ScoreAccountTests(TestCase):
         self.assertLess(immediate["score"], far["score"])
 
     def test_arr_direction_adjusts_health(self):
-        declining = score_account(_account(arr_trend_pct=-20), TODAY)
-        growing = score_account(_account(arr_trend_pct=20), TODAY)
+        declining = score_account(_account(overdue_flag=True, arr_trend_pct=-20), TODAY)
+        growing = score_account(_account(overdue_flag=True, arr_trend_pct=20), TODAY)
         self.assertLess(declining["score"], growing["score"])
+
+    def test_arr_growth_does_not_add_health_points(self):
+        flat = score_account(_account(overdue_flag=True, arr_trend_pct=0), TODAY)
+        growing = score_account(_account(overdue_flag=True, arr_trend_pct=20), TODAY)
+        self.assertEqual(growing["score"], flat["score"])
+        self.assertEqual(growing["positive_points"], flat["positive_points"])
+
+    def test_positive_evidence_offsets_deductions(self):
+        result = score_account(_account(
+            customer_since=date(2020, 1, 1),
+            last_qbr_date=date(2026, 7, 15),
+            overdue_flag=True,
+            seat_utilisation_pct=85,
+            active_user_pct=75,
+        ), TODAY)
+        self.assertEqual(result["positive_points"], 14)
+        self.assertEqual(
+            {strength["signal"] for strength in result["health_strengths"]},
+            {"Recent QBR", "Strong seat utilisation", "Strong active-user rate", "Customer longevity"},
+        )
+
+    def test_low_ticket_volume_does_not_add_health_points(self):
+        low_tickets = score_account(_account(tickets_12mo=0), TODAY)
+        normal_tickets = score_account(_account(tickets_12mo=4), TODAY)
+        self.assertEqual(low_tickets["positive_points"], normal_tickets["positive_points"])
 
     def test_score_stays_in_bounds(self):
         result = score_account(_account(
@@ -147,6 +175,29 @@ class PortfolioHealthTests(TestCase):
         ]
         result = portfolio_health(accounts)
         self.assertGreater(result["weighted"], result["unweighted"])
+
+
+class HealthModelTests(TestCase):
+    def test_models_are_ordered_from_basic_to_most_complex(self):
+        self.assertEqual(DEFAULT_HEALTH_MODEL, "plain_pulse")
+        self.assertEqual(
+            list(HEALTH_MODELS),
+            ["plain_pulse", "signal_compass", "retention_horizon"],
+        )
+
+    def test_all_models_use_the_existing_account_shape(self):
+        account = _account(overdue_flag=True, seat_utilisation_pct=45, active_user_pct=35)
+        results = {
+            model_id: score_portfolio([account], TODAY, model=model_id)[0]
+            for model_id in HEALTH_MODELS
+        }
+        self.assertEqual(set(results), set(HEALTH_MODELS))
+        self.assertTrue(all(0 <= result["score"] <= 100 for result in results.values()))
+        self.assertTrue(all(result["health_model_name"] for result in results.values()))
+        self.assertGreater(len({result["score"] for result in results.values()}), 1)
+
+    def test_retention_horizon_is_labelled_as_untrained(self):
+        self.assertIn("not a trained probability", HEALTH_MODELS["retention_horizon"]["interpretation"])
 
 
 class ParseSnapshotTests(TestCase):
@@ -431,6 +482,25 @@ class DashboardViewTests(TestCase):
         response = self.client.get("/pulse/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Upload your book of business")
+        self.assertContains(response, "Model Selector:")
+        self.assertContains(response, 'class="pulse-model-picker"', html=False)
+        self.assertContains(response, 'class="pulse-upload__files"', html=False)
+        self.assertContains(response, 'class="pulse-upload__actions"', html=False)
+        self.assertContains(response, "Adds or removes fixed points")
+        self.assertContains(response, "Build applies this model")
+        self.assertEqual(response.context["selected_health_model"]["id"], "plain_pulse")
+        self.assertContains(response, '<option value="plain_pulse" selected>', html=False)
+        self.assertNotContains(response, "pulse-model-card")
+        self.assertNotContains(response, "Where the models disagree most")
+
+    def test_loading_sample_prepares_data_without_rendering_analysis(self):
+        response = self.client.get("/pulse/?sample=ready")
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["has_data"])
+        self.assertTrue(response.context["sample_ready"])
+        self.assertContains(response, "Sample portfolio ready")
+        self.assertContains(response, 'data-sample-mode="true"', html=False)
+        self.assertNotContains(response, "Portfolio Outlook")
 
     def test_sample_renders_three_named_products(self):
         response = self.client.get("/pulse/?sample=1")
@@ -457,6 +527,14 @@ class DashboardViewTests(TestCase):
         self.assertNotContains(response, "NRR / GRR")
         self.assertNotContains(response, "Part I")
         self.assertContains(response, "One portfolio, three decisions")
+        self.assertContains(response, "expansion potential")
+        self.assertContains(response, "Hand-calculable and consistent")
+        self.assertEqual(
+            response.content.decode().count('class="pulse-model-picker__descriptor"'),
+            1,
+        )
+        for model_name in ("Signal Compass", "Plain Pulse", "Retention Horizon"):
+            self.assertContains(response, model_name)
         self.assertContains(response, "The Value Ladder")
         self.assertContains(response, "The Revenue Skyline")
         self.assertContains(response, "The Intervention Queue")
@@ -479,6 +557,20 @@ class DashboardViewTests(TestCase):
             for account in response.context["hidden_renewal_risks"]
         }
         self.assertIn("Frontier Trust", hidden_risk_names)
+
+    def test_sample_can_switch_health_model(self):
+        response = self.client.get("/pulse/?sample=1&health_model=plain_pulse")
+        self.assertEqual(response.context["selected_health_model"]["id"], "plain_pulse")
+        self.assertContains(response, '<option value="plain_pulse" selected>', html=False)
+        self.assertContains(response, "Adds or removes fixed points")
+        self.assertContains(response, 'data-sample-mode="true"', html=False)
+        self.assertContains(response, "Selected health model")
+        self.assertContains(response, "View scoring method")
+        self.assertNotContains(response, "pulse-model-card")
+
+    def test_invalid_health_model_falls_back_to_plain_pulse(self):
+        response = self.client.get("/pulse/?sample=1&health_model=unknown")
+        self.assertEqual(response.context["selected_health_model"]["id"], "plain_pulse")
 
     def test_arr_native_upload_renders(self):
         snapshot, timeline = self._sample_files()

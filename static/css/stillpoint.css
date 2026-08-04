@@ -5,28 +5,46 @@
   max-width: 540px;
   margin: 0 auto;
   text-align: center;
-  padding: 1rem 0 5rem;
+  padding: var(--sp-space-md) 0 var(--sp-space-3xl);
+
+  /* A small spacing scale so vertical rhythm reads as deliberate steps
+     rather than ad hoc values scattered through the file. Reach for these
+     instead of a one-off rem value when adjusting gaps. */
+  --sp-space-2xs: 0.35rem;
+  --sp-space-xs: 0.5rem;
+  --sp-space-sm: 0.75rem;
+  --sp-space-md: 1.25rem;
+  --sp-space-lg: 2rem;
+  --sp-space-xl: 2.5rem;
+  --sp-space-2xl: 3.25rem;
+  --sp-space-3xl: 5rem;
 }
 
-.stillpoint__hero { margin-bottom: 2.25rem; }
+/* Hero, compacted: the "StillPoint" eyebrow now carries the weight of the
+   title (bigger, ink-coloured, sits right at the top); the old h1 steps
+   down to a tagline underneath it rather than competing for the same
+   role. The timer is meant to be the loudest thing on the page. */
+.stillpoint__hero { margin-bottom: var(--sp-space-lg); }
+
+.stillpoint__hero .journal-eyebrow {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: var(--text-primary);
+  margin-bottom: var(--sp-space-xs);
+}
 
 .stillpoint__hero h1 {
-  font-size: clamp(1.9rem, 4vw, 2.6rem);
-  margin: 0.4rem 0 0.75rem;
-}
-
-.stillpoint__intro {
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 400;
   color: var(--text-secondary);
-  font-size: 1.02rem;
-  line-height: 1.7;
-  max-width: 42ch;
-  margin: 0 auto;
+  margin: 0 0 var(--sp-space-sm);
 }
 
 .stillpoint__guide {
   max-width: 42ch;
-  margin: 1.25rem auto 0;
-  text-align: left;
+  margin: var(--sp-space-xs) auto 0;
+  text-align: center;
 }
 
 .stillpoint__guide summary {
@@ -37,37 +55,87 @@
   text-transform: uppercase;
   color: var(--text-secondary);
   list-style: none;
+  position: relative;
+  padding-bottom: 0.35rem;
+  transition: color 0.2s ease, letter-spacing 0.2s ease;
 }
 
 .stillpoint__guide summary::-webkit-details-marker {
   display: none;
 }
 
+/* A permanent, quiet +/− marker — the affordance shouldn't only reveal
+   itself on hover (that's invisible until you already know to look), so
+   there's a faint but always-visible signal that this text does something,
+   on top of the hover motion below. */
+.stillpoint__guide summary::before {
+  content: '+';
+  display: inline-block;
+  margin-right: 0.4em;
+  opacity: 0.55;
+  font-weight: 700;
+}
+
+.stillpoint__guide[open] summary::before {
+  content: '\2212'; /* − */
+}
+
+/* Underline grows outward from the centre rather than just appearing,
+   paired with a slight letter-spacing opening — two small motions instead
+   of one, so the hover reads as more than a colour swap. */
+.stillpoint__guide summary::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 0;
+  height: 1px;
+  background: var(--accent-color);
+  transition: width 0.25s ease, left 0.25s ease;
+}
+
 .stillpoint__guide summary:hover {
-  color: var(--text-primary);
+  color: var(--accent-color);
+  letter-spacing: 0.14em;
+}
+
+.stillpoint__guide summary:hover::after {
+  width: 55%;
+  left: 22.5%;
+}
+
+/* Stays coloured once open, not just on hover, so it's clear at a glance
+   the guide is already expanded. */
+.stillpoint__guide[open] summary {
+  color: var(--accent-color);
+}
+
+.stillpoint__guide-body {
+  text-align: left;
 }
 
 .stillpoint__guide-body p {
   color: var(--text-secondary);
   font-size: 0.95rem;
   line-height: 1.7;
-  margin: 0.9rem 0 0;
+  margin: var(--sp-space-sm) 0 0;
 }
 
-/* Mode toggle */
+/* Mode toggle — one restrained capsule: a thin hairline border, a single
+   filled state, nothing extra. */
 .stillpoint__modes {
   display: inline-flex;
   gap: 0.25rem;
   border: 1px solid var(--border-color);
   border-radius: 999px;
   padding: 4px;
-  margin-bottom: 2.75rem;
+  margin-bottom: var(--sp-space-xl);
 }
 
 .stillpoint__mode {
   border: 0;
   background: transparent;
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 1.25rem;
   border-radius: 999px;
   font-family: inherit;
   font-size: 0.82rem;
@@ -83,17 +151,31 @@
   color: #fff;
 }
 
-/* Timer ring */
+/* Timer ring — a real <button>, chrome reset so it reads purely as the
+   circle. The pill inside is a plain <span>; clicking it, or anywhere else
+   on the circle, triggers this same button. */
 .stillpoint__stage {
   display: flex;
   justify-content: center;
-  margin-bottom: 2.25rem;
+  margin-bottom: var(--sp-space-lg);
 }
 
 .stillpoint__ring {
   position: relative;
   width: 300px;
   height: 300px;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stillpoint__ring:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .stillpoint__ring svg {
@@ -102,19 +184,21 @@
   transform: rotate(-90deg);
 }
 
+/* Lightened from the original 5px — a thinner line reads as more
+   deliberate/refined rather than heavy. */
 .sp-ring__track {
   fill: none;
   stroke: var(--bg-tertiary);
-  stroke-width: 5;
+  stroke-width: 3;
 }
 
 .sp-ring__progress {
   fill: none;
   stroke: var(--accent-color);
-  stroke-width: 5;
+  stroke-width: 3;
   stroke-linecap: round;
   stroke-dashoffset: 0;
-  transition: stroke-dashoffset 0.4s linear;
+  transition: stroke-dashoffset 0.4s linear, stroke 0.3s ease;
 }
 
 .stillpoint__readout {
@@ -135,11 +219,60 @@
 }
 
 .stillpoint__phase {
-  margin-top: 0.6rem;
+  margin-top: var(--sp-space-xs);
   font-size: 0.72rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-secondary);
+  max-width: 190px;
+  line-height: 1.6;
+}
+
+/* The pill: a small curved-rectangle (not a full pill capsule — 10px
+   radius, not 999px) sitting inside the ring under the readout, with more
+   air between it and the time than before. It's only a solid button for
+   "Begin"/"Complete" — the actual primary action. Once running, "End
+   early" steps back to plain underlined text (fading in on hover/focus,
+   not a competing button), and the armed confirm keeps that same quiet
+   text treatment in warm terracotta — the confirm step itself is
+   unchanged, only its styling stopped shouting. The ring itself stays
+   clickable throughout regardless of hover, so touch users can still tap
+   to end early without needing to see the text first. */
+.stillpoint__pill {
+  display: inline-block;
+  margin-top: var(--sp-space-md);
+  padding: 0.4rem 1.1rem;
+  border-radius: 10px;
+  background: var(--accent-color);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 1;
+  transition: opacity 0.25s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.stillpoint__ring.is-breathing .stillpoint__pill {
+  opacity: 0;
+  background: none;
+  color: var(--text-secondary);
+  padding: 0.2rem 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.stillpoint__ring.is-breathing:hover .stillpoint__pill,
+.stillpoint__ring.is-breathing:focus-visible .stillpoint__pill {
+  opacity: 1;
+}
+
+.stillpoint__ring.is-armed .stillpoint__pill {
+  opacity: 1;
+  background: none;
+  color: var(--accent-warm);
+  padding: 0.2rem 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* A faint idle pulse before a session starts, so the page feels alive at
@@ -149,17 +282,44 @@
   animation: spIdle 8s ease-in-out infinite;
 }
 
-/* The ring itself expands and contracts like a lung — a shorter inhale, a
-   brief hold at the top, then a longer exhale (roughly a 5-breath-per-minute
-   resonant pace, not a flat symmetric sine) — with a faint green glow at
-   the same rhythm, echoing the app's own accent colour rather than an
-   unrelated hue. */
+/* The ring itself expands and contracts like a lung on a 6-6-6-6 box
+   breath: 6s expand, 6s hold, 6s retract, 6s hold (24s total). The holds
+   aren't perfectly flat — a few in-between keyframes give them a faint
+   fluctuation, because real lungs are never fully still even at rest. A
+   soft green glow (::before, below) breathes at the same rhythm, echoing
+   the app's own accent colour rather than an unrelated hue. */
 .stillpoint__ring.is-breathing {
-  animation: spBreathRing 12s ease-in-out infinite;
+  animation: spBreathRing 24s ease-in-out infinite;
 }
 
 .stillpoint__ring.is-breathing .stillpoint__readout {
-  animation: spBreathText 12s ease-in-out infinite;
+  animation: spBreathText 24s ease-in-out infinite;
+  z-index: 1;
+}
+
+.stillpoint__ring.is-breathing svg {
+  position: relative;
+  z-index: 1;
+}
+
+/* The green wash lives inside the ring's own disc, not as a halo escaping
+   past its stroke — it blooms out from the centre on the inhale and
+   recedes to a dim core on the exhale, sitting behind the readout but
+   above nothing else, so it reads as the circle itself breathing colour.
+   Built from the accent colour itself (not the much fainter --accent-glow
+   token) so it actually reads as a faded deep green, not a hint of one. */
+.stillpoint__ring.is-breathing::before {
+  content: '';
+  position: absolute;
+  inset: 7%;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--accent-color) 55%, transparent) 0%,
+    color-mix(in srgb, var(--accent-color) 22%, transparent) 55%,
+    transparent 78%);
+  animation: spBreathGlow 24s ease-in-out infinite;
+  z-index: 0;
+  pointer-events: none;
 }
 
 @keyframes spIdle {
@@ -168,24 +328,37 @@
 }
 
 @keyframes spBreathRing {
-  0%   { transform: scale(0.94); filter: drop-shadow(0 0 0 transparent); }
-  33%  { transform: scale(1.06); filter: drop-shadow(0 0 22px var(--accent-glow)); }
-  50%  { transform: scale(1.06); filter: drop-shadow(0 0 22px var(--accent-glow)); }
-  100% { transform: scale(0.94); filter: drop-shadow(0 0 0 transparent); }
+  0%    { transform: scale(0.94); }
+  25%   { transform: scale(1.07); }
+  37.5% { transform: scale(1.058); }
+  50%   { transform: scale(1.07); }
+  75%   { transform: scale(0.94); }
+  87.5% { transform: scale(0.952); }
+  100%  { transform: scale(0.94); }
+}
+
+@keyframes spBreathGlow {
+  0%   { opacity: 0.3; transform: scale(0.5); }
+  25%  { opacity: 1;   transform: scale(1); }
+  50%  { opacity: 1;   transform: scale(1); }
+  75%  { opacity: 0.3; transform: scale(0.5); }
+  100% { opacity: 0.3; transform: scale(0.5); }
 }
 
 /* Opacity only — the ring (its parent) already handles the scale, so the
    readout doesn't need its own transform on top of the parent's. */
 @keyframes spBreathText {
   0%   { opacity: 0.85; }
-  33%  { opacity: 1; }
+  25%  { opacity: 1; }
   50%  { opacity: 1; }
+  75%  { opacity: 0.85; }
   100% { opacity: 0.85; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .stillpoint__ring,
   .stillpoint__ring.is-breathing,
+  .stillpoint__ring.is-breathing::before,
   .stillpoint__ring.is-breathing .stillpoint__readout {
     animation: none;
   }
@@ -198,7 +371,7 @@
   align-items: center;
   gap: 0.6rem;
   min-height: 84px;
-  margin-bottom: 2.25rem;
+  margin-bottom: var(--sp-space-lg);
 }
 
 .sp-duration {
@@ -217,10 +390,12 @@
 
 .sp-duration:hover { border-color: var(--border-strong); color: var(--text-primary); }
 
+/* Was tinted with --accent-warm-bg (terracotta) under a green border/text —
+   an accidental second colour on a single control. One accent only. */
 .sp-duration--active {
   border-color: var(--accent-color);
   color: var(--accent-color);
-  background: var(--accent-warm-bg);
+  background: color-mix(in srgb, var(--accent-color) 10%, transparent);
 }
 
 /* Guided picker */
@@ -230,7 +405,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-bottom: 2.25rem;
+  margin-bottom: var(--sp-space-lg);
 }
 
 .stillpoint__guided-label {
@@ -239,7 +414,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  margin-bottom: 0.6rem;
+  margin-bottom: var(--sp-space-xs);
 }
 
 .stillpoint__select {
@@ -259,23 +434,74 @@
   font-style: italic;
 }
 
-/* Controls */
-.stillpoint__controls {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
+/* Armed-to-end-early: a light guilt trip, not a hard stop — the ring's
+   progress arc and the phase text both shift to the site's warm terracotta
+   while the confirm window is open. (The pill's own warm-text styling for
+   this state lives with the rest of the pill rules, above.) */
+body.is-armed .stillpoint__phase {
+  color: var(--accent-warm);
 }
 
-.stillpoint__controls .btn { min-width: 130px; }
+body.is-armed .sp-ring__progress {
+  stroke: var(--accent-warm);
+}
 
-/* Local session history — no account needed, just localStorage */
+/* Complete: no more 0:00 to stare at — "Complete" reads as a quiet
+   statement, with the pill (now "Begin") right underneath it, still inside
+   the circle, inviting another sit. */
+body.is-complete .stillpoint__time {
+  display: none;
+}
+
+body.is-complete .stillpoint__phase {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--text-primary);
+}
+
+/* Focus: while a session is actually running, the ring grows to be the
+   clear centre of attention and everything else softens into the
+   background (blurred, dimmed, inert) rather than disappearing outright —
+   down to just the "StillPoint" eyebrow standing in for a header. */
+body.sp-focus .navbar,
+body.sp-focus .edge-brick,
+body.sp-focus footer,
+body.sp-focus .page-mark,
+body.sp-focus .stillpoint__hero h1,
+body.sp-focus .stillpoint__guide,
+body.sp-focus .stillpoint__modes,
+body.sp-focus .stillpoint__durations,
+body.sp-focus .stillpoint__guided,
+body.sp-focus .stillpoint__stats {
+  filter: blur(5px);
+  opacity: 0.35;
+  pointer-events: none;
+  transition: filter 0.6s ease, opacity 0.6s ease;
+}
+
+/* max(250px, ...) matters on narrow phones: without a floor, 58vw on a
+   375px-wide screen is ~218px — smaller than the 250px mobile idle size,
+   so the ring would shrink while running instead of growing. */
+body.sp-focus .stillpoint__ring {
+  width: max(250px, min(58vw, 62vh, 520px));
+  height: max(250px, min(58vw, 62vh, 520px));
+  transition: width 0.5s ease, height 0.5s ease;
+}
+
+body.sp-focus .stillpoint__time {
+  font-size: clamp(3.6rem, 9vw, 5rem);
+}
+
+/* Local session history — no account needed, just localStorage. Separated
+   from the controls above by space alone, not a rule — a line would be one
+   more element competing for attention that spacing already handles. */
 .stillpoint__stats {
   display: flex;
   justify-content: center;
   gap: 2.5rem;
-  margin-top: 2.75rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
+  margin-top: var(--sp-space-xl);
 }
 
 .sp-stat {
@@ -287,14 +513,18 @@
 
 /* The numeral and the day-circles are visually very different heights, so
    each stat's "value" row reserves the same height and centres its content
-   within it — otherwise the two stats read as misaligned with each other. */
+   within it — otherwise the two stats read as misaligned with each other.
+   The numeral itself is deliberately as quiet as the dots beside it — a
+   hard count next to a soft glance shouldn't read as two different weight
+   classes. */
 .sp-stat strong {
   display: flex;
   align-items: center;
   min-height: 2.25rem;
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.5rem;
-  color: var(--text-primary);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-secondary);
 }
 
 .sp-stat span {
@@ -324,6 +554,29 @@
 .sp-day.is-done {
   border-color: var(--accent-color);
   background: var(--accent-color);
+}
+
+/* Today always carries a warm outline, whether or not it's done yet — the
+   ring is the "not yet" signal, the green fill is the "done" signal, and
+   the two can be read independently of each other. */
+.sp-day.is-today {
+  border-width: 2px;
+  border-color: var(--accent-warm);
+}
+
+.sp-day.is-today.is-done {
+  border-color: var(--accent-warm);
+  background: var(--accent-color);
+}
+
+/* Invisible — its only job is to balance the two visible dots + the gap
+   between them that sit to today's left, so today (the last real dot)
+   lands exactly in the middle of the row with nothing visibly to its
+   right, rather than hugging the right edge. */
+.sp-recent-days__spacer {
+  width: calc(2 * 12px + 0.4rem);
+  height: 12px;
+  flex: 0 0 auto;
 }
 
 @media (max-width: 720px) {

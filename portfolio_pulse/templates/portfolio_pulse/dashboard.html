@@ -18,38 +18,48 @@
 
   <section class="pulse-upload">
     <h2>Upload your book of business</h2>
-    <p>
-      <strong>Portfolio Snapshot</strong> (required): one row per account. Core fields include
-      <code>account_id</code>, <code>account_name</code>, <code>segment</code>,
-      <code>industry</code>, <code>csm_owner</code>, <code>customer_since</code>,
-      <code>contract_start</code>, <code>renewal_date</code>,
-      <code>term_length_months</code>, <code>last_qbr_date</code>, and
-      <code>current_arr</code>. A blank QBR means no QBR has ever been recorded.
-    </p>
-    <p>
-      <strong>ARR Timeline</strong> (optional): one row per account per month with
-      <code>account_id</code>, <code>month</code> (<code>YYYY-MM</code>),
-      <code>arr</code>, plus optional utilisation, active-user, and ticket fields.
-      The legacy monthly-revenue columns remain accepted during migration, but Portfolio
-      Pulse displays ARR only.
-    </p>
-    <form method="post" enctype="multipart/form-data" class="pulse-upload__form">
+    <form method="post" enctype="multipart/form-data" class="pulse-upload__form" data-sample-mode="{% if loaded_sample or sample_ready %}true{% else %}false{% endif %}">
       {% csrf_token %}
-      <label class="pulse-field">
-        <span>{{ form.snapshot_file.label }}</span>
-        {{ form.snapshot_file }}
-      </label>
-      <label class="pulse-field">
-        <span>{{ form.timeline_file.label }}</span>
-        {{ form.timeline_file }}
-      </label>
-      <button type="submit" class="btn btn-sm pulse-btn">Build my Portfolio Pulse</button>
+      <div class="pulse-upload__files">
+        <p class="pulse-upload__lead">Use your own files, or prepare the sample portfolio and build it with your chosen health model.</p>
+        <div class="pulse-upload__file-grid">
+          <label class="pulse-field">
+            <span>Snapshot CSV <small>Required: customer, contract, QBR, and current ARR data.</small></span>
+            {{ form.snapshot_file }}
+          </label>
+          <label class="pulse-field">
+            <span>Timeline CSV <small>Optional: monthly ARR and engagement history.</small></span>
+            {{ form.timeline_file }}
+          </label>
+        </div>
+        <div class="pulse-sample-links">
+          {% if sample_ready or loaded_sample %}
+            <span class="pulse-sample-ready">Sample portfolio ready</span>
+          {% else %}
+            <a href="?sample=ready" class="pulse-sample-link">Load sample portfolio</a>
+          {% endif %}
+          <a href="{% url 'portfolio_pulse:download_sample_snapshot' %}" class="pulse-sample-link" download>Snapshot CSV</a>
+          <a href="{% url 'portfolio_pulse:download_sample_timeline' %}" class="pulse-sample-link" download>ARR Timeline CSV</a>
+        </div>
+      </div>
+      <div class="pulse-upload__actions">
+        <button type="submit" class="btn btn-sm pulse-btn" id="pulse-build">Build my Portfolio Pulse</button>
+        <div class="pulse-model-picker">
+          <label class="pulse-model-picker__control">
+            <span>{{ form.health_model.label }}:</span>
+            {{ form.health_model }}
+          </label>
+          <div class="pulse-model-picker__descriptor" aria-live="polite">
+            <div class="pulse-model-picker__title">
+              <strong id="pulse-model-name">{{ selected_health_model.name }}</strong>
+              <span id="pulse-model-kind">{{ selected_health_model.kind }}</span>
+            </div>
+            <p id="pulse-model-description">{{ selected_health_model.short_explainer }}</p>
+          </div>
+          <small class="pulse-model-picker__apply">Build applies this model to every health-led view.</small>
+        </div>
+      </div>
     </form>
-    <div class="pulse-sample-links">
-      <a href="?sample=1" class="pulse-sample-link">Load sample portfolio</a>
-      <a href="{% url 'portfolio_pulse:download_sample_snapshot' %}" class="pulse-sample-link" download>Snapshot CSV</a>
-      <a href="{% url 'portfolio_pulse:download_sample_timeline' %}" class="pulse-sample-link" download>ARR Timeline CSV</a>
-    </div>
     {% if form.snapshot_file.errors or form.timeline_file.errors %}
       <ul class="pulse-errors">
         {% for err in form.snapshot_file.errors %}<li>{{ err }}</li>{% endfor %}
@@ -166,24 +176,53 @@
       <p class="pulse-summary-sentence">{{ summary_sentence }}</p>
 
       <details class="pulse-explainer">
-        <summary>How portfolio health is calculated</summary>
+        <summary>
+          <span class="pulse-explainer__label">Selected health model</span>
+          <strong>{{ selected_health_model.name }}</strong>
+          <span class="pulse-explainer__action">View scoring method</span>
+        </summary>
         <div class="pulse-explainer__body">
           <p>
-            Every account starts at 100. Health falls when QBRs are overdue, payments are
-            overdue, support load is high, utilisation or active-user rates are weak, or
-            contract commitment is short. A one-year term is a risk signal; a two-year term
-            is neutral for a new customer but weaker for an established renewal; three years
-            is the standard.
+            Health estimates whether the customer will renew, keep realising value, and create
+            expansion potential over the next three years. {{ selected_health_model.interpretation }}
           </p>
+          {% if selected_health_model.id == "plain_pulse" %}
+            <ol>
+              <li>Every account starts at 100.</li>
+              <li>Fixed points are removed for a QBR over 180 days old, overdue payment, clearly weak usage, a short contract, or renewal inside six months.</li>
+              <li>Recent QBRs, clearly strong usage, and longevity restore a small number of points.</li>
+              <li>There are no multipliers, segment adjustments, ARR effects, or ticket-volume effects.</li>
+            </ol>
+          {% elif selected_health_model.id == "retention_horizon" %}
+            <ol>
+              <li>Each available CSV signal contributes a positive or negative weighted value.</li>
+              <li>Longevity, recent QBRs, strong usage, longer contracts, and more renewal runway move the index upward.</li>
+              <li>Overdue payment, high support demand, weak usage, old QBRs, short runway, and ARR decline move it downward.</li>
+              <li>A logistic curve converts the combined value into a stable 0 to 100 score. ARR expansion and low ticket volume are neutral.</li>
+            </ol>
+            <p>
+              This uses the mathematical shape of logistic regression, but its weights are transparent
+              design assumptions rather than coefficients learned from churn outcomes. A future trained
+              version requires historical renewal and churn labels that are not present in the current CSVs.
+            </p>
+          {% else %}
+            <ol>
+              <li>Every account starts at 100.</li>
+              <li>Gradual points are removed for an overdue or missing QBR, overdue payment, heavy support demand, weak utilisation, weak active-user rates, or a short contract.</li>
+              <li>Recent QBRs, strong usage, and longevity restore a small number of points.</li>
+              <li>Deductions become somewhat larger when renewal is close, the customer is new, or ARR is falling.</li>
+              <li>Low ticket volume and ARR expansion do not add points. The final score is capped between 0 and 100.</li>
+            </ol>
+          {% endif %}
           <p>
             A blank <code>last_qbr_date</code> means the QBR has never happened, so its age is
-            treated as the full customer tenure. Data completeness still records that the
-            source date was missing. Renewal timing amplifies existing problems inside six
-            months and, more lightly, inside the 6&ndash;18 month planning window.
+            treated as the full customer tenure. Data completeness separately shows how much
+            evidence was available for the calculation.
           </p>
           <p>
-            The portfolio headline is the ARR-weighted average. Healthy / Watch / Critical
-            are the only bands; there is no separate risk score to reconcile.
+            The portfolio headline gives larger customers more influence by weighting each
+            account score by ARR. It is a portfolio warning index, not the percentage of
+            customers that will definitely remain.
           </p>
         </div>
       </details>
@@ -341,5 +380,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="{% static 'portfolio_pulse/js/pulse_charts.js' %}?v=7"></script>
   {% endif %}
+  {{ health_model_options|json_script:"pulse-health-model-options" }}
+  <script src="{% static 'portfolio_pulse/js/health_model_selector.js' %}?v=1"></script>
 </div>
 {% endblock %}
