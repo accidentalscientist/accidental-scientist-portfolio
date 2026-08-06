@@ -1,0 +1,170 @@
+{% extends "portfolio/base.html" %}
+{% load static %}
+
+{% block title %}World Ledger: economic power and potential rankings{% endblock %}
+{% block meta_description %}Test competing theories of economic power across 48 complete-data economies and inspect every contribution, observation and trade relationship.{% endblock %}
+
+{% block content %}
+<article class="world-lens" data-world-lens>
+  <header class="world-lens__hero">
+    <p class="journal-eyebrow">Data Stories · Economic strategy map</p>
+    <h1>World Ledger</h1>
+    <p class="world-lens__intro">
+      Where does economic power sit now, and where do present conditions suggest it could emerge next?
+      Change the theory, watch the order move, and inspect the evidence beneath every rank.
+    </p>
+    <div class="world-lens__edition" aria-label="Dataset edition">
+      <span>{{ dataset_version }}</span><span>{{ cohort_count }} complete-data economies</span><span>Observed data only</span>
+    </div>
+  </header>
+
+  <aside class="world-lens__thesis" aria-labelledby="world-ledger-thesis">
+    <p class="world-lens__eyebrow">Project thesis</p>
+    <h2 id="world-ledger-thesis">Power depends on what counts.</h2>
+    <div>
+      <p>
+        World Ledger is a comparative strategy map of economic power. Its central claim is that no
+        ranking of power is neutral: changing the importance assigned to markets, industry, trade,
+        finance, population, institutions, demographics or resources produces a different ordering of
+        the world. That exposes the theory of power embedded in the result.
+      </p>
+      <p>
+        <em>Power Now</em> shows where economic power sits today. It measures observable weight across
+        domestic markets, productive capacity, trade reach, financial buffers and population, revealing
+        both the scale of an economy and the structures through which that scale can be mobilised.
+      </p>
+      <p>
+        <em>Power Potential</em> shows where the conditions for greater economic power already exist. It
+        measures observed momentum, reinvestment, demographic runway, conversion capacity, productive
+        depth, macroeconomic resilience and resource optionality, revealing economies with the capacity
+        to strengthen their position and those whose present power rests on weaker foundations.
+      </p>
+    </div>
+  </aside>
+
+  <section class="world-lens__model-select" aria-labelledby="world-ledger-model-title">
+    <div>
+      <p class="world-lens__eyebrow">Choose the strategic question</p>
+      <h2 id="world-ledger-model-title">Two rankings, one evidence base</h2>
+      <p data-model-question></p>
+    </div>
+    <div class="world-lens__model-buttons" role="group" aria-label="Ranking model">
+      <button type="button" data-model="power" aria-pressed="true">Power Now</button>
+      <button type="button" data-model="potential" aria-pressed="false">Power Potential</button>
+    </div>
+  </section>
+
+  <section class="world-lens__controls" aria-labelledby="world-lens-controls-title">
+    <div>
+      <p class="world-lens__eyebrow">Comparison set</p>
+      <h2 id="world-lens-controls-title">Choose up to three economies</h2>
+      <div class="world-lens__picker">
+        <label for="world-lens-country" class="visually-hidden">Economy</label>
+        <select id="world-lens-country" class="form-select"></select>
+        <button type="button" class="btn world-lens__add" data-country-add>Add economy</button>
+      </div>
+      <div class="world-lens__chips" data-country-chips aria-live="polite"></div>
+    </div>
+    <fieldset class="world-lens__weights">
+      <legend>Author the theory of power</legend>
+      <p>Zero removes a pillar. Two doubles its importance. Rankings recalculate across all 48 economies.</p>
+      <div data-weight-controls></div>
+      <button type="button" class="world-lens__reset" data-reset-weights>Reset equal weights</button>
+    </fieldset>
+  </section>
+
+  <section class="world-lens__visual world-lens__ranking" aria-labelledby="world-lens-visual-title">
+    <div class="world-lens__visual-heading">
+      <div><p class="world-lens__eyebrow">01 · Weighted ranking</p><h2 id="world-lens-visual-title">What drives the ranking?</h2></div>
+      <p data-score-description></p>
+    </div>
+    <div class="world-lens__ranking-grid">
+      <ol class="world-lens__leaderboard" data-leaderboard aria-label="Current ranking"></ol>
+      <div>
+        <div class="world-lens__chart-wrap">
+          <svg data-score-chart role="img" aria-label="Signed component contributions for selected economies"></svg>
+          <span class="world-lens__tooltip" data-chart-tooltip hidden></span>
+        </div>
+        <div class="world-lens__legend" data-score-legend></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="world-lens__story-grid" aria-label="Linked visual stories">
+    <article class="world-lens__story">
+      <p class="world-lens__eyebrow">02 · Ranking histogram</p>
+      <h2>The shape of power</h2>
+      <p>See whether the chosen definition creates a dominant elite, a broad middle or a compressed field.</p>
+      <div class="world-lens__mini-chart"><svg data-histogram role="img" aria-label="Distribution of ranking scores"></svg></div>
+    </article>
+    <article class="world-lens__story">
+      <p class="world-lens__eyebrow">03 · Power map</p>
+      <h2>Weight now, runway next</h2>
+      <p>Power Now sits on the horizontal axis; Power Potential sits vertically. Bubble area represents GDP at PPP.</p>
+      <div class="world-lens__mini-chart"><svg data-bubble-chart role="img" aria-label="Power Now versus Power Potential"></svg></div>
+    </article>
+    <article class="world-lens__story">
+      <p class="world-lens__eyebrow">04 · Surprise index</p>
+      <h2>Who outranks their size?</h2>
+      <p>The ten largest gaps between GDP rank and the chosen power rank reveal genuine overperformers and underperformers.</p>
+      <div class="world-lens__mini-chart"><svg data-surprise-chart role="img" aria-label="Rank difference from GDP size"></svg></div>
+    </article>
+    <article class="world-lens__story">
+      <p class="world-lens__eyebrow">05 · Trade constellation</p>
+      <h2>Where trade power travels</h2>
+      <p>Each selected economy flows to its six largest 2024 export destinations. Every route is labelled with destination, share and value.</p>
+      <div class="world-lens__mini-chart"><svg data-trade-chart role="img" aria-label="Selected economies and their largest export partners"></svg></div>
+    </article>
+    <article class="world-lens__story world-lens__story--wide">
+      <p class="world-lens__eyebrow">06 · Conversion bridge</p>
+      <h2>Assets do not convert themselves</h2>
+      <p>Present assets and conversion systems receive separate scores before meeting the resulting Power Potential and Power Now ranks.</p>
+      <div class="world-lens__mini-chart"><svg data-bridge-chart role="img" aria-label="Potential assets, conversion capacity and resulting position"></svg></div>
+    </article>
+  </section>
+
+  <section class="world-lens__evidence" aria-labelledby="world-lens-evidence-title">
+    <div class="world-lens__evidence-heading">
+      <div><p class="world-lens__eyebrow">Evidence ledger</p><h2 id="world-lens-evidence-title">Raw strengths and constraints</h2></div>
+      <p>Every scored input remains visible in its original unit and reporting period.</p>
+    </div>
+    <div class="table-responsive">
+      <table class="table world-lens__table"><thead data-evidence-head></thead><tbody data-evidence-body></tbody></table>
+    </div>
+  </section>
+
+  <details class="world-lens__method">
+    <summary>Method, scope, limitations and sources</summary>
+    <div>
+      <p>
+        {{ dataset_version }} admits economies with complete coverage across every scored input, then
+        selects the top {{ cohort_count }} under the equal-weight Power Now baseline. The same cohort is
+        used for both rankings and every visual, so rank comparisons never switch denominators.
+      </p>
+      <p>
+        Latest observations must be from 2020 or later; decade measures use at least five observations
+        from {{ score_start }}–{{ score_end }}. Scale measures are log-transformed before standardisation.
+        Every pillar combines exactly three standardised observations before the pillar receives a weight,
+        limiting double counting while keeping the underlying evidence visible. Inflation and growth
+        volatility are direction-reversed so higher contributions always
+        mean greater stability. Scores are relative z-score composites, not cardinal quantities of power.
+      </p>
+      <p>
+        Strategic-resource exports cover HS chapters 25, 26, 27, 44 and 71: minerals, ores, fuels,
+        wood, precious metals and stones. Resource optionality does not measure underground
+        reserves, military control, beneficial ownership or foreign corporate control; those remain roadmap
+        questions. No IMF or other expert projection enters Power Potential. Data release: {{ data_updated }}.
+      </p>
+      <p>
+        Sources: <a href="https://databank.worldbank.org/source/world-development-indicators">World Bank World Development Indicators</a>,
+        <a href="https://www.worldbank.org/en/publication/worldwide-governance-indicators">Worldwide Governance Indicators</a>, and
+        <a href="https://atlas.hks.harvard.edu/data-downloads/">Harvard Growth Lab Atlas of Economic Complexity</a>.
+      </p>
+    </div>
+  </details>
+</article>
+
+{{ dashboard_data|json_script:"world-lens-data" }}
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'world_lens/js/world_lens.js' %}"></script>{% endblock %}

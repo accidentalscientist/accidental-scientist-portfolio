@@ -1,0 +1,15 @@
+# Training-only dependencies for the NEM Price Predictor Lab.
+#
+# Deliberately separate from requirements.txt. The web server NEVER needs
+# these: forecasts are trained offline by `manage.py run_price_forecast` and
+# the page reads stored predictions out of the database. Installing this on
+# the droplet would add roughly 100 MB for no runtime benefit, and would undo
+# the July 2026 dependency cull that took the site from 69 packages to 15.
+#
+# Install locally when you want to train the tree models:
+#     pip install -r requirements-ml.txt
+#
+# Without it, the random forest and gradient boosting models are simply
+# unavailable and every other model carries on unaffected.
+
+scikit-learn>=1.5

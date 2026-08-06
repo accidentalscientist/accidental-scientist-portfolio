@@ -1,0 +1,297 @@
+.icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.icon-nav-link {
+  position: relative;
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: var(--radius);
+}
+
+.nav-icon-hint {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 32px));
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--navy);
+  color: var(--card);
+  box-shadow: var(--shadow);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-3px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.icon-nav-link:hover .nav-icon-hint,
+.icon-nav-link:focus-visible .nav-icon-hint {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.icon-nav-link:hover {
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(169, 130, 47, 0.45);
+}
+
+.nav-symbol {
+  width: 27px;
+  height: 27px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nav-star {
+  color: var(--brass);
+  fill: rgba(169, 130, 47, 0.1);
+}
+
+.settings-trigger.nav-icon-button {
+  display: inline-grid;
+  width: 42px;
+  min-height: 42px;
+  place-items: center;
+  padding: 0;
+}
+
+.execution-layout {
+  grid-template-areas:
+    "hero hero"
+    "daily ledger"
+    "calendar calendar"
+    "kanban kanban";
+}
+
+.execution-focus-strip {
+  display: grid;
+  gap: 12px;
+  padding-block: 18px;
+  background: linear-gradient(110deg, rgba(255, 253, 248, 0.98), rgba(247, 242, 232, 0.92));
+}
+
+.execution-focus-strip > .eyebrow {
+  margin-bottom: 0;
+}
+
+.focus-strip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(220px, 1.2fr);
+  gap: 0;
+}
+
+.focus-strip-item {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 4px 18px;
+  border-right: 1px solid rgba(169, 130, 47, 0.42);
+  text-transform: none;
+}
+
+.focus-strip-item:first-child {
+  padding-left: 0;
+}
+
+.focus-strip-item:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.focus-strip-item > span {
+  min-width: 0;
+}
+
+.focus-strip-label {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.focus-strip-item input {
+  min-height: 34px;
+  padding: 5px 7px;
+  color: var(--navy);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+body:not(.is-edit-mode) .focus-strip-item input {
+  min-height: auto;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.focus-strip-item strong {
+  display: block;
+  color: var(--navy);
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.focus-symbol,
+.section-symbol {
+  width: 27px;
+  height: 27px;
+  flex: none;
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.north-star-symbol,
+.section-symbol-brass {
+  color: var(--brass);
+  fill: rgba(169, 130, 47, 0.1);
+  stroke: var(--brass);
+}
+
+.section-title-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.section-title-with-icon .eyebrow {
+  margin-bottom: 4px;
+}
+
+.section-title-with-icon h2 {
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+}
+
+.section-subtitle {
+  margin: 4px 0 0;
+  color: var(--muted) !important;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+body[data-page="execution"] .eyebrow::before {
+  display: none;
+}
+
+.execution-focus-strip,
+.daily-panel,
+.ledger-panel {
+  background-color: var(--card);
+  background-image:
+    radial-gradient(ellipse at center, rgba(255, 253, 248, 0.84) 0%, rgba(255, 253, 248, 0.9) 58%, rgba(255, 253, 248, 0.99) 100%),
+    url("/static/life_compass/assets/sail-hero.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.calendar-panel,
+.kanban-panel {
+  background-color: var(--card);
+  background-image:
+    radial-gradient(ellipse at center, rgba(255, 253, 248, 0.58) 0%, rgba(255, 253, 248, 0.74) 58%, rgba(255, 253, 248, 0.97) 100%),
+    url("/static/life_compass/assets/roman-bireme-explorer.webp");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Preserve the existing calendar language while preventing full-width cells
+   from growing into oversized squares. */
+.calendar-panel .weekday {
+  aspect-ratio: auto;
+  min-height: 24px;
+}
+
+.calendar-panel .day-cell {
+  aspect-ratio: auto;
+  min-height: 52px;
+}
+
+@media (max-width: 900px) {
+  .execution-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "hero"
+      "daily"
+      "ledger"
+      "calendar"
+      "kanban";
+  }
+
+  .focus-strip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 12px;
+  }
+
+  .focus-strip-item:nth-child(2) {
+    border-right: 0;
+  }
+
+  .focus-strip-item:nth-child(3) {
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-header .settings-menu {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+  }
+
+  .focus-strip-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .focus-strip-item,
+  .focus-strip-item:first-child,
+  .focus-strip-item:nth-child(3),
+  .focus-strip-item:last-child {
+    padding: 8px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgba(169, 130, 47, 0.25);
+  }
+
+  .focus-strip-item:last-child {
+    border-bottom: 0;
+  }
+}

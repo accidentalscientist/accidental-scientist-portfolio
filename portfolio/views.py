@@ -51,6 +51,13 @@ def robots_txt(request):
 # once here rather than wiring a new template block + view flag for it.
 EXTERNAL_TOOLS = [
     {
+        'title': 'World Ledger',
+        'slug': 'world-ledger',
+        'url_name': 'world_lens:dashboard',
+        'category': Project.Category.DATA,
+        'description': 'Rank economic power and future potential, change the strategic weights, and see exactly which national strengths and constraints drive the result.',
+    },
+    {
         'title': 'Life Compass',
         'slug': 'life-compass',
         'url_name': 'life_compass:home',

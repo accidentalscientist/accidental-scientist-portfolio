@@ -30,3 +30,6 @@ Thumbs.db
 # Private docs: design reports, security audits, deployment and next-steps notes
 # (keep these out of the public repo per the IP policy)
 docs/
+
+# Price Predictor Lab CSV exports (regenerate with export_price_lab_data)
+price_lab_export/

@@ -20,20 +20,33 @@
     </p>
   </header>
 
+  <nav class="plab-tabs" aria-label="NEM dashboard views">
+    <span class="plab-tab plab-tab--active" aria-current="page">Fuel mix</span>
+    <a class="plab-tab" href="{% url 'nem_price_lab:lab' %}">Price predictor</a>
+  </nav>
+
   {% if not has_data %}
     <div class="nem-empty">
       <p>No generation data loaded yet.</p>
     </div>
   {% else %}
 
-    {# ── Region selector ── #}
-    <nav class="nem-regions" aria-label="Select region">
-      {% for region in region_order %}
-        <button type="button" class="nem-region" data-region="{{ region }}" aria-pressed="false">{{ region }}</button>
-      {% endfor %}
-      <span class="nem-auto" id="nem-auto" role="button" tabindex="0" title="Cycling through regions">
-        <span class="nem-auto__dot"></span> Auto
+    {% comment %}
+      Region selector. Same three parts and same styling as the price
+      predictor, so both NEM views read as one control.
+    {% endcomment %}
+    <nav class="nem-regions plab-regions" aria-label="Select region">
+      <span class="plab-regions__label" id="nem-region-legend">Region</span>
+
+      <span class="plab-regions__pills" role="group" aria-labelledby="nem-region-legend">
+        {% for region in region_order %}
+          <button type="button" class="nem-region" data-region="{{ region }}" aria-pressed="false">{{ region }}</button>
+        {% endfor %}
       </span>
+
+      <button type="button" class="plab-auto" id="nem-auto" aria-pressed="false">
+        <span class="plab-auto__dot" aria-hidden="true"></span> Auto
+      </button>
     </nav>
 
     {# ── Explicit window banner ── #}
@@ -101,6 +114,6 @@
   {{ trend_json|json_script:"nem-trend-data" }}
   <script>window.NEM_DEFAULT_REGION = "{{ default_region|escapejs }}";</script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="{% static 'nem_dashboard/js/fuel_chart.js' %}?v=146"></script>
+  <script src="{% static 'nem_dashboard/js/fuel_chart.js' %}?v=149"></script>
 </div>
 {% endblock %}

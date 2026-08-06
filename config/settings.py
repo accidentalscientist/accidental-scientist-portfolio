@@ -77,9 +77,11 @@ INSTALLED_APPS = [
     # my apps
     'portfolio',
     'nem_dashboard',
+    'nem_price_lab',
     'stillpoint',
     'portfolio_pulse',
     'life_compass',
+    'world_lens',
 ]
 
 MIDDLEWARE = [

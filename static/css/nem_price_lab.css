@@ -1,0 +1,682 @@
+/* ============================================================
+   NEM PRICE PREDICTOR LAB
+   Layered on top of nem.css so the two NEM views read as one
+   product. Only what the fuel-mix page does not already provide
+   lives here.
+   ============================================================ */
+
+/* ── View switcher between fuel mix and price predictor ── */
+.plab-tabs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 0 0 2rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0;
+}
+
+.plab-tab {
+  padding: 0.6rem 1.4rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: var(--transition);
+}
+
+.plab-tab:hover {
+  color: var(--accent-color);
+  border-bottom-color: var(--border-strong);
+}
+
+.plab-tab--active {
+  color: var(--accent-color);
+  border-bottom-color: var(--accent-color);
+  font-weight: 600;
+}
+
+/* ── Headline stats ── */
+.plab-stats .nem-stat__value {
+  font-variant-numeric: tabular-nums;
+}
+
+.plab-value--low { color: var(--accent-color); }
+.plab-value--high { color: var(--accent-warm); }
+
+/* ── Forecast section ── */
+.plab-forecast,
+.plab-review,
+.plab-betas,
+.plab-history,
+.plab-boundaries {
+  margin-top: 3rem;
+}
+
+/* Chart containers.
+   Chart.js sizes itself from its parent, but only when that parent is
+   positioned and has a DEFINITE height: a min-height does not resolve a
+   percentage, so the canvas keeps whatever width it was first drawn at and
+   forces the whole page to scroll sideways on narrow viewports. Explicit
+   height plus an absolutely positioned canvas is what makes it responsive.
+
+   The forecast chart carries 672 half-hour points across four series, so it
+   needs real height: under ~500px the model lines sit on top of each other. */
+.plab-canvas,
+.plab .nem-trend__canvas {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 520px;
+  margin-top: 1.2rem;
+}
+
+.plab-canvas--betas { height: 340px; }
+
+.plab .nem-trend__canvas { height: 340px; }
+
+.plab-canvas > canvas,
+.plab .nem-trend__canvas > canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (max-width: 700px) {
+  .plab-canvas { height: 380px; }
+  .plab-canvas--betas,
+  .plab .nem-trend__canvas { height: 280px; }
+}
+
+/* ── Teaching-model caveat ──
+   Sits directly under the description rather than floating in its own
+   column, where it read as an orphaned fragment. Indented against a rule so
+   it is clearly a footnote to the paragraph above it. */
+.plab-disclaimer {
+  max-width: 60ch;
+  margin: 1rem 0 0;
+  padding: 0 0 0 0.85rem;
+  border-left: 2px solid var(--border-strong);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  opacity: 0.85;
+}
+
+/* ── Region selector ──
+   Three parts in a fixed order: a Region label, the pills, then Auto. This
+   exact row is repeated above every chart on the page (see .plab-showing),
+   so the same three shapes always mean the same three things. */
+.plab-regions {
+  gap: 0.6rem;
+}
+
+.plab-regions__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-right: 0.2rem;
+}
+
+.plab-regions__pills {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.plab-auto {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: auto;
+  padding: 0.4rem 0.9rem 0.5rem;
+  appearance: none;
+  border: 1px dashed var(--border-strong);
+  border-radius: 3px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.18s ease;
+}
+
+.plab-auto:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+/* Running: solid border and the warm accent, matching the fuel-mix
+   dashboard's existing "auto is live" language. */
+.plab-auto[aria-pressed='true'] {
+  border-style: solid;
+  border-color: var(--accent-warm);
+  color: var(--accent-warm);
+  background: var(--accent-warm-bg);
+}
+
+.plab-auto:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.plab-auto__dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.plab-auto[aria-pressed='true'] .plab-auto__dot {
+  opacity: 1;
+  animation: nemPulse 1.6s ease-in-out infinite;
+}
+
+/* Motion is decoration here; respect a request for less of it. */
+@media (prefers-reduced-motion: reduce) {
+  .plab-auto[aria-pressed='true'] .plab-auto__dot { animation: none; }
+}
+
+/* Screen-reader-only running commentary on the cycle. */
+.plab-cycle-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .plab-auto {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Per-chart region indicator ──
+   Deliberately NOT a new component. It reuses .plab-regions__label,
+   .nem-region--active and .plab-auto so a reader recognises it instantly as
+   the same control from the top of the page, just reporting instead of
+   asking. One visual language, repeated. */
+.plab-showing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: auto;
+  text-decoration: none;
+}
+
+.plab-showing .plab-regions__label { margin-right: 0; }
+
+/* Read-only copies of the interactive controls: same look, no pointer
+   affordance beyond the jump-back link. */
+.plab-showing .nem-region--active,
+.plab-showing .plab-auto {
+  cursor: inherit;
+  pointer-events: none;
+}
+
+.plab-showing:hover .plab-regions__label { color: var(--accent-color); }
+
+.plab-auto--static { padding: 0.4rem 0.7rem; }
+
+.plab-showing [data-region-badge-auto][hidden] { display: none; }
+
+/* ── The six models, side by side ── */
+.plab-lineup { margin-top: 3rem; }
+
+.plab-lineup__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.plab-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.1rem 1.2rem 1.2rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-top: 3px solid var(--model-color, var(--accent-color));
+  box-shadow: var(--card-shadow);
+}
+
+/* The leader in this region gets a ring rather than only a label, so the
+   ranking survives a glance. */
+.plab-card--best {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 1px var(--accent-color), var(--card-shadow);
+}
+
+.plab-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.plab-card__family {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--model-color, var(--accent-color));
+}
+
+.plab-card__flag {
+  margin-left: auto;
+  padding: 0.1rem 0.4rem;
+  border-radius: 2px;
+  background: var(--accent-color);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.plab-card__flag--muted {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.plab-card__name {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.plab-card__desc {
+  margin: 0 0 0.9rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.plab-card__facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.7rem;
+  margin: 0 0 1rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.plab-card__facts dt {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  opacity: 0.75;
+}
+
+.plab-card__facts dd {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+/* Scores pinned to the bottom so cards of different text length still line
+   their numbers up across the row. */
+.plab-card__score {
+  display: flex;
+  gap: 1.1rem;
+  margin-top: auto;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.plab-card__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.plab-card__stat-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  opacity: 0.75;
+}
+
+.plab-card__stat-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.plab-card__pending {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+/* ── Derived-series caveat next to the data boundary ── */
+.plab-derived {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.plab-derived[hidden] { display: none; }
+
+/* ── Model visibility toggles ──
+   Styled as pills to match the region selector rather than as a form:
+   these are the same kind of control, so they should look like it. The
+   native checkbox is hidden but kept in the DOM for keyboard and screen
+   readers, with :focus-visible mirrored onto the pill. */
+.plab-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.plab-toggles__legend {
+  width: 100%;
+  padding: 0;
+  margin-bottom: 0.7rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.plab-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.plab-toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.plab-toggle__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.plab-toggle__swatch {
+  width: 20px;
+  height: 3px;
+  flex: 0 0 20px;
+  border-radius: 2px;
+  background: var(--model-color, var(--accent-color));
+  opacity: 0.3;
+  transition: opacity 0.18s ease;
+}
+
+/* Active pill: tinted in the model's own colour, so the legend and the
+   chart line agree without needing a separate key. */
+.plab-toggle:has(.plab-toggle__input:checked) {
+  color: var(--model-color, var(--accent-color));
+  border-color: var(--model-color, var(--accent-color));
+  background: color-mix(in srgb, var(--model-color) 8%, transparent);
+}
+
+.plab-toggle:has(.plab-toggle__input:checked) .plab-toggle__swatch { opacity: 1; }
+
+.plab-toggle:has(.plab-toggle__input:focus-visible) {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Fallback for engines without :has(). The swatch still carries the state. */
+.plab-toggle__input:checked ~ .plab-toggle__swatch { opacity: 1; }
+
+.plab-toggle .plab-baseline-tag {
+  margin-left: 0.1rem;
+  border: 0;
+  padding: 0;
+  opacity: 0.7;
+}
+
+/* ── Plain-English explainer block ── */
+.plab-explainer {
+  margin: 1.2rem 0 0;
+  padding: 1rem 1.2rem;
+  background: var(--bg-tertiary);
+  border-left: 3px solid var(--accent-color);
+}
+
+.plab-explainer__title {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.plab-explainer p:last-child {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.plab-explainer strong { color: var(--text-primary); }
+
+/* A caution strip for runs that had to fall back to observed temperature.
+   Deliberately loud: a run that saw the future is not the same product as
+   one that did not, and the difference must never be cosmetic. */
+.plab-note {
+  margin: 0 0 1rem;
+  padding: 0.8rem 1rem;
+  border-left: 3px solid var(--accent-warm);
+  background: var(--accent-warm-bg);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.plab-note[hidden] { display: none; }
+
+/* ── Tables ── */
+.plab-table-wrap {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.plab-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.plab-table th,
+.plab-table td {
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.plab-table th {
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.plab-th-sub {
+  display: block;
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* Grouped headers: "Last week" and "Average to date" each span three
+   columns, so the two horizons stay visually distinct in a wide table. */
+.plab-th-group {
+  text-align: center !important;
+  border-bottom: 2px solid var(--accent-color);
+  color: var(--text-primary);
+}
+
+.plab-th-group--alt {
+  border-bottom-color: var(--accent-warm);
+}
+
+/* The running average is the number that matters most as the record grows,
+   so its columns get a faint tint rather than blending into last week's. */
+.plab-table--perf .plab-td-avg {
+  background: var(--accent-warm-bg);
+}
+
+.plab-table td {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.plab-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.plab-table__model {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-variant-numeric: normal;
+}
+
+.plab-swatch {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border-radius: 2px;
+  background: var(--swatch, var(--accent-color));
+}
+
+/* Skill is signed, so it carries both a colour AND a sign character.
+   Colour alone would fail the site's own encoding rule. */
+.plab-skill--up { color: var(--accent-color); font-weight: 600; }
+.plab-skill--down { color: var(--accent-warm); font-weight: 600; }
+.plab-skill--flat { color: var(--text-secondary); }
+
+.plab-table__muted {
+  color: var(--text-secondary);
+  font-variant-numeric: normal;
+  font-size: 0.85rem;
+}
+
+.plab-baseline-tag {
+  font-size: 0.68rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 0.1rem 0.4rem;
+  margin-left: 0.4rem;
+}
+
+.plab-caption {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ── Boundaries ── */
+.plab-boundary-list {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plab-boundary-list li {
+  position: relative;
+  padding: 0 0 0 1.4rem;
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.plab-boundary-list li::before {
+  content: '◆';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--accent-warm);
+  font-size: 0.7rem;
+  line-height: 1.9;
+}
+
+.plab-boundary-list strong {
+  color: var(--text-primary);
+}
+
+/* ── Empty state ── */
+.plab-empty__hint {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.plab-code {
+  display: block;
+  margin: 0.8rem auto 0;
+  padding: 1rem 1.2rem;
+  max-width: 34rem;
+  text-align: left;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  font-size: 0.82rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  color: var(--text-primary);
+}
+
+@media (max-width: 640px) {
+  .plab-tabs { gap: 0; }
+  .plab-tab { padding: 0.6rem 0.9rem; font-size: 0.75rem; }
+  .plab-canvas { min-height: 260px; }
+}

@@ -19,6 +19,7 @@ class StaticViewSitemap(Sitemap):
             'stillpoint:timer',
             'life_compass:home',
             'portfolio_pulse:dashboard',
+            'world_lens:dashboard',
         ]
 
     def location(self, item):

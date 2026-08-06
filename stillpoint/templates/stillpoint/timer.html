@@ -81,6 +81,9 @@
 
 </div>
 
-<script>window.STILLPOINT_HAS_AUDIO = {% if guided_sessions %}true{% else %}false{% endif %};</script>
-<script src="{% static 'stillpoint/js/timer.js' %}?v=8"></script>
+<script>
+  window.STILLPOINT_HAS_AUDIO = {% if guided_sessions %}true{% else %}false{% endif %};
+  window.STILLPOINT_BELL_URL = "{% static 'stillpoint/audio/tibetan-bowl.mp3' %}";
+</script>
+<script src="{% static 'stillpoint/js/timer.js' %}?v=9"></script>
 {% endblock %}

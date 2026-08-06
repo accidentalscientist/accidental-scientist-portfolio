@@ -297,6 +297,14 @@
   z-index: 1;
 }
 
+/* The digits pulse too, at a noticeably smaller scale than the ring
+   itself (~half its range) — the whole thing breathes together, at
+   different magnitudes for depth, rather than just the ring moving alone. */
+.stillpoint__ring.is-breathing .stillpoint__time {
+  animation: spBreathTimeScale 24s ease-in-out infinite;
+  display: inline-block;
+}
+
 .stillpoint__ring.is-breathing svg {
   position: relative;
   z-index: 1;
@@ -337,12 +345,27 @@
   100%  { transform: scale(0.94); }
 }
 
+/* Roughly 40% of the ring's own scale range — a clear pulse, but the ring
+   is still doing most of the visible work. */
+@keyframes spBreathTimeScale {
+  0%    { transform: scale(0.975); }
+  25%   { transform: scale(1.025); }
+  37.5% { transform: scale(1.018); }
+  50%   { transform: scale(1.025); }
+  75%   { transform: scale(0.975); }
+  87.5% { transform: scale(0.982); }
+  100%  { transform: scale(0.975); }
+}
+
+/* Toned down from a 0.5→1 swing (doubling in size) to 0.65→1 — the glow
+   should still visibly constrict with the breath, just not so extremely
+   that it dwarfs the ring's own much subtler movement. */
 @keyframes spBreathGlow {
-  0%   { opacity: 0.3; transform: scale(0.5); }
-  25%  { opacity: 1;   transform: scale(1); }
-  50%  { opacity: 1;   transform: scale(1); }
-  75%  { opacity: 0.3; transform: scale(0.5); }
-  100% { opacity: 0.3; transform: scale(0.5); }
+  0%   { opacity: 0.35; transform: scale(0.65); }
+  25%  { opacity: 1;    transform: scale(1); }
+  50%  { opacity: 1;    transform: scale(1); }
+  75%  { opacity: 0.35; transform: scale(0.65); }
+  100% { opacity: 0.35; transform: scale(0.65); }
 }
 
 /* Opacity only — the ring (its parent) already handles the scale, so the
@@ -359,7 +382,8 @@
   .stillpoint__ring,
   .stillpoint__ring.is-breathing,
   .stillpoint__ring.is-breathing::before,
-  .stillpoint__ring.is-breathing .stillpoint__readout {
+  .stillpoint__ring.is-breathing .stillpoint__readout,
+  .stillpoint__ring.is-breathing .stillpoint__time {
     animation: none;
   }
 }

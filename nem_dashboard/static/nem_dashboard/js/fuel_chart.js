@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const groupbarEl = $('nem-groupbar');
   const legendEl = $('nem-legend');
   const autoEl = $('nem-auto');
-  const pills = Array.from(document.querySelectorAll('.nem-region'));
+  const pills = Array.from(document.querySelectorAll('.plab-regions__pills .nem-region'));
 
   const fmt = n => Math.round(n).toLocaleString();
 
@@ -159,14 +159,27 @@ document.addEventListener('DOMContentLoaded', function () {
     render(order[currentIndex]);
   }
 
+  // Auto is a toggle: click while running to stop, click again to resume.
+  const CYCLE_SECONDS = Math.round(CYCLE_MS / 1000);
+
+  function setAutoState(on) {
+    if (!autoEl) return;
+    autoEl.setAttribute('aria-pressed', on ? 'true' : 'false');
+    autoEl.title = on
+      ? `Cycling through all ${order.length} regions every ${CYCLE_SECONDS} seconds. Click to stop.`
+      : `Paused on one region. Click to cycle through all ${order.length}.`;
+  }
+
   function startCycle() {
     if (autoEl) autoEl.classList.add('nem-auto--on');
+    setAutoState(true);
     clearInterval(cycleTimer);
     cycleTimer = setInterval(() => go(currentIndex + 1), CYCLE_MS);
   }
 
   function stopCycle() {
     if (autoEl) autoEl.classList.remove('nem-auto--on');
+    setAutoState(false);
     clearInterval(cycleTimer);
   }
 
@@ -178,13 +191,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // Clicking / pressing the "Auto" indicator resumes cycling.
+  // Auto is a toggle: click while running to stop, click again to resume.
   if (autoEl) {
-    autoEl.style.cursor = 'pointer';
-    const resume = () => { go(currentIndex); startCycle(); };
-    autoEl.addEventListener('click', resume);
-    autoEl.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); resume(); }
+    autoEl.addEventListener('click', () => {
+      if (autoEl.classList.contains('nem-auto--on')) {
+        stopCycle();
+      } else {
+        go(currentIndex);
+        startCycle();
+      }
     });
   }
 

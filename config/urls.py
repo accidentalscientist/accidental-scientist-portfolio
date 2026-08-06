@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
+from django.views.generic import RedirectView
 
 from portfolio.sitemaps import StaticViewSitemap, BlogSitemap
 from portfolio.views import robots_txt
@@ -35,10 +36,16 @@ urlpatterns = [
          name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', robots_txt),
     path('', include('portfolio.urls')),
+    # The more specific route comes first. nem_dashboard only defines '', so
+    # today this would resolve either way, but ordering it explicitly means a
+    # future catch-all in nem_dashboard cannot silently shadow the lab.
+    path('nem/price-lab/', include('nem_price_lab.urls', namespace='nem_price_lab')),
     path('nem/', include('nem_dashboard.urls', namespace='nem_dashboard')),
     path('stillpoint/', include('stillpoint.urls', namespace='stillpoint')),
     path('pulse/', include('portfolio_pulse.urls', namespace='portfolio_pulse')),
     path('life-compass/', include('life_compass.urls', namespace='life_compass')),
+    path('world-ledger/', include('world_lens.urls', namespace='world_lens')),
+    path('world-lens/', RedirectView.as_view(pattern_name='world_lens:dashboard', permanent=True)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

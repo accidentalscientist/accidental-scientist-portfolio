@@ -1,0 +1,272 @@
+{% extends "portfolio/base.html" %}
+{% load static %}
+
+{% block title %}NEM Price Predictor Lab: Accidental Scientist{% endblock %}
+{% block meta_description %}A week-ahead spot price forecast for Australia's National Electricity Market, published every Sunday and scored against what actually cleared. Transparent models, published results, no black boxes.{% endblock %}
+
+{% block content %}
+<div class="nem plab">
+
+  <header class="nem-hero plab-hero">
+    <p class="journal-eyebrow">Australian energy · week ahead</p>
+    <h1>NEM Price Predictor Lab</h1>
+    <p class="nem-hero__intro">
+      Every Sunday this page publishes a seven-day forecast of the wholesale spot price for each
+      NEM region. The following Sunday each forecast is scored against what actually cleared.
+      Predictions are never revised, so the record accumulates in public, including the weeks
+      the models lose.
+    </p>
+    <p class="plab-disclaimer">
+      A teaching model on public data. Not financial advice.
+    </p>
+  </header>
+
+  <nav class="plab-tabs" aria-label="NEM dashboard views">
+    <a class="plab-tab" href="{% url 'nem_dashboard:nem_dashboard' %}">Fuel mix</a>
+    <span class="plab-tab plab-tab--active" aria-current="page">Price predictor</span>
+  </nav>
+
+  {% if not has_data %}
+    <div class="nem-empty">
+      <p>No price data loaded yet.</p>
+      <p class="plab-empty__hint">
+        Load AEMO's aggregated price and demand data, then publish a run:
+      </p>
+      <pre class="plab-code">python manage.py ingest_nem_prices --months 24
+python manage.py ingest_nem_weather --kind observed --months 24
+python manage.py ingest_nem_weather --forward
+python manage.py run_price_forecast</pre>
+    </div>
+  {% else %}
+
+    {% comment %}
+      Region selector. One control, one visual language: a Region label, the
+      pills, then Auto. Every chart below repeats exactly this row so the
+      reader never has to scroll back to find out what is on screen.
+    {% endcomment %}
+    <nav class="nem-regions plab-regions" aria-label="Select region">
+      <span class="plab-regions__label" id="plab-region-legend">Region</span>
+
+      <span class="plab-regions__pills" role="group" aria-labelledby="plab-region-legend">
+        {% for pill in region_pills %}
+          <button type="button" class="nem-region" data-region="{{ pill.code }}"
+                  aria-pressed="false" title="{{ pill.label }}">{{ pill.short }}</button>
+        {% endfor %}
+      </span>
+
+      <button type="button" class="plab-auto" id="plab-auto" aria-pressed="false">
+        <span class="plab-auto__dot" aria-hidden="true"></span> Auto
+      </button>
+    </nav>
+
+    {% comment %}Announced to screen readers when the cycle changes region.{% endcomment %}
+    <p class="plab-cycle-status" id="plab-cycle-status" role="status" aria-live="polite"></p>
+
+    {# ── Data boundary ── #}
+    <div class="nem-window">
+      <span class="nem-window__pill">Settled to</span>
+      <span class="nem-window__range" id="plab-latest">–</span>
+      <span class="plab-derived" id="plab-derived" hidden>
+        demand-weighted average of the five regional prices
+      </span>
+    </div>
+
+    {# ── Headline price character, last 7 days ── #}
+    <div class="nem-trend__head">
+      <h2 class="nem-subhead">Price character <span class="nem-subhead__region" id="plab-region-label">NEM</span></h2>
+      {% include "nem_price_lab/_showing.html" %}
+    </div>
+    <section class="nem-stats plab-stats">
+      <div class="nem-stat">
+        <p class="nem-stat__label">Average price</p>
+        <p class="nem-stat__value" id="plab-avg">–</p>
+        <p class="nem-stat__sub">$/MWh · last 7 days</p>
+      </div>
+      <div class="nem-stat">
+        <p class="nem-stat__label">Lowest interval</p>
+        <p class="nem-stat__value plab-value--low" id="plab-low">–</p>
+        <p class="nem-stat__sub">$/MWh · 30-minute</p>
+      </div>
+      <div class="nem-stat">
+        <p class="nem-stat__label">Highest interval</p>
+        <p class="nem-stat__value plab-value--high" id="plab-high">–</p>
+        <p class="nem-stat__sub">$/MWh · 30-minute</p>
+      </div>
+      <div class="nem-stat">
+        <p class="nem-stat__label">Below zero</p>
+        <p class="nem-stat__value" id="plab-negative">–</p>
+        <p class="nem-stat__sub">share of intervals paid to stop</p>
+      </div>
+    </section>
+
+    {# ── The forecast ── #}
+    <section class="plab-forecast">
+      <div class="nem-trend__head">
+        <h2 class="nem-subhead">The week ahead</h2>
+        <span class="nem-window__pill nem-window__pill--alt" id="plab-issued">–</span>
+        {% include "nem_price_lab/_showing.html" %}
+      </div>
+
+      <p class="nem-trend__intro">
+        Forecasts run from Sunday to Sunday. Each one is fixed at its origin and never revised.
+        Solid black is what actually cleared.
+        <span class="nem-trend__note">(30-minute intervals, NEM time, a fixed UTC+10 with no daylight saving.)</span>
+      </p>
+
+      <div class="plab-note" id="plab-forecast-note" hidden></div>
+
+      {# Model toggles: baseline plus whichever models you want overlaid. #}
+      <fieldset class="plab-toggles">
+        <legend class="plab-toggles__legend">Show models</legend>
+        {% for model in model_order %}
+          <label class="plab-toggle" style="--model-color: {{ model.color }}">
+            <input type="checkbox" class="plab-toggle__input" value="{{ model.key }}"
+                   {% if model.default_on %}checked{% endif %}>
+            <span class="plab-toggle__swatch"></span>
+            <span class="plab-toggle__label">{{ model.label }}{% if model.is_baseline %} <span class="plab-baseline-tag">baseline</span>{% endif %}</span>
+          </label>
+        {% endfor %}
+      </fieldset>
+
+      <div class="plab-canvas">
+        <canvas id="plab-forecast-chart"></canvas>
+      </div>
+    </section>
+
+    {# ── All six models, side by side ── #}
+    <section class="plab-lineup">
+      <div class="nem-trend__head">
+        <h2 class="nem-subhead">The six models</h2>
+        {% include "nem_price_lab/_showing.html" %}
+      </div>
+      <p class="nem-trend__intro">
+        Ordered cheapest to most elaborate. Each rung has to beat the ones below it to justify
+        existing, and the scores shown are for the region above.
+        <span class="nem-trend__note">(Full specifications and fitting procedures are in the project's model reference document.)</span>
+      </p>
+      <div class="plab-lineup__grid" id="plab-lineup"></div>
+    </section>
+
+    {# ── Performance ── #}
+    <section class="plab-review">
+      <div class="nem-trend__head">
+        <h2 class="nem-subhead">Performance</h2>
+        <span class="nem-window__pill nem-window__pill--alt" id="plab-review-window">–</span>
+        {% include "nem_price_lab/_showing.html" %}
+      </div>
+
+      <p class="nem-trend__intro">
+        Two horizons. <strong>Last week</strong> is the most recent forecast whose week has fully
+        settled. <strong>Average to date</strong> covers every completed week since the record
+        began, and is the number that carries weight, because one week can be won by luck.
+      </p>
+
+      <div class="plab-explainer">
+        <p class="plab-explainer__title">What "skill" means</p>
+        <p>
+          Skill compares a model against the baseline of simply assuming this week repeats last
+          week. <strong>+19.7% skill means the model's average error was 19.7% smaller than the
+          baseline's</strong>, not that it was 19.7% away from the real price. A negative number
+          means the model did worse than doing nothing clever at all. The baseline scores 0% against
+          itself by definition.
+        </p>
+      </div>
+
+      <div class="plab-table-wrap">
+        <table class="plab-table plab-table--perf" id="plab-review-table">
+          <thead>
+            <tr>
+              <th scope="col" rowspan="2">Model</th>
+              <th scope="col" colspan="3" class="plab-th-group">Last week</th>
+              <th scope="col" colspan="3" class="plab-th-group plab-th-group--alt">Average to date</th>
+              <th scope="col" rowspan="2">Worst<br><span class="plab-th-sub">single interval</span></th>
+            </tr>
+            <tr>
+              <th scope="col">Mean error</th>
+              <th scope="col">Median error</th>
+              <th scope="col">Skill</th>
+              <th scope="col">Mean error</th>
+              <th scope="col">Median error</th>
+              <th scope="col">Skill</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="plab-caption">
+        Mean and median are both shown on purpose. A single spike interval can dominate the mean,
+        so the median says how the forecast behaves on an ordinary half hour while the mean says
+        what the spikes cost. Reporting only one would be choosing which story to tell.
+      </p>
+    </section>
+
+    {# ── The fitted coefficients, charted and tabulated ── #}
+    <section class="plab-betas">
+      <div class="nem-trend__head">
+        <h2 class="nem-subhead">What the model actually learned</h2>
+        {% include "nem_price_lab/_showing.html" %}
+      </div>
+      <p class="nem-trend__intro">
+        The entire fitted part of this system is two dollars-per-degree numbers per time-of-day
+        band. Here they are, in full.
+      </p>
+
+      <div class="plab-canvas plab-canvas--betas">
+        <canvas id="plab-beta-chart"></canvas>
+      </div>
+
+      <p class="plab-caption">
+        Heating and cooling are fitted <strong>separately</strong>, against an 18&nbsp;°C base,
+        because demand responds to temperature in a V rather than a line: in summer a hotter week
+        is a dearer week, but in winter a <em>colder</em> week is a dearer week. The first version
+        of this model used a single coefficient and measured the morning response as
+        +$11.57/°C in summer and −$12.74/°C in winter, which averaged out to +$1.47 and made the
+        model almost useless. Splitting the driver lets each side keep its own sign.
+      </p>
+
+      <div class="plab-table-wrap">
+        <table class="plab-table" id="plab-beta-table">
+          <thead>
+            <tr>
+              <th scope="col">Band</th>
+              <th scope="col">Hours</th>
+              <th scope="col">Cooling<br><span class="plab-th-sub">$/MWh per °C above 18</span></th>
+              <th scope="col">Heating<br><span class="plab-th-sub">$/MWh per °C below 18</span></th>
+              <th scope="col">Pairs used</th>
+              <th scope="col">Why it matters</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    {# ── Ninety days of settled price ── #}
+    <section class="nem-trend plab-history">
+      <div class="nem-trend__head">
+        <h2 class="nem-subhead">Where the price has been</h2>
+        <span class="nem-window__pill nem-window__pill--alt">Last {{ history_days }} days</span>
+        {% include "nem_price_lab/_showing.html" %}
+      </div>
+      <p class="nem-trend__intro">
+        Daily average price, with the shaded band showing each day's cheapest and dearest
+        half hour. The gap between them is the story: it is routinely wider than the average itself.
+      </p>
+      <div class="nem-trend__canvas">
+        <canvas id="plab-history-chart"></canvas>
+      </div>
+    </section>
+
+  {% endif %}
+
+  {{ regions_json|json_script:"plab-data" }}
+  {{ region_order|json_script:"plab-region-order" }}
+  <script>
+    window.PLAB_DEFAULT_REGION = "{{ default_region|escapejs }}";
+    window.PLAB_AUTO_CYCLE = {{ auto_cycle|yesno:"true,false" }};
+    window.PLAB_CYCLE_SECONDS = {{ cycle_seconds }};
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="{% static 'nem_price_lab/js/price_lab.js' %}?v=7"></script>
+</div>
+{% endblock %}

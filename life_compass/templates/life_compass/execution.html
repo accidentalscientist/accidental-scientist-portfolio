@@ -14,30 +14,31 @@
     <meta property="og:type" content="website">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <script type="module" crossorigin src="/static/life_compass/assets/execution-DbiV0Rjk.js"></script>
+    <script type="module" src="/static/life_compass/assets/execution-reset-daily-tasks.js"></script>
+    <script type="module" src="/static/life_compass/assets/execution-visual-enhancements.js"></script>
     <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-DhRl8kmx.js">
     <link rel="modulepreload" crossorigin href="/static/life_compass/assets/dom-Sxd6wgz5.js">
     <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-1GJT3dt7.css">
+    <link rel="stylesheet" href="/static/life_compass/assets/execution-reset-daily-tasks.css">
+    <link rel="stylesheet" href="/static/life_compass/assets/execution-visual-enhancements.css">
   </head>
   <body data-page="execution" data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}" data-login-url="{% url 'life_compass:login' %}" data-logout-url="{% url 'life_compass:logout' %}">
+    <svg class="icon-sprite" aria-hidden="true">
+      <symbol id="icon-star" viewBox="0 0 24 24"><path d="M12 1.8l2.1 7.1L22 12l-7.9 3.1L12 22.2l-2.1-7.1L2 12l7.9-3.1L12 1.8Z"></path><circle cx="12" cy="12" r="2.2"></circle></symbol>
+      <symbol id="icon-sextant" viewBox="0 0 24 24"><path d="M5 3v11a7 7 0 0 0 7 7h7"></path><path d="M5 3 19 18M8 9h8M10 14a6 6 0 0 0 6 5"></path><circle cx="5" cy="3" r="1.2"></circle></symbol>
+      <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M4 6h3M11 6h9M4 12h8M16 12h4M4 18h2M10 18h10"></path><circle cx="9" cy="6" r="2"></circle><circle cx="14" cy="12" r="2"></circle><circle cx="8" cy="18" r="2"></circle></symbol>
+      <symbol id="icon-sailboat" viewBox="0 0 24 24"><path d="M12 3v13M11.5 4 5 15h6.5M13 6l6 9h-6"></path><path d="M3 17h18l-3 4H7l-4-4Z"></path></symbol>
+      <symbol id="icon-anchor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"></circle><path d="M12 7.5V21M7 11h10M4 16c1.5 3 4 5 8 5s6.5-2 8-5M4 16l-1 3M20 16l1 3"></path></symbol>
+      <symbol id="icon-lighthouse" viewBox="0 0 24 24"><path d="m9 4 3-2 3 2-1 3H10L9 4ZM10 7 8 21h8L14 7M7 21h10M9.5 11h5M9 16h6"></path><path d="M6 6 2 8M18 6l4 2"></path></symbol>
+      <symbol id="icon-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2"></circle><path d="M12 1v4M12 19v4M1 12h4M19 12h4M4.2 4.2 7 7M17 17l2.8 2.8M19.8 4.2 17 7M7 17l-2.8 2.8"></path></symbol>
+      <symbol id="icon-flag" viewBox="0 0 24 24"><path d="M5 22V3M6 4h12l-2.5 4L18 12H6"></path></symbol>
+      <symbol id="icon-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"></path></symbol>
+    </svg>
     <header class="site-header">
-      <a class="brand" href="{% url 'home' %}" aria-label="Back to Accidental Scientist">
-        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-          <circle class="brand-mark-ring" cx="16" cy="16" r="14"></circle>
-          <g class="brand-mark-ticks">
-            <line x1="16" y1="2" x2="16" y2="6"></line>
-            <line x1="16" y1="26" x2="16" y2="30"></line>
-            <line x1="2" y1="16" x2="6" y2="16"></line>
-            <line x1="26" y1="16" x2="30" y2="16"></line>
-            <line x1="6.5" y1="6.5" x2="9" y2="9"></line>
-            <line x1="23" y1="23" x2="25.5" y2="25.5"></line>
-            <line x1="6.5" y1="25.5" x2="9" y2="23"></line>
-            <line x1="23" y1="9" x2="25.5" y2="6.5"></line>
-          </g>
-          <path class="brand-mark-north" d="M16 5 L19.6 16 L12.4 16 Z"></path>
-          <path class="brand-mark-south" d="M16 27 L19.6 16 L12.4 16 Z"></path>
-          <circle class="brand-mark-center" cx="16" cy="16" r="2.4"></circle>
-        </svg>
-        <span>Back to Accidental Scientist</span>
+      <a class="brand icon-nav-link" href="{% url 'home' %}" aria-label="Back to Accidental Scientist" aria-describedby="back-site-hint">
+        <svg class="nav-symbol nav-star" aria-hidden="true"><use href="#icon-star"></use></svg>
+        <span class="visually-hidden">Back to Accidental Scientist</span>
+        <span class="nav-icon-hint" id="back-site-hint" role="tooltip">Back to Accidental Scientist</span>
       </a>
       <nav class="top-nav" aria-label="Primary">
         <a href="{% url 'life_compass:home' %}" data-nav="home">Home</a>
@@ -47,49 +48,54 @@
     </header>
 
     <main class="shell execution-layout">
-      <section class="panel panel-hero compact-hero execution-hero">
-        <div>
-          <p class="eyebrow">Execution</p>
-          <h1>Set the bearing. Sail the day.</h1>
-          <p class="lede">Navigate the waters with three clear tasks and visible work.</p>
-        </div>
-        <div class="hero-facts">
-          <div>
-            <span>North Star</span>
-            <strong id="execution-north-star">Build a meaningful career</strong>
+      <section class="panel execution-hero execution-focus-strip" aria-labelledby="weekly-focus-heading">
+        <p class="eyebrow" id="weekly-focus-heading">This Week's Focus</p>
+        <div class="focus-strip-grid">
+          <label class="focus-strip-item">
+            <svg class="focus-symbol" aria-hidden="true"><use href="#icon-flag"></use></svg>
+            <span><span class="focus-strip-label">Main</span><input id="focus-main" type="text" autocomplete="off"></span>
+          </label>
+          <label class="focus-strip-item">
+            <svg class="focus-symbol" aria-hidden="true"><use href="#icon-compass"></use></svg>
+            <span><span class="focus-strip-label">Secondary</span><input id="focus-secondary" type="text" autocomplete="off"></span>
+          </label>
+          <label class="focus-strip-item">
+            <svg class="focus-symbol" aria-hidden="true"><use href="#icon-anchor"></use></svg>
+            <span><span class="focus-strip-label">Health Focus</span><input id="focus-health" type="text" autocomplete="off"></span>
+          </label>
+          <div class="focus-strip-item north-star-item">
+            <svg class="focus-symbol north-star-symbol" aria-hidden="true"><use href="#icon-star"></use></svg>
+            <span><span class="focus-strip-label">North Star</span><strong id="execution-north-star">Build a meaningful career</strong></span>
           </div>
-          <div>
-            <span>This Week's Focus</span>
-            <strong id="weekly-focus-summary">Write project brief + Review prototype + Move for 20 minutes</strong>
-          </div>
         </div>
-        <img class="hero-image" src="/static/life_compass/assets/sail-hero.png" alt="">
+        <span class="visually-hidden" id="weekly-focus-summary">Write project brief + Review prototype + Move for 20 minutes</span>
       </section>
 
       <section class="panel daily-panel">
         <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Three Daily Tasks</p>
-            <h2 id="today-label">Today</h2>
+          <div class="section-title-with-icon">
+            <svg class="section-symbol" aria-hidden="true"><use href="#icon-sailboat"></use></svg>
+            <div>
+              <h2>Three Daily Tasks</h2>
+              <p class="section-subtitle" id="today-label">Today</p>
+            </div>
           </div>
+          <span class="reset-day-wrap is-locked" id="reset-day-wrap" data-edit-only>
+            <button class="icon-button" id="reset-day" type="button" aria-label="Clear completed daily task slots" aria-describedby="reset-day-hint" disabled>R</button>
+            <span class="reset-day-hint" id="reset-day-hint" role="tooltip">When 3 Tasks are completed, R let's you add 3 new tasks to complete. A sign of great productivity!</span>
+          </span>
         </div>
         <div class="daily-task-list" id="daily-task-list"></div>
       </section>
 
-      <section class="panel weekly-panel">
-        <p class="eyebrow">This Week's Focus</p>
-        <div class="focus-grid">
-          <label>Main<input id="focus-main" type="text" autocomplete="off"></label>
-          <label>Secondary<input id="focus-secondary" type="text" autocomplete="off"></label>
-          <label>Health Focus<input id="focus-health" type="text" autocomplete="off"></label>
-        </div>
-      </section>
-
       <section class="panel calendar-panel">
         <div class="panel-heading">
-          <div>
-            <p class="eyebrow">X Calendar</p>
-            <h2>Moved the needle</h2>
+          <div class="section-title-with-icon">
+            <svg class="section-symbol" aria-hidden="true"><use href="#icon-anchor"></use></svg>
+            <div>
+              <h2>X Calendar</h2>
+              <p class="section-subtitle">Move The Needle.</p>
+            </div>
           </div>
           <span class="mini-stat" id="chain-count">0 marked</span>
         </div>
@@ -98,12 +104,15 @@
 
       <section class="panel kanban-panel">
         <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Projects Kanban</p>
-            <h2>Ideas to complete</h2>
+          <div class="section-title-with-icon">
+            <svg class="section-symbol section-symbol-brass" aria-hidden="true"><use href="#icon-wheel"></use></svg>
+            <div>
+              <h2>Projects Kanban</h2>
+              <p class="section-subtitle">Move Ideas Forward.</p>
+            </div>
           </div>
           <div class="button-pair">
-            <button class="text-button" type="button" id="open-archive">Archive (0)</button>
+            <button class="text-button" type="button" id="open-archive" data-edit-only>Archive (0)</button>
             <button class="text-button wrap-button" type="button" id="open-new-project" data-edit-only>Develop an idea into a project</button>
           </div>
         </div>
@@ -112,9 +121,12 @@
 
       <section class="panel ledger-panel">
         <div class="panel-heading clickable-heading" id="open-ledger-archive" role="button" tabindex="0" aria-label="View all completed projects">
-          <div>
-            <p class="eyebrow">Done Ledger</p>
-            <h2>Recent completions</h2>
+          <div class="section-title-with-icon">
+            <svg class="section-symbol" aria-hidden="true"><use href="#icon-lighthouse"></use></svg>
+            <div>
+              <h2>Done Ledger</h2>
+              <p class="section-subtitle">Recent Completions</p>
+            </div>
           </div>
         </div>
         <ol class="ledger-list" id="done-ledger"></ol>

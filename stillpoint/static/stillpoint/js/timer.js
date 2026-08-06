@@ -30,37 +30,81 @@ document.addEventListener('DOMContentLoaded', function () {
   let wakeLock = null;
   let bellTimers = [];
 
-  // ── Bell: soft start, swells, slowly fades over ~12s (no audio file
-  // needed). Four inharmonic partials, each a pair of oscillators a
-  // fraction of a Hz apart, so the pair slowly beats against itself —
-  // the shimmer you get from a struck singing bowl rather than a flat tone.
+  // ── Bell: a real struck-bowl recording, decoded once up front so it's
+  // ready by the time anyone actually presses Begin. If it hasn't finished
+  // loading yet (slow connection, first paint), synthesizedChime() below
+  // is the fallback — same four-partial swell used before the recording
+  // existed — so a session is never silently missing its bell.
   let audioCtx = null;
+  let bowlBuffer = null;
+  let bowlLoadPromise = null;
+  function loadBowl() {
+    if (bowlLoadPromise || !window.STILLPOINT_BELL_URL) return bowlLoadPromise;
+    bowlLoadPromise = fetch(window.STILLPOINT_BELL_URL)
+      .then(r => r.arrayBuffer())
+      .then(data => {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx.decodeAudioData(data);
+      })
+      .then(buf => { bowlBuffer = buf; })
+      .catch(() => { /* stays null: chime() falls back to the synthesized bell */ });
+    return bowlLoadPromise;
+  }
+  loadBowl();
+
+  function playBowl() {
+    const now = audioCtx.currentTime;
+    const source = audioCtx.createBufferSource();
+    const gain = audioCtx.createGain();
+    source.buffer = bowlBuffer;
+    source.connect(gain);
+    gain.connect(audioCtx.destination);
+    // Tiny fades at each end guard against a click at the sample boundary —
+    // the recording's own strike-and-decay already does the "soft start,
+    // slow fade" shape, so nothing more is layered on top of it.
+    const fadeOutStart = Math.max(0, bowlBuffer.duration - 0.3);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.9, now + 0.06);
+    gain.gain.setValueAtTime(0.9, now + fadeOutStart);
+    gain.gain.linearRampToValueAtTime(0, now + bowlBuffer.duration);
+    source.start(now);
+  }
+
+  // Fallback only — four inharmonic partials, each a pair of oscillators a
+  // fraction of a Hz apart so the pair slowly beats against itself, soft
+  // swell in, slow fade over ~12s.
+  function synthesizedChime() {
+    const now = audioCtx.currentTime;
+    const duration = 12;
+    const partials = [
+      { freq: 220, gain: 0.30 },
+      { freq: 396, gain: 0.16 },
+      { freq: 583, gain: 0.10 },
+      { freq: 887, gain: 0.06 }
+    ];
+    partials.forEach(({ freq, gain }) => {
+      [-0.6, 0.6].forEach(detune => {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq + detune;
+        osc.connect(g);
+        g.connect(audioCtx.destination);
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.exponentialRampToValueAtTime(gain / 2, now + 3.2);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        osc.start(now);
+        osc.stop(now + duration + 0.2);
+      });
+    });
+  }
+
   function chime() {
     try {
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      const now = audioCtx.currentTime;
-      const duration = 12;
-      const partials = [
-        { freq: 220, gain: 0.30 },
-        { freq: 396, gain: 0.16 },
-        { freq: 583, gain: 0.10 },
-        { freq: 887, gain: 0.06 }
-      ];
-      partials.forEach(({ freq, gain }) => {
-        [-0.6, 0.6].forEach(detune => {
-          const osc = audioCtx.createOscillator();
-          const g = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.value = freq + detune;
-          osc.connect(g);
-          g.connect(audioCtx.destination);
-          g.gain.setValueAtTime(0.0001, now);
-          g.gain.exponentialRampToValueAtTime(gain / 2, now + 3.2);
-          g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-          osc.start(now);
-          osc.stop(now + duration + 0.2);
-        });
-      });
+      if (bowlBuffer) { playBowl(); return; }
+      synthesizedChime();
+      loadBowl(); // in case the first attempt hasn't kicked off yet
     } catch (e) { /* audio not available: stay silent */ }
   }
 

@@ -1,0 +1,42 @@
+/* The single daily reset belongs in the panel heading, never in a task row. */
+.task-reset-button {
+  display: none !important;
+}
+
+#reset-day:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+.reset-day-wrap {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.reset-day-hint {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 10;
+  width: min(280px, calc(100vw - 48px));
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--navy);
+  color: var(--card);
+  box-shadow: var(--shadow);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-3px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.reset-day-wrap.is-locked:hover .reset-day-hint {
+  opacity: 1;
+  transform: translateY(0);
+}

@@ -1,0 +1,18 @@
+{% comment %}
+  Per-chart region indicator.
+
+  Deliberately the same three parts, in the same order, with the same styling
+  as the selector at the top of the page: Region label, an active pill, then
+  the Auto marker. Repeating one visual language rather than inventing a
+  second badge design is the whole point; a reader who has scrolled past the
+  selector should recognise this instantly as the same control, reporting
+  rather than asking.
+{% endcomment %}
+<a class="plab-showing" href="#plab-region-legend" data-region-badge
+   title="Back to the region selector">
+  <span class="plab-regions__label">Region</span>
+  <span class="nem-region nem-region--active" data-region-badge-name>NEM</span>
+  <span class="plab-auto plab-auto--static" data-region-badge-auto hidden>
+    <span class="plab-auto__dot" aria-hidden="true"></span> Auto
+  </span>
+</a>
