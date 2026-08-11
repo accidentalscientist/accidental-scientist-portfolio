@@ -36,11 +36,67 @@ urlpatterns = [
          name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', robots_txt),
     path('', include('portfolio.urls')),
-    # The more specific route comes first. nem_dashboard only defines '', so
-    # today this would resolve either way, but ordering it explicitly means a
-    # future catch-all in nem_dashboard cannot silently shadow the lab.
+    # The four market views form one NEM Dashboard suite. Specific child paths
+    # must precede the parent include so future dashboard routes cannot shadow
+    # them. The former top-level addresses remain permanent compatibility URLs.
     path('nem/price-lab/', include('nem_price_lab.urls', namespace='nem_price_lab')),
+    path('nem/charge-trace/', include('nem_battery_explorer.urls', namespace='nem_battery_explorer')),
+    path('nem/flow-trace/', include('gas_monitor.urls', namespace='gas_monitor')),
     path('nem/', include('nem_dashboard.urls', namespace='nem_dashboard')),
+    path(
+        'charge-trace/guide/',
+        RedirectView.as_view(
+            pattern_name='nem_battery_explorer:guide',
+            permanent=True,
+            query_string=True,
+        ),
+        name='legacy_charge_trace_guide',
+    ),
+    path(
+        'charge-trace/',
+        RedirectView.as_view(
+            pattern_name='nem_battery_explorer:explorer',
+            permanent=True,
+            query_string=True,
+        ),
+        name='legacy_charge_trace',
+    ),
+    path(
+        'battery-explorer/',
+        RedirectView.as_view(
+            pattern_name='nem_battery_explorer:explorer',
+            permanent=True,
+            query_string=True,
+        ),
+        name='legacy_battery_explorer',
+    ),
+    path(
+        'nem/battery-explorer/guide/',
+        RedirectView.as_view(
+            pattern_name='nem_battery_explorer:guide',
+            permanent=True,
+            query_string=True,
+        ),
+        name='legacy_nem_battery_guide',
+    ),
+    path(
+        'nem/battery-explorer/',
+        RedirectView.as_view(
+            pattern_name='nem_battery_explorer:explorer',
+            permanent=True,
+            query_string=True,
+        ),
+        name='legacy_nem_battery_explorer',
+    ),
+    path(
+        'gas/',
+        RedirectView.as_view(
+            pattern_name='gas_monitor:monitor',
+            permanent=True,
+            query_string=True,
+        ),
+        name='legacy_gas_monitor',
+    ),
     path('stillpoint/', include('stillpoint.urls', namespace='stillpoint')),
     path('pulse/', include('portfolio_pulse.urls', namespace='portfolio_pulse')),
     path('life-compass/', include('life_compass.urls', namespace='life_compass')),

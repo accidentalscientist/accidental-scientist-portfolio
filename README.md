@@ -1,35 +1,10 @@
-# 🧪 Accidental Scientist Portfolio
+# Accidental Scientist
 
-A full-stack Django portfolio + blog site for showcasing projects and writing posts, deployed via Nginx/Gunicorn on Ubuntu (DigitalOcean). Domain: [`accidentalscientist.net`](http://accidentalscientist.net)
+Accidental Scientist is a Django portfolio and publishing site for analytical writing and interactive projects across energy systems, data stories, human performance, and commercial intelligence.
 
----
+The repository has two canonical documentation sources:
 
-## 🚀 Features
+- [`docs/DESIGN.md`](docs/DESIGN.md) — site purpose, architecture, design decisions, project theses, MVPs, current states, evolution, roadmap, and parking lot.
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — versioning, standard deployment, production configuration, recurring data management, schedules, verification, rollback, and recovery.
 
-- 📝 Blog and Project sections (custom models)
-- 🎨 Responsive frontend with dark/light toggle
-- 🧠 Admin backend to manage content
-- 📂 Markdown or rich text support (in progress)
-- 🌐 Deployed to live domain with Nginx/Gunicorn
-- 🔐 SSL/HTTPS setup (WIP)
-
----
-
-## ⚙️ Setup Instructions
-
-```bash
-# Clone and enter
-git clone https://github.com/your-user/accidental-site.git
-cd accidental-site
-
-# Set up env + install
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Set up secret keys
-cp .env.example .env  # and fill in SECRET_KEY etc.
-
-# Migrate and run
-python manage.py migrate
-python manage.py runserver
+All durable product and operating documentation belongs in those two files. This README is only the repository entry point.

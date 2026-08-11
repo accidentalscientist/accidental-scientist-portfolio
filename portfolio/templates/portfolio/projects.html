@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Projects: energy &amp; data tools, Accidental Scientist{% endblock %}
-{% block meta_description %}Interactive data projects built around Australia's energy transition, including the live NEM fuel-mix dashboard.{% endblock %}
+{% block meta_description %}Interactive data projects built around Australia's energy transition, including the NEM Dashboard market-data suite.{% endblock %}
 
 {% block content %}
 <div class="page-mark page-mark--projects" aria-hidden="true"><img src="{% static 'images/favicon.png' %}" alt=""></div>
@@ -10,8 +10,8 @@
 
   <header class="journal-hero">
     <p class="journal-eyebrow">Work</p>
-    <h1>Live & Interactive Tools</h1>
-    <p>Interactive data projects built around Australia's Energy Systems, Commercial Excellence & Human Performance</p>
+    <h1>Interactive projects</h1>
+    <p>Working data products across Australia's energy systems, commercial intelligence and human performance.</p>
   </header>
 
   {# ── Category filter ── #}
@@ -23,33 +23,46 @@
   </nav>
 
   <div class="project-rows">
-    {% for tool in external_tools %}
-      <a class="project-row" href="{{ tool.project_url }}">
-        <div class="project-row__body">
-          <div class="project-row__head">
-            <h3 class="project-row__title">{{ tool.title }}</h3>
-            <span class="category-badge category-badge--{{ tool.category }}">{{ tool.category_display }}</span>
-            <span class="project-row__badge">Live tool</span>
+    {% if nem_suite %}
+      <section class="nem-suite-card" aria-labelledby="nem-suite-title">
+        <div class="nem-suite-card__head">
+          <div>
+            <div class="project-row__head">
+              <h2 class="project-row__title" id="nem-suite-title"><a href="{{ nem_suite.project_url }}">{{ nem_suite.title }}</a></h2>
+              <span class="category-badge category-badge--{{ nem_suite.category }}">{{ nem_suite.category_display }}</span>
+              <span class="project-row__badge">{{ nem_suite.status_label }}</span>
+            </div>
+            <p class="project-row__desc">{{ nem_suite.description }}</p>
           </div>
-          <p class="project-row__desc">{{ tool.description }}</p>
+          <a class="nem-suite-card__primary" href="{{ nem_suite.project_url }}">Open dashboard <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
         </div>
-        <span class="project-row__arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span>
-      </a>
-    {% endfor %}
+        <div class="nem-suite-card__tools" aria-label="NEM Dashboard tools">
+          {% for tool in nem_suite.children %}
+            <a class="nem-suite-tool" href="{{ tool.project_url }}">
+              <span class="nem-suite-tool__badge">{{ tool.status_label }}</span>
+              <h3>{{ tool.title }}</h3>
+              <p>{{ tool.description }}</p>
+              <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
     {% for project in projects %}
-      <a class="project-row" href="{% if project.project_url %}{{ project.project_url }}{% else %}{% url 'project_detail' slug=project.slug %}{% endif %}">
+      <a class="project-row" href="{{ project.project_url }}">
         <div class="project-row__body">
           <div class="project-row__head">
             <h3 class="project-row__title">{{ project.title }}</h3>
-            <span class="category-badge category-badge--{{ project.category }}">{{ project.get_category_display }}</span>
-            {% if project.project_url %}<span class="project-row__badge">Live tool</span>{% endif %}
+            <span class="category-badge category-badge--{{ project.category }}">{{ project.category_display }}</span>
+            <span class="project-row__badge">{{ project.status_label }}</span>
           </div>
-          <p class="project-row__desc">{{ project.description|truncatewords:26 }}</p>
+          <p class="project-row__desc">{{ project.description }}</p>
         </div>
         <span class="project-row__arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span>
       </a>
     {% empty %}
-      {% if not external_tools %}<p class="nem-empty">No projects in this category yet.</p>{% endif %}
+      {% if not nem_suite %}<p class="nem-empty">No projects in this category yet.</p>{% endif %}
     {% endfor %}
   </div>
 

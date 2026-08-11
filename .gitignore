@@ -10,10 +10,6 @@ __pycache__/
 db.sqlite3
 media/
 staticfiles/
-docs/
-
-# Private Portfolio Pulse product thesis
-portfolio_pulse/PORTFOLIO_PULSE_THESIS.md
 
 # Environment
 .env
@@ -27,9 +23,18 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Private docs: design reports, security audits, deployment and next-steps notes
-# (keep these out of the public repo per the IP policy)
-docs/
+# Canonical documentation and its evidence images
+# DESIGN.md and DEPLOYMENT.md are the only durable documentation sources.
+docs/*
+!docs/DESIGN.md
+!docs/DEPLOYMENT.md
+!docs/images/
+!docs/images/**
 
 # Price Predictor Lab CSV exports (regenerate with export_price_lab_data)
 price_lab_export/
+
+# Regenerable AEMO battery source downloads used by local refreshes
+.battery_cache/
+.battery_spike/
+.nem_cache/

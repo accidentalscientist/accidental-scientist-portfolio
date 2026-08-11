@@ -1,29 +1,31 @@
 {% extends "portfolio/base.html" %}
 {% load static %}
 
-{% block title %}NEM Fuel Mix Generation dashboard: Accidental Scientist{% endblock %}
-{% block meta_description %}How electricity is generated across Australia's National Electricity Market: fuel mix by source and region over the last 7 days, plus a 3-month renewables-vs-fossil-fuels trend.{% endblock %}
+{% block title %}NEM Dashboard: Australian Electricity and Gas Data{% endblock %}
+{% block meta_description %}Explore Australia's National Electricity Market through generation, wholesale prices, battery dispatch and east-coast gas-system data.{% endblock %}
 
 {% block content %}
 <div class="nem">
 
   <header class="nem-hero">
-    <p class="journal-eyebrow">Australian energy · last 7 days</p>
-    <h1>National Electricity Market: Fuel Mix Generation</h1>
+    <p class="journal-eyebrow">Australian energy · market data suite</p>
+    <h1>NEM Dashboard</h1>
     <p class="nem-hero__intro">
       The National Electricity Market (NEM) is the interconnected grid spanning Australia's
-      eastern and southern states: New South Wales, Queensland, Victoria, South Australia and
-      Tasmania. This dashboard tracks <strong>how that electricity is generated</strong>, by fuel
-      source and region. The headline breakdown sums the <strong>most recent 7 days</strong> of
-      generation, while the chart further down follows the renewables-versus-fossil-fuels balance
-      across the last three months.
+      eastern and southern states. This suite brings its physical and commercial layers together:
+      <strong>generation, wholesale prices, battery dispatch and east-coast gas conditions</strong>.
+      This view shows the latest seven-day fuel mix and the three-month renewables-versus-fossil trend.
     </p>
   </header>
 
-  <nav class="plab-tabs" aria-label="NEM dashboard views">
-    <span class="plab-tab plab-tab--active" aria-current="page">Fuel mix</span>
-    <a class="plab-tab" href="{% url 'nem_price_lab:lab' %}">Price predictor</a>
-  </nav>
+  {% include "portfolio/_nem_suite_nav.html" with active="fuel" %}
+
+  {% if has_data %}
+    <div class="nem-window">
+      <span class="nem-window__pill">Daily data refresh</span>
+      <span class="nem-window__range">Runs at 09:00 Australia/Sydney · published through {{ published_through|date:'j F Y' }}</span>
+    </div>
+  {% endif %}
 
   {% if not has_data %}
     <div class="nem-empty">
@@ -104,6 +106,12 @@
         <canvas id="nem-trend-chart"></canvas>
       </div>
     </section>
+
+    <p class="nem-trend__note">
+      Source: AEMO Dispatch SCADA and the quarterly Generation Information register. Daily MWh
+      integrates positive five-minute unit output; charging and pumping load are excluded, as is
+      rooftop solar that is not present in unit SCADA.
+    </p>
 
   {% endif %}
 

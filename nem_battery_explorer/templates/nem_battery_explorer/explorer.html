@@ -1,0 +1,145 @@
+{% extends "portfolio/base.html" %}
+{% load static %}
+
+{% block title %}ChargeTrace: Australia's Grid Battery Explorer{% endblock %}
+{% block meta_description %}Explore weekly and rolling three-month grid-scale battery dispatch, cycling and estimated observable gross market value in Australia's National Electricity Market.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'nem_battery_explorer/css/explorer.css' %}?v=5">
+{% endblock %}
+
+{% block content %}
+<div class="bex">
+  <header class="bex-hero">
+    <p class="journal-eyebrow">NEM Dashboard · battery dispatch</p>
+    <h1>ChargeTrace</h1>
+    <p class="bex-hero__subtitle">Australia's grid battery explorer</p>
+    <p class="bex-hero__intro">See when a grid-scale battery charges, discharges, holds energy and enables frequency services. The financial view is an <strong>estimated observable gross market value</strong> from public energy and FCAS data. It is not settled revenue or profit.</p>
+  </header>
+
+  {% include "portfolio/_nem_suite_nav.html" with active="battery" %}
+
+  <div class="bex-project-note" aria-label="Project status">
+    <span>NEM Dashboard project</span><span>Public AEMO data</span><span>Daily refresh</span>
+  </div>
+
+  <details class="bex-thesis">
+    <summary><span><strong>Project thesis</strong> · What ChargeTrace is testing</span><small>Read the 200-word thesis</small></summary>
+    <div class="bex-thesis__body">
+      <p>Batteries are becoming the NEM's marginal intraday balancing technology. They do not create energy; they move it through time, absorb surplus supply, respond to frequency deviations and preserve scarce capacity for periods when the system values flexibility most. As more batteries connect, their collective behaviour increasingly shapes the prices from which they earn revenue.</p>
+      <p>ChargeTrace tests how that transition appears in public evidence. It reconstructs what selected batteries did at five-minute resolution, estimates the observable value of energy and FCAS enablement, and compares actual operation with a transparent, price-only hindsight benchmark. The purpose is not to estimate participant profit. Private contracts, degradation costs, network obligations, losses and trading intent remain outside the public dataset.</p>
+      <p>The central commercial question is whether growing battery volume creates more value or competes it away. More capacity can shift more renewable energy, reduce extreme prices and strengthen the grid, while simultaneously compressing arbitrage spreads and ancillary-service prices. ChargeTrace therefore treats dispatch, stored energy, market value and fleet growth as one connected story. Refreshed daily, it is an independent research and post-trade intelligence view—not a live operational terminal—and every estimate retains a visible method and boundary.</p>
+    </div>
+  </details>
+
+  {% if has_data %}
+    <div class="bex-release" role="status"><strong>Daily data refresh</strong><span>Runs at 09:00 Australia/Sydney</span><span>Currently published through {{ published_through|date:'j F Y' }}</span><em>Not live data</em></div>
+  {% endif %}
+
+  {% if not has_data %}
+    <section class="bex-empty"><p>No battery interval data has been loaded yet.</p><code>python manage.py refresh_battery_data</code></section>
+  {% else %}
+    <nav class="bex-period-switch" aria-label="Date range">
+      {% for tab in period_tabs %}<a href="{{ tab.url }}" class="{% if tab.active %}is-active{% endif %}" {% if tab.active %}aria-current="page"{% endif %}>{{ tab.label }}</a>{% endfor %}
+    </nav>
+
+    <form class="bex-controls" method="get">
+      <input type="hidden" name="period" value="{{ period }}">
+      <label><span>Battery asset</span><select name="asset" onchange="this.form.submit()">
+        {% for asset in assets %}<option value="{{ asset.slug }}" {% if asset.id == selected_asset.id %}selected{% endif %}>{{ asset.name }} · {{ asset.region }}</option>{% endfor %}
+      </select></label>
+      <label><span>{{ period_selector_label }}</span><select name="date" onchange="this.form.submit()">
+        {% for option in period_options %}<option value="{{ option.date|date:'Y-m-d' }}" {% if option.date == period_end %}selected{% endif %}>{{ option.label }}</option>{% endfor %}
+      </select></label>
+      <div class="bex-controls__spec" aria-label="Selected battery specification"><span>{{ capacity_mw|floatformat:0 }} MW</span><span>{{ capacity_mwh|floatformat:0 }} MWh</span><span>{{ duration_hours|floatformat:1 }} hours</span></div>
+    </form>
+
+    <section class="bex-weekly" aria-label="Selected period overview">
+      <div class="bex-weekly__head"><div><p class="bex-kicker">{{ period_label }} view</p><h2>{{ period_heading }}</h2></div><span>{{ period_overview.days }} of {{ period_overview.expected_days }} days published · {{ selected_asset.name }}</span></div>
+      <dl>
+        <div><dt>Observable gross value</dt><dd>${{ period_overview.observable_value|floatformat:0 }}</dd></div>
+        <div><dt>Discharged energy</dt><dd>{{ period_overview.discharge_mwh|floatformat:0 }} MWh</dd></div>
+        <div><dt>Equivalent cycles</dt><dd>{{ period_overview.equivalent_cycles|floatformat:2 }}</dd></div>
+        <div><dt>Highest-value day</dt><dd>{% if period_overview.best_day %}{{ period_overview.best_day.operating_date|date:'D j M' }} · ${{ period_overview.best_day.observable_gross_value|floatformat:0 }}{% else %}n/a{% endif %}</dd></div>
+      </dl>
+      {% if period_overview.days < period_overview.expected_days %}<p class="bex-period-notice"><strong>Available-history view:</strong> this range contains {{ period_overview.days }} of {{ period_overview.expected_days }} calendar days ({{ period_overview.coverage_pct|floatformat:0 }}%). Values are not scaled to a full period or extrapolated.</p>{% endif %}
+    </section>
+
+    <section class="bex-kpis" aria-label="Selected period battery summary">
+      <article class="bex-kpi bex-kpi--total"><p>Observable gross value</p><strong>${{ period_overview.observable_value|floatformat:0 }}</strong><span>{{ period_label|lower }} public energy + gross FCAS</span></article>
+      <article class="bex-kpi"><p>Energy market value</p><strong>${{ period_overview.energy_market_value|floatformat:0 }}</strong><span>${{ period_overview.discharge_value|floatformat:0 }} discharge value</span></article>
+      <article class="bex-kpi"><p>Gross FCAS value</p><strong>${{ period_overview.gross_fcas_value|floatformat:0 }}</strong><span>ten public enablement services</span></article>
+      <article class="bex-kpi"><p>Opportunity captured</p><strong>{% if period_overview.capture_pct != None %}{{ period_overview.capture_pct|floatformat:0 }}%{% else %}n/a{% endif %}</strong><span>versus feasible price-only hindsight</span></article>
+    </section>
+
+    <aside class="bex-guide-callout"><div><p class="bex-kicker">Build the foundations</p><h2>New to battery trading strategy?</h2><p>Read the detailed guide from cells and inverters through NEM dispatch, FCAS, opportunity cost, degradation and the questions a senior strategist asks.</p></div><a href="{% url 'nem_battery_explorer:guide' %}">Read the battery strategy guide →</a></aside>
+
+    <section class="bex-card bex-card--wide bex-period-card">
+      <div class="bex-card__head"><div><p class="bex-kicker">Period operation</p><h2>How the battery operated</h2></div><div class="bex-legend" data-chart-legend="operation"><span data-for-mode="energy"><i class="bex-swatch bex-swatch--discharge"></i>Discharged MWh</span><span data-for-mode="energy"><i class="bex-swatch bex-swatch--charge"></i>Charged MWh</span><span data-for-mode="energy"><i class="bex-swatch bex-swatch--price"></i>Observable value</span><span data-for-mode="value" hidden><i class="bex-swatch bex-swatch--energy"></i>Energy value</span><span data-for-mode="value" hidden><i class="bex-swatch bex-swatch--fcas"></i>FCAS value</span><span data-for-mode="value" hidden><i class="bex-swatch bex-swatch--price"></i>Cycles</span></div></div>
+      <div class="bex-chart-modes" data-chart-controls="operation" aria-label="Operation chart view">
+        <button type="button" class="is-active" data-chart-mode="energy" aria-pressed="true">Energy flow</button>
+        <button type="button" data-chart-mode="value" aria-pressed="false">Value mix</button>
+      </div>
+      <p class="bex-card__intro">Week shows daily observations. Three Months groups the period into weeks. Switch between physical energy flow and the observable energy–FCAS value mix.</p>
+      <div class="bex-chart" id="period-operation-chart" role="img" aria-label="Battery charging, discharging and observable value across the selected period"></div>
+    </section>
+
+    <section class="bex-card bex-card--wide bex-opportunity">
+      <div class="bex-card__head"><div><p class="bex-kicker">Opportunity capture</p><h2>Actual energy value versus feasible hindsight</h2></div><div class="bex-legend" data-chart-legend="opportunity"><span data-for-mode="dollars"><i class="bex-swatch bex-swatch--energy"></i>Actual energy value</span><span data-for-mode="dollars"><i class="bex-swatch bex-swatch--fcas"></i>Hindsight benchmark</span><span data-for-mode="capture" hidden><i class="bex-swatch bex-swatch--discharge"></i>At or above reference</span><span data-for-mode="capture" hidden><i class="bex-swatch bex-swatch--charge"></i>Below reference</span></div></div>
+      <div class="bex-chart-modes" data-chart-controls="opportunity" aria-label="Opportunity chart view">
+        <button type="button" class="is-active" data-chart-mode="dollars" aria-pressed="true">Dollar value</button>
+        <button type="button" data-chart-mode="capture" aria-pressed="false">Capture rate</button>
+      </div>
+      <p class="bex-card__intro">The benchmark respects public power and storage limits, observed daily start and end storage, five-minute dispatch and 90% round-trip efficiency. Use Dollar value for scale or Capture rate to compare efficiency through time.</p>
+      <div class="bex-opportunity__summary">
+        <div><span>Actual energy value</span><strong>${{ period_overview.energy_market_value|floatformat:0 }}</strong></div>
+        <div><span>Feasible hindsight value</span><strong>{% if period_overview.benchmark_value != None %}${{ period_overview.benchmark_value|floatformat:0 }}{% else %}n/a{% endif %}</strong></div>
+        <div><span>Public-data capture ratio</span><strong>{% if period_overview.capture_pct != None %}{{ period_overview.capture_pct|floatformat:0 }}%{% else %}n/a{% endif %}</strong></div>
+        <div><span>Benchmark coverage</span><strong>{{ period_overview.benchmark_days }} of {{ period_overview.days }} days</strong></div>
+      </div>
+      <div class="bex-chart" id="period-opportunity-chart" role="img" aria-label="Actual energy value compared with a feasible price-only hindsight value"></div>
+      <details class="bex-benchmark-note"><summary>How to interpret the benchmark</summary><p>A ratio below 100% is not evidence of a trading mistake. The asset may have reserved headroom for FCAS, followed a network or contract obligation, managed degradation, encountered an outage or acted on information unavailable to this model. Treat it as a repeatable research comparator, not lost profit.</p></details>
+    </section>
+
+    <div class="bex-grid">
+      <section class="bex-card"><div class="bex-card__head"><div><p class="bex-kicker">Cycling pattern</p><h2>{{ period_label }} operating rhythm</h2></div></div><p class="bex-card__intro">Equivalent cycles use discharged MWh divided by public storage capacity. Three-month cells are weekly totals.</p><div class="bex-heatmap" id="cycle-heatmap"></div></section>
+      <section class="bex-card">
+        <div class="bex-card__head"><div><p class="bex-kicker">Value stack</p><h2>Where observable value came from</h2></div></div>
+        <div class="bex-value-layout"><div class="bex-donut" id="value-donut"><div><strong>${{ period_overview.observable_value|floatformat:0 }}</strong><span>gross estimate</span></div></div>
+          <dl class="bex-value-list"><div><dt><i class="bex-swatch bex-swatch--energy"></i>Energy market</dt><dd>${{ period_overview.energy_market_value|floatformat:0 }}</dd></div><div><dt><i class="bex-swatch bex-swatch--fcas"></i>Gross FCAS</dt><dd>${{ period_overview.gross_fcas_value|floatformat:0 }}</dd></div><div><dt>Charging cost</dt><dd>${{ period_overview.charging_cost|floatformat:0 }}</dd></div><div><dt>Value / discharged MWh</dt><dd>{% if period_overview.value_per_discharge_mwh != None %}${{ period_overview.value_per_discharge_mwh|floatformat:0 }}{% else %}n/a{% endif %}</dd></div></dl>
+        </div>
+      </section>
+    </div>
+
+    <section class="bex-card bex-card--wide"><div class="bex-card__head"><div><p class="bex-kicker">{{ period_label }} comparison</p><h2>How the cohort compared</h2></div></div><p class="bex-card__intro">Absolute value rewards scale. Value per discharged MWh and cycles make unlike batteries more comparable across the selected range.</p><div class="bex-comparison" id="comparison-chart"></div></section>
+
+    <details class="bex-day-inspector">
+      <summary><span><strong>Five-minute day inspector</strong> · {{ selected_date|date:'j F Y' }}</span><small>Open detailed dispatch, storage and opportunity charts</small></summary>
+      <div class="bex-day-inspector__body">
+        <div class="bex-freshness {% if selected_summary.quality_status == 'partial' %}bex-freshness--warn{% endif %}"><span class="bex-freshness__dot"></span><span>{{ selected_summary.interval_count }} five-minute unit records across {{ registration_count }} registration{{ registration_count|pluralize }} · {{ selected_summary.scada_interval_count }} SCADA readings · {{ selected_summary.storage_interval_count }} storage readings</span><strong>{{ selected_summary.quality_status|title }}</strong></div>
+        {% if selected_summary.quality_notes %}<details class="bex-quality"><summary>Data-quality notes for this day</summary><ul>{% for note in selected_summary.quality_notes %}<li>{{ note }}</li>{% endfor %}</ul></details>{% endif %}
+        <section class="bex-card bex-card--wide"><div class="bex-card__head"><div><p class="bex-kicker">Power and price</p><h2>What the battery did</h2></div></div><p class="bex-card__intro">SCADA output in MW. Positive is export; negative is grid charging. Price uses the regional five-minute RRP.</p><div class="bex-chart" id="dispatch-chart"></div></section>
+        <section class="bex-card bex-card--wide"><div class="bex-card__head"><div><p class="bex-kicker">Stored energy</p><h2>AEMO-published energy storage</h2></div><div class="bex-storage-range"><span>{{ selected_summary.min_storage_mwh|floatformat:0 }} MWh low</span><span>{{ selected_summary.max_storage_mwh|floatformat:0 }} MWh high</span></div></div><p class="bex-card__intro">AEMO's dispatch energy-storage series, not a battery-management-system measurement. The dashed line is public nameplate storage capacity.</p><div class="bex-chart bex-chart--storage" id="storage-chart"></div></section>
+        <section class="bex-card bex-card--wide bex-opportunity"><div class="bex-card__head"><div><p class="bex-kicker">Daily opportunity</p><h2>Actual dispatch versus the hindsight schedule</h2></div></div><div class="bex-opportunity__summary"><div><span>Actual energy value</span><strong>${{ opportunity.actual_value|floatformat:0 }}</strong></div><div><span>Feasible hindsight value</span><strong>{% if opportunity.benchmark_value != None %}${{ opportunity.benchmark_value|floatformat:0 }}{% else %}n/a{% endif %}</strong></div><div><span>Capture ratio</span><strong>{% if opportunity.capture_pct != None %}{{ opportunity.capture_pct|floatformat:0 }}%{% else %}n/a{% endif %}</strong></div><div><span>Storage boundary</span><strong>{{ opportunity.start_storage_mwh|floatformat:0 }} → {{ opportunity.end_storage_mwh|floatformat:0 }} MWh</strong></div></div><div class="bex-chart" id="opportunity-chart"></div>{% if fcas_breakdown %}<details class="bex-fcas-detail"><summary>Daily FCAS service detail</summary><dl>{% for service in fcas_breakdown %}<div><dt>{{ service.label }}</dt><dd>${{ service.value|floatformat:0 }}</dd></div>{% endfor %}</dl></details>{% endif %}</section>
+      </div>
+    </details>
+
+    <section class="bex-card bex-card--wide bex-fleet"><div class="bex-card__head"><div><p class="bex-kicker">Fleet coverage</p><h2>Where ChargeTrace sits in the NEM battery fleet</h2></div><div class="bex-coverage-total"><strong>{{ fleet.power_coverage_pct|floatformat:0 }}%</strong><span>of strictly in-service registered MW</span></div></div><p class="bex-card__intro">Coverage is measured against AEMO's July 2026 Generation Information register: {{ fleet.covered_mw|floatformat:0 }} MW / {{ fleet.covered_mwh|floatformat:0 }} MWh published in ChargeTrace, from a strict in-service fleet of {{ fleet.total_mw|floatformat:0 }} MW / {{ fleet.total_mwh|floatformat:0 }} MWh. Commissioning assets are excluded.</p><div class="bex-fleet-layout"><div class="bex-region-map" id="fleet-region-map"></div><div class="bex-chart bex-chart--fleet" id="fleet-landscape-chart"></div></div><p class="bex-source">Fleet snapshot: AEMO Generation Information, 31 July 2026. The state-tile map is schematic and not to geographic scale.</p></section>
+
+    <section class="bex-card bex-card--wide bex-market-trend"><div class="bex-card__head"><div><p class="bex-kicker">Growth versus cannibalisation</p><h2>More battery activity, thinner captured spreads</h2></div></div><p class="bex-card__intro">Average NEM battery discharge has more than doubled since Q3 2025, but the fleet's captured price spread and estimated quarterly market revenue have not risen with it.</p><div class="bex-chart bex-chart--trend" id="market-trend-chart"></div><div class="bex-trend-callout"><strong>Q2 2026:</strong> average discharge reached 476 MW while the fleet spread fell to $51/MWh and estimated energy-plus-FCAS revenue fell to $57.5 million.</div><p class="bex-source">Source: <a href="https://www.aemo.com.au/energy-systems/major-publications/quarterly-energy-dynamics-qed" rel="noopener">AEMO Quarterly Energy Dynamics</a>, Q3 2025 to Q2 2026.</p></section>
+
+    <section class="bex-method"><div><p class="bex-kicker">Method and boundary</p><h2>Useful operational evidence, not participant profit</h2></div><div class="bex-method__grid"><p><strong>Energy</strong> integrates signed SCADA output over five minutes and applies regional RRP. Transmission loss factors, fees, hedges and settlement metering are excluded.</p><p><strong>FCAS</strong> is enabled MW × service price ÷ 12 across ten Raise and Lower services.</p><p><strong>Storage</strong> uses AEMO's initial and projected BDU energy-storage fields. Values above public nameplate remain visible and flagged.</p><p><strong>Freshness</strong> uses AEMO next-day files and refreshes at 09:00 Australia/Sydney, normally through the latest common complete source date. It is not live.</p></div><p class="bex-source">Source: AEMO NEMWeb Next Day Dispatch, DispatchIS and Dispatch SCADA. {% if refresh %}Last local refresh completed {{ refresh.finished_at|date:'j M Y H:i' }} · data through {{ refresh.completed_through|date:'j M Y' }}.{% endif %}</p></section>
+
+    {{ interval_payload|json_script:"bex-interval-data" }}
+    {{ opportunity.rows|json_script:"bex-opportunity-data" }}
+    {{ period_payload|json_script:"bex-period-data" }}
+    {{ comparison_payload|json_script:"bex-comparison-data" }}
+    {{ fleet.regions|json_script:"bex-fleet-regions" }}
+    {{ fleet.points|json_script:"bex-fleet-points" }}
+    {{ market_trend|json_script:"bex-market-trend" }}
+    <script>window.BEX_CONFIG = {capacityMwh: {{ capacity_mwh|default:0 }}, energyValue: {{ period_overview.energy_market_value|default:0 }}, fcasValue: {{ period_overview.gross_fcas_value|default:0 }}, period: "{{ period }}"};</script>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}{% if has_data %}<script src="{% static 'nem_battery_explorer/js/explorer.js' %}?v=5"></script>{% endif %}{% endblock %}

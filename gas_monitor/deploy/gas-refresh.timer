@@ -1,0 +1,18 @@
+[Unit]
+Description=Run the East Coast Gas Monitor refresh every Monday morning
+Documentation=https://accidentalscientist.net/gas/
+
+[Timer]
+# Monday 09:00 in the server's timezone. The droplet runs Australia/Sydney,
+# which is what the page states, so this is deliberately wall-clock rather
+# than UTC: the intent is "Monday morning for the operator", and a UTC
+# equivalent would drift by an hour twice a year.
+OnCalendar=Mon *-*-* 09:00:00
+Persistent=true
+
+# Spread the request so the job never lands on the same second as anyone
+# else's scheduler hitting nemweb.
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

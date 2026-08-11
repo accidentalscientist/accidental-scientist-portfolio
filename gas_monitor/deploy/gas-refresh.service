@@ -1,0 +1,38 @@
+[Unit]
+Description=East Coast Gas Monitor: weekly Bulletin Board refresh
+Documentation=https://accidentalscientist.net/gas/
+# Do not start before the network can actually resolve nemweb.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=thibault
+Group=thibault
+WorkingDirectory=/home/thibault/accidental-scientist-portfolio
+
+# Eleven reports in dependency order: the registry first, so a facility
+# registered during the week exists before the flows that reference it.
+ExecStart=/home/thibault/accidental-scientist-portfolio/venv/bin/python manage.py ingest_gbb_flows --weekly
+
+# Then say how much margin is left before the 31-day flow window drops
+# data. Non-zero exit here marks the unit failed, which is the intent:
+# a silent refresh that has fallen behind is the failure mode this app is
+# most exposed to.
+ExecStart=/home/thibault/accidental-scientist-portfolio/venv/bin/python manage.py check_gas_coverage
+
+# nemweb occasionally refuses a connection. Three tries an hour apart
+# still lands well inside the weekly cadence.
+Restart=on-failure
+RestartSec=3600
+StartLimitBurst=3
+
+# The command only ever reads public HTTP and writes to Postgres.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/thibault/accidental-scientist-portfolio
+
+[Install]
+WantedBy=multi-user.target

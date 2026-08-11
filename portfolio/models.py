@@ -22,6 +22,9 @@ class Project(models.Model):
     image = models.ImageField(upload_to='projects/', blank=True, null=True)
     project_url = models.URLField(blank=True, null=True)
     date = models.DateField(auto_now_add=True)
+    # Used only for catalogue ranking; the public cards deliberately do not
+    # expose maintenance metadata as editorial content.
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.title

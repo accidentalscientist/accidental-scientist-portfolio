@@ -21,10 +21,12 @@
     </p>
   </header>
 
-  <nav class="plab-tabs" aria-label="NEM dashboard views">
-    <a class="plab-tab" href="{% url 'nem_dashboard:nem_dashboard' %}">Fuel mix</a>
-    <span class="plab-tab plab-tab--active" aria-current="page">Price predictor</span>
-  </nav>
+  {% include "portfolio/_nem_suite_nav.html" with active="price" %}
+
+  <div class="nem-window">
+    <span class="nem-window__pill">Daily market-data refresh</span>
+    <span class="nem-window__range">Runs at 09:00 Australia/Sydney · new forecast origin published each Sunday</span>
+  </div>
 
   {% if not has_data %}
     <div class="nem-empty">

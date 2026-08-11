@@ -8,6 +8,7 @@
 /* ── View switcher between fuel mix and price predictor ── */
 .plab-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: center;
   margin: 0 0 2rem;

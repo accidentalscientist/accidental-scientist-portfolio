@@ -1,0 +1,6 @@
+<nav class="plab-tabs" aria-label="NEM Dashboard views">
+  <a class="plab-tab{% if active == 'fuel' %} plab-tab--active{% endif %}" href="{% url 'nem_dashboard:nem_dashboard' %}"{% if active == 'fuel' %} aria-current="page"{% endif %}>Fuel mix</a>
+  <a class="plab-tab{% if active == 'price' %} plab-tab--active{% endif %}" href="{% url 'nem_price_lab:lab' %}"{% if active == 'price' %} aria-current="page"{% endif %}>Price predictor</a>
+  <a class="plab-tab{% if active == 'battery' %} plab-tab--active{% endif %}" href="{% url 'nem_battery_explorer:explorer' %}"{% if active == 'battery' %} aria-current="page"{% endif %}>Battery dispatch</a>
+  <a class="plab-tab{% if active == 'gas' %} plab-tab--active{% endif %}" href="{% url 'gas_monitor:monitor' %}"{% if active == 'gas' %} aria-current="page"{% endif %}>Gas system</a>
+</nav>

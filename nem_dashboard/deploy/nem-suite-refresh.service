@@ -1,0 +1,24 @@
+[Unit]
+Description=Accidental Scientist NEM Dashboard daily data refresh
+Documentation=https://accidentalscientist.net/nem/
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=thibault
+Group=thibault
+WorkingDirectory=/home/thibault/accidental-scientist-portfolio
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/thibault/accidental-scientist-portfolio/venv/bin/python manage.py refresh_nem_suite
+TimeoutStartSec=4h
+Restart=on-failure
+RestartSec=15m
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/thibault/accidental-scientist-portfolio
+
+[Install]
+WantedBy=multi-user.target

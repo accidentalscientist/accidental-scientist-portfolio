@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 from types import SimpleNamespace
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -46,9 +47,9 @@ def robots_txt(request):
 
 
 # Tools with no Project row of their own (standalone apps, not admin-managed
-# portfolio entries). One definition here drives both the homepage's daily
-# rotation and the "external tool" rows on the Projects page: add a tool
-# once here rather than wiring a new template block + view flag for it.
+# portfolio entries). `updated_on` is deliberately catalogue metadata rather
+# than visible copy: it gives the Projects page a stable editorial sort order
+# without pretending a code deploy is a substantive project update.
 EXTERNAL_TOOLS = [
     {
         'title': 'World Ledger',
@@ -56,13 +57,17 @@ EXTERNAL_TOOLS = [
         'url_name': 'world_lens:dashboard',
         'category': Project.Category.DATA,
         'description': 'Rank economic power and future potential, change the strategic weights, and see exactly which national strengths and constraints drive the result.',
+        'status_label': 'Interactive model',
+        'updated_on': date(2026, 8, 9),
     },
     {
         'title': 'Life Compass',
         'slug': 'life-compass',
         'url_name': 'life_compass:home',
         'category': Project.Category.SPORT,
-        'description': 'A public demo of a local-first strategy and execution dashboard with generic demo data only.',
+        'description': 'Turn long-term priorities into a practical weekly operating system, with a privacy-first public demo built entirely from generic data.',
+        'status_label': 'Public demo',
+        'updated_on': date(2026, 8, 8),
     },
     {
         'title': 'Portfolio Pulse',
@@ -70,8 +75,50 @@ EXTERNAL_TOOLS = [
         'url_name': 'portfolio_pulse:dashboard',
         'category': Project.Category.COMMERCIAL,
         'description': 'Upload a book of business and get an instant health read: portfolio score, NRR/GRR, renewal risk, and silent decliners, with the scoring fully explained.',
+        'status_label': 'Upload demo',
+        'updated_on': date(2026, 8, 7),
     },
 ]
+
+NEM_SUITE = {
+    'title': 'NEM Dashboard',
+    'category': Project.Category.ENERGY,
+    'description': (
+        "One home for Australia's eastern energy market: generation, wholesale prices, "
+        'battery dispatch and east-coast gas-system conditions.'
+    ),
+    'status_label': 'Market data suite',
+    'url_name': 'nem_dashboard:nem_dashboard',
+    'children': [
+        {
+            'title': 'Price Predictor Lab',
+            'description': 'Test week-ahead NEM price forecasts against transparent baselines and the results that subsequently cleared.',
+            'status_label': 'Forecast lab',
+            'url_name': 'nem_price_lab:lab',
+        },
+        {
+            'title': 'ChargeTrace',
+            'description': 'Trace grid-battery dispatch, stored energy and observable energy and FCAS value across weekly and 90-day views.',
+            'status_label': 'Battery explorer',
+            'url_name': 'nem_battery_explorer:explorer',
+        },
+        {
+            'title': 'FlowTrace',
+            'description': 'Follow east-coast gas production, pipelines, storage, demand and emerging system pressure from public AEMO data.',
+            'status_label': 'Gas monitor',
+            'url_name': 'gas_monitor:monitor',
+        },
+    ],
+}
+
+PROJECT_PRESENTATION = {
+    'stillpoint': {
+        'description': 'Set a quiet meditation timer, keep your own silence in Master mode, or follow a simple audio guide in Guide-me mode.',
+        'status_label': 'Interactive tool',
+    },
+}
+
+NEM_DATABASE_SLUGS = {'nem-fuelmix', 'east-coast-gas-system-stress-monitor'}
 
 
 def _external_tools():
@@ -83,9 +130,44 @@ def _external_tools():
             title=t['title'], slug=t['slug'], category=t['category'],
             category_display=category_labels[t['category']],
             description=t['description'], project_url=reverse(t['url_name']),
+            status_label=t['status_label'], updated_on=t['updated_on'],
         )
         for t in EXTERNAL_TOOLS
     ]
+
+
+def _nem_suite():
+    category_labels = dict(Project.Category.choices)
+    children = [
+        SimpleNamespace(**item, project_url=reverse(item['url_name']))
+        for item in NEM_SUITE['children']
+    ]
+    return SimpleNamespace(
+        title=NEM_SUITE['title'],
+        category=NEM_SUITE['category'],
+        category_display=category_labels[NEM_SUITE['category']],
+        description=NEM_SUITE['description'],
+        status_label=NEM_SUITE['status_label'],
+        project_url=reverse(NEM_SUITE['url_name']),
+        children=children,
+    )
+
+
+def _catalogue_project(project):
+    presentation = PROJECT_PRESENTATION.get(project.slug, {})
+    return SimpleNamespace(
+        title=project.title,
+        slug=project.slug,
+        category=project.category,
+        category_display=project.get_category_display(),
+        description=presentation.get('description', project.description),
+        project_url=project.project_url or reverse('project_detail', kwargs={'slug': project.slug}),
+        status_label=presentation.get('status_label', 'Interactive tool' if project.project_url else 'Project'),
+        updated_on=presentation.get(
+            'updated_on',
+            project.updated_at.date() if project.updated_at else project.date,
+        ),
+    )
 
 
 def _homepage_tools():
@@ -93,7 +175,7 @@ def _homepage_tools():
     # so it's excluded here to avoid the homepage pointing at it twice.
     db_tools = list(
         Project.objects.exclude(Q(project_url__isnull=True) | Q(project_url=''))
-        .exclude(slug='nem-fuelmix')
+        .exclude(slug__in=NEM_DATABASE_SLUGS)
         .order_by('slug')
     )
     return db_tools + _external_tools()
@@ -112,18 +194,24 @@ def home(request):
     return render(request, 'portfolio/home.html', {'current_project': current_project, 'featured_post': featured_post})
 
 def all_projects(request):
-    projects = Project.objects.all().order_by('-date')
     category = request.GET.get('category', '')
-    if category and category in dict(Project.Category.choices):
-        projects = projects.filter(category=category)
-    else:
+    if category not in dict(Project.Category.choices):
         category = ''
+
+    database_tools = [
+        _catalogue_project(project)
+        for project in Project.objects.exclude(slug__in=NEM_DATABASE_SLUGS)
+        if not category or project.category == category
+    ]
     external_tools = [t for t in _external_tools() if not category or t.category == category]
+    projects = sorted(database_tools + external_tools, key=lambda item: item.updated_on, reverse=True)
+    nem_suite = _nem_suite() if not category or category == Project.Category.ENERGY else None
+
     return render(request, 'portfolio/projects.html', {
         'projects': projects,
         'categories': Project.Category.choices,
         'active_category': category,
-        'external_tools': external_tools,
+        'nem_suite': nem_suite,
     })
 
 def project_detail(request, slug):

@@ -26,6 +26,18 @@ ELITE_ARTICLES_DIR = Path(
     )
 )
 
+# Quarterly AEMO unit register used to map dispatch SCADA DUIDs to region
+# and fuel. Override on the server when AEMO publishes a newer workbook;
+# no application code or database migration is required.
+NEM_GENERATION_REGISTER_URL = config(
+    'NEM_GENERATION_REGISTER_URL',
+    default=(
+        'https://www.aemo.com.au/-/media/files/electricity/nem/planning_and_forecasting/'
+        'generation_information/2026/nem-generation-information-july-2026.xlsx'
+        '?rev=3455851f2bc945b7ab61c5ceed272992&sc_lang=en'
+    ),
+)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -78,6 +90,8 @@ INSTALLED_APPS = [
     'portfolio',
     'nem_dashboard',
     'nem_price_lab',
+    'nem_battery_explorer',
+    'gas_monitor',
     'stillpoint',
     'portfolio_pulse',
     'life_compass',

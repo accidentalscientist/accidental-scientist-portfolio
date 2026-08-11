@@ -9,7 +9,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import BlogPost
+from .models import BlogPost, Project
 
 
 @override_settings(ALLOWED_HOSTS=['testserver'])
@@ -18,7 +18,37 @@ class PageSmokeTests(TestCase):
         self.assertEqual(self.client.get(reverse('home')).status_code, 200)
 
     def test_projects_ok(self):
-        self.assertEqual(self.client.get(reverse('projects')).status_code, 200)
+        response = self.client.get(reverse('projects'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'NEM Dashboard')
+        self.assertContains(response, 'ChargeTrace')
+        self.assertContains(response, 'FlowTrace')
+        self.assertNotContains(response, 'Live tool')
+
+    def test_nem_suite_is_first_and_database_duplicates_are_hidden(self):
+        Project.objects.create(
+            title='NEM Fuel Generation Dashboard', slug='nem-fuelmix',
+            description='old', project_url='/nem/',
+        )
+        Project.objects.create(
+            title='FlowTrace', slug='east-coast-gas-system-stress-monitor',
+            description='old', project_url='/gas/',
+        )
+        response = self.client.get(reverse('projects'))
+        body = response.content.decode()
+        self.assertEqual(body.count('>NEM Dashboard<'), 1)
+        self.assertEqual(body.count('>FlowTrace<'), 1)
+        self.assertLess(body.index('>NEM Dashboard<'), body.index('>World Ledger<'))
+
+    def test_old_energy_urls_redirect_to_nem_suite(self):
+        self.assertRedirects(
+            self.client.get('/charge-trace/'), '/nem/charge-trace/',
+            status_code=301, fetch_redirect_response=False,
+        )
+        self.assertRedirects(
+            self.client.get('/gas/'), '/nem/flow-trace/',
+            status_code=301, fetch_redirect_response=False,
+        )
 
     def test_life_compass_ok(self):
         self.assertEqual(self.client.get(reverse('life_compass:home')).status_code, 200)

@@ -172,4 +172,5 @@ def dashboard(request):
         "fuel_meta": fuel_meta,
         "default_region": default_region,
         "trend_label": "Last 3 months · daily generation",
+        "published_through": localtime(latest).date(),
     })

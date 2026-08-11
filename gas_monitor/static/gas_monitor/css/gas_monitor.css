@@ -1,0 +1,788 @@
+/* ============================================================
+   EAST COAST GAS SYSTEM STRESS MONITOR
+
+   Engineering-schematic, not ornamental. The site's shared
+   identity permits a product to diverge when the divergence
+   expresses its purpose, and this one's purpose is a legible
+   network under stress.
+
+   The discipline that makes it work: a quiet ink base, with
+   TERRACOTTA RESERVED EXCLUSIVELY FOR CONSTRAINT. Terracotta
+   never appears decoratively on this page. When you see it,
+   something is tight. Demand bands therefore use sage and ink
+   tones only, so the one alarm colour keeps its meaning.
+
+   The one other non-neutral colour is --gas-export, a muted
+   steel blue used ONLY for the LNG export flow in the network
+   diagram — deliberately NOT terracotta, so "this is the export
+   lane" is never misread as "something is tight" the way it
+   would be if export borrowed the constraint colour.
+   ============================================================ */
+
+:root {
+  /* Constraint. The only warm colours on the page. */
+  --gas-adequate:    rgba(90, 110, 82, 0.28);   /* quiet sage: nothing to see */
+  --gas-threatened:  #b84a1a;                   /* terracotta: linepack threatened */
+  --gas-inadequate:  #7d2409;                   /* burnt: linepack inadequate */
+
+  /* Demand composition. Deliberately cool and unalarming. */
+  --gas-band-lng:    rgba(26, 46, 26, 0.58);    /* forest ink: the stable mass */
+  --gas-band-large:  rgba(90, 110, 82, 0.55);   /* sage */
+  --gas-band-gpg:    #2d6a2d;                   /* forest green: the volatile band */
+  --gas-band-dist:   rgba(120, 140, 110, 0.45);
+
+  --gas-grid:        rgba(26, 46, 26, 0.10);
+  --gas-axis:        rgba(26, 46, 26, 0.28);
+  --gas-cursor:      rgba(26, 46, 26, 0.42);
+
+  /* Opaque, deliberately NOT theme-inverting, unlike --text-primary
+     (which is correct for TEXT — dark ink on light pages, cream on dark
+     pages — but wrong for a shape's own colour: a "demand" node filled
+     with --text-primary would flip from dark ink to near-white between
+     themes, an odd colour-language mismatch even though nothing sits on
+     top of it needing contrast). A node's role colour should read as
+     "the same node" across themes. */
+  --gas-node-demand: #1a2e1a;
+
+  /* LNG export lane. Blue against green (supply) and dark ink (demand)
+     is a safe hue separation under the common red-green colour-vision
+     deficiencies, and it is nowhere near the terracotta reserved for
+     constraint. */
+  --gas-export:      #3f6e8c;
+}
+
+[data-theme='dark'] {
+  --gas-adequate:    rgba(138, 158, 130, 0.26);
+  --gas-threatened:  #d4693a;
+  --gas-inadequate:  #a8391a;
+
+  --gas-band-lng:    rgba(240, 237, 224, 0.42);
+  --gas-band-large:  rgba(138, 158, 130, 0.50);
+  --gas-band-gpg:    #5a9e5a;
+  --gas-band-dist:   rgba(150, 170, 140, 0.40);
+
+  --gas-grid:        rgba(240, 237, 224, 0.10);
+  --gas-axis:        rgba(240, 237, 224, 0.26);
+  --gas-cursor:      rgba(240, 237, 224, 0.40);
+
+  /* Dark and olive rather than pure black, so the node still reads as a
+     distinct shape against the (also very dark) page background. */
+  --gas-node-demand: #26301c;
+
+  --gas-export:      #6ea3c4;
+}
+
+/* ============================
+   Thesis
+   ============================ */
+
+/* ============================
+   Tagline
+   ============================ */
+
+.gasmon-tagline {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--accent-color);
+  margin: 0 0 1rem;
+}
+
+/* ============================
+   Release bar
+   ============================ */
+
+.gasmon-release {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1.4rem;
+  border-left: 3px solid var(--accent-color);
+  background: var(--bg-secondary);
+  padding: 0.6rem 1.1rem;
+  margin: 1.5rem 0 0.8rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.gasmon-release__tag {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  font-size: 0.72rem;
+  color: var(--text-primary);
+}
+
+.gasmon-release__flag {
+  margin-left: auto;
+  font-weight: 500;
+  color: var(--accent-warm);
+}
+
+/* ============================
+   Thesis
+   ============================ */
+
+.gasmon-thesis {
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  margin: 0 0 2rem;
+}
+
+.gasmon-thesis > summary {
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  list-style: none;
+}
+
+.gasmon-thesis > summary::-webkit-details-marker { display: none; }
+
+.gasmon-thesis__title { font-weight: 500; }
+
+.gasmon-thesis__cta {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--accent-color);
+}
+
+.gasmon-thesis[open] .gasmon-thesis__cta span { display: none; }
+.gasmon-thesis[open] .gasmon-thesis__cta::after { content: ' −'; }
+
+.gasmon-thesis > summary:hover .gasmon-thesis__cta { color: var(--accent-hover); }
+
+.gasmon-thesis__body {
+  padding: 0 1.1rem 1.1rem;
+  max-width: 62ch;
+}
+
+.gasmon-thesis__claim {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.9rem;
+}
+
+.gasmon-thesis__body h3 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin: 1.4rem 0 0.5rem;
+}
+
+.gasmon-thesis__body ul { padding-left: 1.1rem; line-height: 1.75; }
+.gasmon-thesis__body li { margin-bottom: 0.5rem; }
+.gasmon-thesis__body p { line-height: 1.75; }
+
+.gasmon-thesis__note {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.9rem;
+  margin-top: 1.2rem;
+}
+
+/* ============================
+   Identity badges
+   ============================ */
+
+/* A visual echo of ChargeTrace's pill row under its tagline — the two
+   projects are close enough in theme now (Charge/Flow, both Trace) that
+   switching between them should read as the same product family. */
+.gasmon-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+}
+
+.gasmon-badge {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+}
+
+/* ============================
+   Headline tiles
+   ============================ */
+
+.gasmon-lede {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0 0 1rem;
+}
+
+.gasmon-network-subtitle {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+  margin: 0 0 0.7rem;
+}
+
+.gasmon-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin: 0 0 2rem;
+}
+
+.gasmon-tile {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--border-strong);
+  padding: 0.85rem 1rem;
+}
+
+/* A percentile at either extreme is the whole point of holding history,
+   so it gets the one accent this page allows itself. */
+.gasmon-tile--notable { border-left-color: var(--accent-warm); }
+
+/* One tile — LNG export draw, the thesis's central number — renders
+   inverted, echoing ChargeTrace's dark "observable gross value" card.
+   Nothing here sums to it the way ChargeTrace's other cards sum to its
+   headline figure; the point is purely visual family resemblance, so a
+   reader switching between the two projects reads them as one language. */
+.gasmon-tile--headline {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.gasmon-tile--headline .gasmon-tile__label,
+.gasmon-tile--headline .gasmon-tile__unit,
+.gasmon-tile--headline .gasmon-tile__pct,
+.gasmon-tile--headline .gasmon-tile__change,
+.gasmon-tile--headline .gasmon-tile__note { color: var(--bg-primary); opacity: 0.82; }
+
+.gasmon-tile--headline .gasmon-tile__value { color: var(--bg-primary); }
+
+.gasmon-tile--headline.gasmon-tile--notable .gasmon-tile__pct {
+  color: var(--gas-threatened);
+  opacity: 1;
+}
+
+.gasmon-tile__label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+  margin: 0 0 0.35rem;
+}
+
+/* Large serif figures, matching ChargeTrace's stat numbers — the site's
+   editorial serif reserved for a moment of emphasis, which a headline
+   quantity earns and a table cell does not. */
+.gasmon-tile__value {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin: 0 0 0.3rem;
+}
+
+.gasmon-tile__unit {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.gasmon-tile__pct {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  margin: 0 0 0.15rem;
+}
+
+.gasmon-tile--notable .gasmon-tile__pct {
+  color: var(--accent-warm);
+  font-weight: 500;
+}
+
+.gasmon-tile__change {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.15rem;
+}
+
+.gasmon-tile__note {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ============================
+   Reference disclosure
+   ============================ */
+
+.gasmon-reference-block > summary {
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.gasmon-reference-block > summary:hover { color: var(--text-primary); }
+
+/* ============================
+   Charts
+   ============================ */
+
+.gasmon-figure {
+  position: relative;
+  margin: 1.25rem 0 2rem;
+}
+
+.gasmon-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* The network diagram carries labels sized in SVG user units. Left to
+   scale freely with the container, a phone-width viewport would shrink
+   an 860-unit-tall chart to illegible text. A minimum pixel width keeps
+   labels readable and lets `.gasmon-scroll` handle the rest by panning,
+   the same trade the constraint strip already makes at this width. */
+.gasmon-network { min-width: 640px; }
+
+.gasmon-grid   { stroke: var(--gas-grid); stroke-width: 1; }
+.gasmon-axis   { stroke: var(--gas-axis); stroke-width: 1; }
+.gasmon-tick   { stroke: var(--gas-axis); stroke-width: 1; }
+.gasmon-cursor { stroke: var(--gas-cursor); stroke-width: 1; stroke-dasharray: 3 3; }
+
+.gasmon-axis-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  fill: var(--text-secondary);
+}
+
+.gasmon-row-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  fill: var(--text-primary);
+}
+
+/* Demand bands */
+.gasmon-band                { stroke: none; }
+.gasmon-band--lngexport     { fill: var(--gas-band-lng); }
+.gasmon-band--bblarge       { fill: var(--gas-band-large); }
+.gasmon-band--bbgpg         { fill: var(--gas-band-gpg); }
+.gasmon-band--bdist         { fill: var(--gas-band-dist); }
+
+/* ============================
+   Flow network
+   ============================ */
+
+/* Soft, faded regions grouping nodes by state — replaces a literal
+   continent outline that read as "a bit strange". Kept deliberately
+   close to invisible: the brief's own target range (fill 0.025-0.05,
+   stroke 0.10-0.16) so a squint at the chart loses the regions entirely
+   while flows and nodes stay visible — orientation, never content. */
+.gasmon-region {
+  fill: var(--text-primary);
+  fill-opacity: 0.035;
+  stroke: var(--text-primary);
+  stroke-opacity: 0.13;
+  stroke-width: 1px;
+}
+
+.gasmon-region-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  fill: var(--text-secondary);
+  opacity: 0.22;
+}
+
+/* Edges are FILLED ribbons (a tapered polygon), not stroked lines: width
+   varies continuously from source to target, which a constant-width
+   stroke cannot do. Colour and opacity are set inline per edge, moving
+   with magnitude alongside width, so a strong flow reads as heavier in
+   three ways rather than width carrying the whole load on its own. */
+.gasmon-flow {
+  stroke: none;
+  transition: opacity 0.15s ease;
+}
+
+/* Where a pipeline delivers to several points the split is allocated,
+   not measured. A faint outline stands in for the dashed stroke a filled
+   ribbon cannot carry, so the distinction survives without a second
+   legend entry beyond "allocated estimate". */
+.gasmon-flow--inferred {
+  stroke: var(--gas-axis);
+  stroke-width: 0.75px;
+  stroke-dasharray: 3 2;
+}
+
+/* The LNG export lane: a distinct, restrained colour — --gas-export, NOT
+   the terracotta reserved for constraint elsewhere on this page — so it
+   reads as its own category rather than an extreme domestic flow, and
+   never as an alarm. */
+.gasmon-flow--export {
+  fill: var(--gas-export);
+  opacity: 0.55;
+}
+
+.gasmon-arrowhead { fill: var(--gas-band-large); }
+.gasmon-arrowhead--export { fill: var(--gas-export); }
+
+/* Dimmed on hover/focus of something else; focused flows and nodes are
+   pulled back to full strength even if a dim class was also applied. */
+.gasmon-dim { opacity: 0.16; }
+.gasmon-focused { opacity: 1; }
+.gasmon-flow.gasmon-focused { filter: none; }
+
+/* Nodes are two circles: a small visible dot sized by area, and a larger
+   invisible one purely for hit-testing, so touch and mouse interaction
+   do not require pixel accuracy on a 4px target. */
+.gasmon-node-hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.gasmon-node-dot {
+  stroke: var(--bg-primary);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.gasmon-node--supply .gasmon-node-dot { fill: var(--gas-band-gpg); }
+.gasmon-node--demand .gasmon-node-dot { fill: var(--gas-node-demand); }
+.gasmon-node--transit .gasmon-node-dot {
+  fill: var(--bg-primary);
+  stroke: var(--gas-axis);
+  stroke-width: 1.5;
+}
+
+.gasmon-node:focus { outline: none; }
+.gasmon-node:focus-visible .gasmon-node-dot { stroke: var(--accent-color); stroke-width: 2.5; }
+
+.gasmon-node-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  fill: var(--text-primary);
+}
+
+.gasmon-node-value {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 10.5px;
+  fill: var(--text-secondary);
+}
+
+/* A soft halo behind major-hub labels rather than a visible card, so a
+   flow line can pass behind the text without cutting through it. */
+.gasmon-label-halo {
+  fill: var(--bg-primary);
+  opacity: 0.82;
+}
+
+.gasmon-export-note__title {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  fill: var(--gas-export);
+}
+
+.gasmon-export-note__value {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  fill: var(--text-secondary);
+}
+
+/* ============================
+   Network magnitude legend
+   ============================ */
+
+.gasmon-legend-magnitudes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.gasmon-legend-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.gasmon-legend-block__title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+}
+
+.gasmon-legend-svg { width: 180px; height: auto; }
+
+.gasmon-legend-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 9.5px;
+  fill: var(--text-secondary);
+}
+
+.gasmon-legend-node {
+  fill: var(--gas-axis);
+  stroke: var(--text-secondary);
+  stroke-width: 1px;
+}
+
+/* Storage: the actual line reads as ink, the seasonal median as a quiet
+   dashed reference behind it. The median is context, not a target, so it
+   must not compete for attention. */
+.gasmon-line {
+  fill: none;
+  stroke: var(--text-primary);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+.gasmon-reference {
+  fill: none;
+  stroke: var(--gas-axis);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 4;
+}
+
+/* Supply reads as the green line, demand as ink: the gap between them is
+   the point of the chart, so they must not look like the same series. */
+.gasmon-line--supply {
+  stroke: var(--gas-band-gpg);
+  stroke-dasharray: none;
+}
+
+.gasmon-row-label--chronic { font-style: italic; }
+
+/* Utilisation bars. Terracotta only above the tight threshold, so the
+   colour still means constraint and nothing else. Suspect bars (receipts
+   exceeding the largest single rated leg — a limit of the measure, not
+   scarcity) get a dashed outline rather than a fill colour, since SVG
+   `fill` cannot take the repeating-gradient hatch the table meter uses. */
+.gasmon-bar          { fill: var(--gas-adequate); }
+.gasmon-bar--tight   { fill: var(--gas-threatened); }
+.gasmon-bar--suspect {
+  fill: var(--bg-tertiary);
+  stroke: var(--gas-axis);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+}
+
+.gasmon-meter {
+  display: block;
+  height: 9px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+  min-width: 90px;
+}
+
+.gasmon-meter span {
+  display: block;
+  height: 9px;
+  background: var(--gas-adequate);
+}
+
+.gasmon-meter--tight span { background: var(--gas-threatened); }
+.gasmon-meter--suspect span {
+  background: repeating-linear-gradient(
+    45deg, var(--gas-axis), var(--gas-axis) 3px, transparent 3px, transparent 6px);
+}
+
+/* Constraint cells. Adequate is deliberately near-invisible: a strip
+   of unbroken green is background, and the flagged days are the
+   content. */
+.gasmon-cell              { shape-rendering: crispEdges; }
+.gasmon-cell--green       { fill: var(--gas-adequate); }
+.gasmon-cell--amber       { fill: var(--gas-threatened); }
+.gasmon-cell--red         { fill: var(--gas-inadequate); }
+
+/* ============================
+   Legend
+   ============================ */
+
+.gasmon-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.gasmon-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.gasmon-swatch {
+  width: 14px;
+  height: 12px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.gasmon-swatch--lngexport { background: var(--gas-band-lng); }
+.gasmon-swatch--bblarge   { background: var(--gas-band-large); }
+.gasmon-swatch--bbgpg     { background: var(--gas-band-gpg); }
+.gasmon-swatch--bdist     { background: var(--gas-band-dist); }
+.gasmon-swatch--green     { background: var(--gas-adequate); }
+.gasmon-swatch--amber     { background: var(--gas-threatened); }
+.gasmon-swatch--red       { background: var(--gas-inadequate); }
+
+/* ============================
+   Tooltip
+   ============================ */
+
+.gasmon-tip {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  box-shadow: var(--card-shadow);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  white-space: nowrap;
+  max-width: 320px;
+}
+
+.gasmon-tip[hidden] { display: none; }
+
+.gasmon-tip__swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  margin-right: 0.4rem;
+}
+
+.gasmon-tip__swatch--lngexport { background: var(--gas-band-lng); }
+.gasmon-tip__swatch--bblarge   { background: var(--gas-band-large); }
+.gasmon-tip__swatch--bbgpg     { background: var(--gas-band-gpg); }
+.gasmon-tip__swatch--bdist     { background: var(--gas-band-dist); }
+
+/* ============================
+   Tables and notes
+   ============================ */
+
+.gasmon-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0 1.25rem;
+  font-size: 0.92rem;
+}
+
+.gasmon-table caption {
+  caption-side: top;
+  text-align: left;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding-bottom: 0.6rem;
+  line-height: 1.6;
+}
+
+.gasmon-table th,
+.gasmon-table td {
+  padding: 0.45rem 0.7rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: right;
+}
+
+.gasmon-table th[scope='row'],
+.gasmon-table thead th:first-child { text-align: left; }
+
+.gasmon-table thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-strong);
+  font-weight: 600;
+}
+
+.gasmon-table tfoot th,
+.gasmon-table tfoot td {
+  font-weight: 600;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: none;
+}
+
+.gasmon-row--inactive { opacity: 0.55; }
+
+.gasmon-tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-warm);
+  border: 1px solid var(--accent-warm);
+  border-radius: 3px;
+  padding: 0 0.3rem;
+  margin-left: 0.4rem;
+}
+
+.gasmon-tag--export {
+  color: var(--gas-export);
+  border-color: var(--gas-export);
+}
+
+.gasmon-row--export th { color: var(--gas-export); }
+
+.gasmon-facts {
+  margin: 0.5rem 0 1.5rem;
+  padding-left: 1.1rem;
+  line-height: 1.8;
+}
+
+.gasmon-warning {
+  border-left: 3px solid var(--accent-warm);
+  background: var(--accent-warm-bg);
+  padding: 0.7rem 1rem;
+  margin: 1rem 0;
+  border-radius: 0;
+}
+
+.gasmon-note {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0.4rem 0 1.5rem;
+}
+
+.gasmon-boundary {
+  border-top: 1px solid var(--border-strong);
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+}
+
+.gasmon-boundary ul { line-height: 1.85; padding-left: 1.1rem; }
+.gasmon-boundary li { color: var(--text-secondary); }
+
+/* Wide content scrolls inside its own box rather than the page. */
+.gasmon-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 700px) {
+  .gasmon-table { font-size: 0.85rem; }
+  .gasmon-table th, .gasmon-table td { padding: 0.35rem 0.45rem; }
+}

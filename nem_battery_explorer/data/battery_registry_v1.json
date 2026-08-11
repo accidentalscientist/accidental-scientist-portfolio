@@ -1,0 +1,448 @@
+{
+  "schema_version": 1,
+  "registry_version": "2026-07-31-v2",
+  "source": {
+    "name": "AEMO NEM July 2026 Generation Information",
+    "url": "https://www.aemo.com.au/energy-systems/electricity/national-electricity-market-nem/nem-forecasting-and-planning/forecasting-and-planning-data/generation-information",
+    "published_on": "2026-07-31"
+  },
+  "assets": [
+    {
+      "slug": "capital-battery",
+      "name": "Capital Battery",
+      "region": "NSW1",
+      "owner": "Capital Battery Pty Ltd",
+      "custodian": "CAPBESS",
+      "aemo_survey_id": 1890,
+      "commitment_status": "In Service",
+      "is_spike_cohort": true,
+      "notes": "Initial 30-day validation cohort. Capacity is sourced from AEMO Generation Information, not inferred from dispatch.",
+      "registrations": [
+        {
+          "duid": "CAPBES1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "99.990",
+          "storage_capacity_mwh": "199.980",
+          "aemo_generation_info_unit_id": 189001,
+          "unit_name": "CBESS",
+          "connection_point_id": "",
+          "notes": "Effective start is the registry's validated MVP boundary, not a commissioning-date claim."
+        }
+      ]
+    },
+    {
+      "slug": "blyth-bess",
+      "name": "Blyth BESS",
+      "region": "SA1",
+      "owner": "Blyth Battery P/L as trustee for Blyth Battery Trust",
+      "custodian": "BLYTHBAT",
+      "aemo_survey_id": 2248,
+      "commitment_status": "In Service",
+      "is_spike_cohort": true,
+      "notes": "Initial 30-day validation cohort. Capacity is sourced from AEMO Generation Information, not inferred from dispatch.",
+      "registrations": [
+        {
+          "duid": "BLYTHB1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "200.320",
+          "storage_capacity_mwh": "400.000",
+          "aemo_generation_info_unit_id": 224801,
+          "unit_name": "BLYTHWBT",
+          "connection_point_id": "",
+          "notes": "Effective start is the registry's validated MVP boundary, not a commissioning-date claim."
+        }
+      ]
+    },
+    {
+      "slug": "victorian-big-battery",
+      "name": "Victorian Big Battery",
+      "region": "VIC1",
+      "owner": "Victorian Big Battery Pty Ltd",
+      "custodian": "storenergy_nr",
+      "aemo_survey_id": 1864,
+      "commitment_status": "In Service",
+      "is_spike_cohort": true,
+      "notes": "Initial 30-day validation cohort. Capacity is sourced from AEMO Generation Information, not inferred from dispatch.",
+      "registrations": [
+        {
+          "duid": "VBB1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "300.000",
+          "storage_capacity_mwh": "470.000",
+          "aemo_generation_info_unit_id": 186401,
+          "unit_name": "BESS",
+          "connection_point_id": "",
+          "notes": "Effective start is the registry's validated MVP boundary, not a commissioning-date claim."
+        }
+      ]
+    },
+    {
+      "slug": "eraring-big-battery",
+      "name": "Eraring Big Battery",
+      "region": "NSW1",
+      "owner": "Origin Energy Electricity Limited",
+      "custodian": "BORAL",
+      "aemo_survey_id": 1870,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort. The AEMO register publishes 460 MW and storage across two rows; the combined public storage capacity is 1,773 MWh.",
+      "registrations": [
+        {
+          "duid": "ERB01",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "460.000",
+          "storage_capacity_mwh": "1773.000",
+          "aemo_generation_info_unit_id": 187004,
+          "unit_name": "ERARNGB1",
+          "connection_point_id": "",
+          "notes": "Combined site capacity for the single public DUID; avoids double-counting the storage-only register row."
+        }
+      ]
+    },
+    {
+      "slug": "tarong-bess",
+      "name": "Tarong BESS",
+      "region": "QLD1",
+      "owner": "Stanwell Corporation Limited",
+      "custodian": "STANWELL",
+      "aemo_survey_id": 2434,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort.",
+      "registrations": [
+        {
+          "duid": "TARBESS1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "300.000",
+          "storage_capacity_mwh": "600.000",
+          "aemo_generation_info_unit_id": 243402,
+          "unit_name": "TARBESS1",
+          "connection_point_id": "",
+          "notes": "Capacity sourced from the July 2026 AEMO Generation Information register."
+        }
+      ]
+    },
+    {
+      "slug": "swanbank-bess",
+      "name": "Swanbank BESS",
+      "region": "QLD1",
+      "owner": "CleanCo QLD Limited",
+      "custodian": "CLEANCO",
+      "aemo_survey_id": 2407,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort.",
+      "registrations": [
+        {
+          "duid": "SWANBBF1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "266.340",
+          "storage_capacity_mwh": "531.300",
+          "aemo_generation_info_unit_id": 240701,
+          "unit_name": "SBS_GU1",
+          "connection_point_id": "",
+          "notes": "Capacity sourced from the July 2026 AEMO Generation Information register."
+        }
+      ]
+    },
+    {
+      "slug": "supernode-bess",
+      "name": "Supernode BESS",
+      "region": "QLD1",
+      "owner": "Supernode Operations Pty Ltd",
+      "custodian": "SNODE1",
+      "aemo_survey_id": 2431,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort.",
+      "registrations": [
+        {
+          "duid": "SNB01",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "259.920",
+          "storage_capacity_mwh": "619.400",
+          "aemo_generation_info_unit_id": 243104,
+          "unit_name": "SNB01",
+          "connection_point_id": "",
+          "notes": "Capacity sourced from the July 2026 AEMO Generation Information register."
+        }
+      ]
+    },
+    {
+      "slug": "western-downs-battery",
+      "name": "Western Downs Battery",
+      "region": "QLD1",
+      "owner": "Western Downs BESS Pty Ltd",
+      "custodian": "WDOWBESS",
+      "aemo_survey_id": 1966,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort. Two independently dispatched units are aggregated as one physical site.",
+      "registrations": [
+        {
+          "duid": "WDBESS1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "254.800",
+          "storage_capacity_mwh": "509.600",
+          "aemo_generation_info_unit_id": 196602,
+          "unit_name": "WDBESS1",
+          "connection_point_id": "",
+          "notes": "Stage 1 registration."
+        },
+        {
+          "duid": "WDBESS2",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "254.800",
+          "storage_capacity_mwh": "509.600",
+          "aemo_generation_info_unit_id": 196603,
+          "unit_name": "WDBESS2",
+          "connection_point_id": "",
+          "notes": "Stage 2 registration."
+        }
+      ]
+    },
+    {
+      "slug": "torrens-island-bess",
+      "name": "Torrens Island BESS",
+      "region": "SA1",
+      "owner": "TIPSCO",
+      "custodian": "TIPSCO",
+      "aemo_survey_id": 1866,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort; a short-duration asset useful for contrasting operating strategies.",
+      "registrations": [
+        {
+          "duid": "TIB1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "250.700",
+          "storage_capacity_mwh": "249.610",
+          "aemo_generation_info_unit_id": 186601,
+          "unit_name": "TIPSBESS",
+          "connection_point_id": "",
+          "notes": "Capacity sourced from the July 2026 AEMO Generation Information register."
+        }
+      ]
+    },
+    {
+      "slug": "rangebank-bess",
+      "name": "Rangebank BESS",
+      "region": "VIC1",
+      "owner": "Cranbourne BESS Project Co Pty Ltd",
+      "custodian": "SHELLNEW",
+      "aemo_survey_id": 2460,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort.",
+      "registrations": [
+        {
+          "duid": "RANGEB1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "224.000",
+          "storage_capacity_mwh": "400.000",
+          "aemo_generation_info_unit_id": 246001,
+          "unit_name": "Rangebnk",
+          "connection_point_id": "",
+          "notes": "Capacity sourced from the July 2026 AEMO Generation Information register."
+        }
+      ]
+    },
+    {
+      "slug": "mreh-a1",
+      "name": "Melbourne Renewable Energy Hub A1",
+      "region": "VIC1",
+      "owner": "Equis Energy (Australia) Projects",
+      "custodian": "equis_NR",
+      "aemo_survey_id": 3100,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort; one of three separately registered MREH connections.",
+      "registrations": [
+        {
+          "duid": "MREHA1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "216.160",
+          "storage_capacity_mwh": "399.840",
+          "aemo_generation_info_unit_id": 310001,
+          "unit_name": "MREHA1",
+          "connection_point_id": "",
+          "notes": "A1 connection."
+        }
+      ]
+    },
+    {
+      "slug": "mreh-a2",
+      "name": "Melbourne Renewable Energy Hub A2",
+      "region": "VIC1",
+      "owner": "Equis Energy (Australia) Projects",
+      "custodian": "equis_NR",
+      "aemo_survey_id": 3101,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort; one of three separately registered MREH connections.",
+      "registrations": [
+        {
+          "duid": "MREHA2",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "216.160",
+          "storage_capacity_mwh": "399.840",
+          "aemo_generation_info_unit_id": 310101,
+          "unit_name": "MREHA2",
+          "connection_point_id": "",
+          "notes": "A2 connection."
+        }
+      ]
+    },
+    {
+      "slug": "mreh-a3",
+      "name": "Melbourne Renewable Energy Hub A3",
+      "region": "VIC1",
+      "owner": "Equis Energy (Australia) Projects",
+      "custodian": "equis_NR",
+      "aemo_survey_id": 3102,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort; the longer-duration MREH connection.",
+      "registrations": [
+        {
+          "duid": "MREHA3",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "215.600",
+          "storage_capacity_mwh": "800.800",
+          "aemo_generation_info_unit_id": 310201,
+          "unit_name": "MREHA3",
+          "connection_point_id": "",
+          "notes": "A3 connection."
+        }
+      ]
+    },
+    {
+      "slug": "brendale-bess",
+      "name": "Brendale BESS",
+      "region": "QLD1",
+      "owner": "Brendale Battery ProjectCo Pty Ltd",
+      "custodian": "akayshaenergy_NR",
+      "aemo_survey_id": 2526,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort.",
+      "registrations": [
+        {
+          "duid": "BRNDBES1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "204.960",
+          "storage_capacity_mwh": "409.920",
+          "aemo_generation_info_unit_id": 252601,
+          "unit_name": "BDBS_GU1",
+          "connection_point_id": "",
+          "notes": "Capacity sourced from the July 2026 AEMO Generation Information register."
+        }
+      ]
+    },
+    {
+      "slug": "hazelwood-bess",
+      "name": "Hazelwood BESS",
+      "region": "VIC1",
+      "owner": "Hazelwood BESS Project Co Pty Ltd",
+      "custodian": "HBESS",
+      "aemo_survey_id": 1991,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort; a short-duration operating comparison.",
+      "registrations": [
+        {
+          "duid": "HBESS1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "200.070",
+          "storage_capacity_mwh": "162.000",
+          "aemo_generation_info_unit_id": 199101,
+          "unit_name": "HBESS1",
+          "connection_point_id": "",
+          "notes": "Capacity sourced from the July 2026 AEMO Generation Information register."
+        }
+      ]
+    },
+    {
+      "slug": "greenbank-bess",
+      "name": "Greenbank BESS",
+      "region": "QLD1",
+      "owner": "CSE BESS Pty Ltd",
+      "custodian": "CSENERGY",
+      "aemo_survey_id": 2170,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort.",
+      "registrations": [
+        {
+          "duid": "GREENB1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "200.000",
+          "storage_capacity_mwh": "400.000",
+          "aemo_generation_info_unit_id": 217002,
+          "unit_name": "GREENB1",
+          "connection_point_id": "",
+          "notes": "Capacity sourced from the July 2026 AEMO Generation Information register."
+        }
+      ]
+    },
+    {
+      "slug": "koorangie-energy-storage-system",
+      "name": "Koorangie Energy Storage System",
+      "region": "VIC1",
+      "owner": "Shell Energy",
+      "custodian": "SHELLNEW",
+      "aemo_survey_id": 2173,
+      "commitment_status": "In Service",
+      "is_spike_cohort": false,
+      "notes": "Expanded ChargeTrace cohort.",
+      "registrations": [
+        {
+          "duid": "KESSB1",
+          "direction_model": "bidirectional",
+          "effective_from": "2026-07-01",
+          "effective_to": null,
+          "power_capacity_mw": "193.000",
+          "storage_capacity_mwh": "385.000",
+          "aemo_generation_info_unit_id": 217301,
+          "unit_name": "Koorangi",
+          "connection_point_id": "",
+          "notes": "Capacity sourced from the July 2026 AEMO Generation Information register."
+        }
+      ]
+    }
+  ]
+}

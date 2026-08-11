@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh all NEM Dashboard data every morning at 09:00 Australia/Sydney
+
+[Timer]
+OnCalendar=*-*-* 09:00:00 Australia/Sydney
+Persistent=true
+AccuracySec=1min
+Unit=nem-suite-refresh.service
+
+[Install]
+WantedBy=timers.target

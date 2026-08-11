@@ -1,0 +1,641 @@
+{% extends "portfolio/base.html" %}
+{% load humanize static %}
+
+{% block title %}FlowTrace: Accidental Scientist{% endblock %}
+{% block meta_description %}FlowTrace: how production, pipelines, storage and demand interact across Australia's east coast gas system, built from the AEMO Gas Bulletin Board.{% endblock %}
+
+{% block content %}
+<div class="nem gasmon">
+
+  <header class="nem-hero">
+    <p class="journal-eyebrow">NEM Dashboard · east-coast gas</p>
+    <h1>FlowTrace</h1>
+    <p class="gasmon-tagline">Australia's east coast gas flow monitor</p>
+    <p class="nem-hero__intro">
+      How production, pipelines, storage, demand and short-term prices interact across
+      Australia's east coast gas system: where gas is moving, when the system is becoming
+      constrained, and which physical conditions are contributing to a market stress event.
+    </p>
+    <p class="plab-disclaimer">
+      Built on public AEMO Gas Bulletin Board data. Not market advice.
+    </p>
+    <div class="gasmon-badges">
+      <span class="gasmon-badge">NEM Dashboard project</span>
+      <span class="gasmon-badge">Public AEMO data</span>
+      <span class="gasmon-badge">Daily refresh</span>
+    </div>
+  </header>
+
+  {% include "portfolio/_nem_suite_nav.html" with active="gas" %}
+
+  {% if picture %}
+    <div class="gasmon-release">
+      <span class="gasmon-release__tag">Daily data refresh</span>
+      <span class="gasmon-release__item">Runs at 09:00 Australia/Sydney</span>
+      <span class="gasmon-release__item">Published through gas day {{ picture.gas_date }}</span>
+      <span class="gasmon-release__item">One gas day runs 06:00–06:00 AEST</span>
+      <span class="gasmon-release__flag">Not live data</span>
+    </div>
+  {% endif %}
+
+  <details class="gasmon-thesis">
+    <summary>
+      <span class="gasmon-thesis__title">Project thesis · what FlowTrace is testing</span>
+      <span class="gasmon-thesis__cta">Read the thesis <span aria-hidden="true">+</span></span>
+    </summary>
+    <div class="gasmon-thesis__body">
+      <p>
+        FlowTrace measures a contradiction in Australia's east coast gas system: the country
+        exports most of its gas from one coast while the far end of the same pipeline network
+        struggles to keep Melbourne warm in winter. Built from the operator's own public data, it
+        tracks where gas is produced, where it moves, and when the network is running against its
+        limits.
+      </p>
+      <p>
+        Three things stand out so far. LNG export accounts for the large majority of all end-use
+        gas — generation, the subject of most energy-transition commentary, is a fraction of it,
+        though still enough to set a floor under electricity prices. The pipelines feeding Curtis
+        Island have been flagged as threatened on nearly every day for months, a structural
+        condition rather than a passing event. And stress is regional: storage in one state can sit
+        near a record low while another sits comfortably above normal, a pattern a single national
+        number would hide entirely.
+      </p>
+      <p>
+        The wider claim: whenever a domestic market is joined to a global one by an export
+        terminal, the domestic remainder pays a cost worth measuring directly rather than assuming
+        away. Prices are not yet built into FlowTrace, so its commercial half — what that cost
+        actually is — remains the next piece of work.
+      </p>
+      <p class="gasmon-thesis__note">
+        Source: AEMO Gas Bulletin Board, fetched from nemweb. This thesis is the standard the rest
+        of the design is held to.
+      </p>
+    </div>
+  </details>
+
+  {% if not summary %}
+
+    <div class="nem-empty">
+      <h2>No system model loaded yet</h2>
+      <p>
+        The Bulletin Board's reports have not been ingested into this environment. Run
+        <code>manage.py ingest_gbb_flows --weekly</code>, or trigger a refresh from the admin
+        under Gas data refreshes.
+      </p>
+    </div>
+
+  {% else %}
+
+    {# ── Snapshot: current state against eight years of the same week ── #}
+    {% if headline %}
+      <section class="gasmon-headline">
+        <h2>System snapshot · {{ headline.gas_date }}</h2>
+        <p class="gasmon-lede">
+          Each figure sits against the same week in every other year on record, because a level
+          without history is not a finding.
+          {% if picture.missing %}
+            <strong>{{ picture.missing|length }} facilit{{ picture.missing|pluralize:"y,ies" }}</strong>
+            did not submit for this gas day.
+          {% endif %}
+        </p>
+
+        <div class="gasmon-tiles">
+          {% for tile in headline.tiles %}
+            <div class="gasmon-tile{% if tile.headline %} gasmon-tile--headline{% endif %}{% if tile.percentile <= 10 or tile.percentile >= 90 %} gasmon-tile--notable{% endif %}">
+              <p class="gasmon-tile__label">{{ tile.label }}</p>
+              <p class="gasmon-tile__value">{{ tile.value|floatformat:0|intcomma }}
+                <span class="gasmon-tile__unit">{{ tile.unit }}</span></p>
+              {% if tile.percentile is not None %}
+                <p class="gasmon-tile__pct">{{ tile.percentile|floatformat:0 }}th percentile for this week</p>
+              {% else %}
+                <p class="gasmon-tile__pct">no comparable history</p>
+              {% endif %}
+              {% if tile.change is not None %}
+                <p class="gasmon-tile__change">
+                  {% if tile.direction == 'up' %}▲{% elif tile.direction == 'down' %}▼{% else %}—{% endif %}
+                  {{ tile.change_abs|floatformat:0|intcomma }}
+                  {% if tile.change_pct_abs %}({{ tile.change_pct_abs|floatformat:0 }}%){% endif %}
+                  over seven days
+                </p>
+              {% endif %}
+              <p class="gasmon-tile__note">{{ tile.note }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    {# ── Thesis claim 1: an export system with a domestic remainder ── #}
+    {% if system %}
+      <section class="gasmon-balance-section">
+        <h2>An export system with a domestic remainder</h2>
+        <p>
+          Supply against end-use demand, {{ system.start }} to {{ system.end }} (90 days). The
+          filled band is LNG export — over this window it averaged
+          <strong>{{ system.export_share|floatformat:0 }}%</strong> of all end-use gas. The gap
+          between the export band and the demand line is the domestic remainder: generation, large
+          industry and distribution combined.
+        </p>
+
+        {% if system.truncated %}
+          <p class="gasmon-warning">
+            Starts at {{ system.expansion_date }}, when the Bulletin Board expanded. Before that
+            date no end-use facility reported at all, so demand cannot be drawn further back
+            without inventing a story out of a reporting change.
+          </p>
+        {% endif %}
+
+        <div class="gasmon-figure" id="gasmon-balance-chart"></div>
+
+        <ul class="gasmon-legend">
+          <li><span class="gasmon-swatch" style="background: var(--gas-band-gpg);"></span>Supply</li>
+          <li><span class="gasmon-swatch" style="background: var(--text-primary);"></span>End-use demand</li>
+          <li><span class="gasmon-swatch gasmon-swatch--lngexport"></span>LNG export (of demand)</li>
+        </ul>
+      </section>
+    {% endif %}
+
+    {# ── How the system connects: the flow network ── #}
+    {% if network %}
+      <section class="gasmon-network-section">
+        <h2>How Australia's east-coast gas system moved</h2>
+        <p class="gasmon-network-subtitle">Net supply, demand and gas flows · {{ network.gas_date }} · TJ/day</p>
+        <p class="gasmon-lede">
+          Node size shows net supply or demand. Line width shows gas flow, tapering toward the
+          receiving location. The Curtis Island LNG export is scaled separately from the domestic
+          network below, so it stays obviously large without flattening everything else to
+          hairlines. Hover or focus any node for its outgoing and incoming detail.
+        </p>
+
+        <div class="gasmon-figure gasmon-scroll" id="gasmon-network-chart"></div>
+
+        <div class="gasmon-legend-magnitudes" id="gasmon-network-legend" aria-hidden="true"></div>
+
+        <ul class="gasmon-legend">
+          <li><span class="gasmon-swatch" style="background: var(--gas-band-gpg); border-radius:50%;"></span>Net supply</li>
+          <li><span class="gasmon-swatch" style="background: var(--gas-node-demand); border-radius:50%;"></span>Net demand</li>
+          <li><span class="gasmon-swatch" style="background: var(--bg-primary); border: 1.5px solid var(--gas-axis); border-radius:50%;"></span>Transit only</li>
+          <li><svg width="30" height="9" aria-hidden="true"><path d="M1,3 L22,3 L22,6 L1,6 Z" fill="var(--gas-band-large)"/></svg>Measured flow</li>
+          <li><svg width="30" height="9" aria-hidden="true"><path d="M1,3 L22,3 L22,6 L1,6 Z" fill="var(--gas-band-large)" stroke="var(--gas-axis)" stroke-width="0.75" stroke-dasharray="3 2"/></svg>Allocated estimate</li>
+          <li><span class="gasmon-swatch" style="background: var(--gas-export);"></span>LNG export</li>
+        </ul>
+
+        <p class="gasmon-note">
+          Not a map — the Bulletin Board publishes no coordinates, so positions are placed by hand
+          and <strong>distances mean nothing</strong>. The faint circles group nodes by state for
+          orientation only, computed from the nodes actually drawn rather than hand placed, so
+          they can never drift out of sync with the layout. Coverage is the eastern system plus
+          the Northern Territory, connected via the Northern Gas Pipeline; Western Australia runs
+          its own, separate Gas Bulletin Board and is out of scope, which is why it never appears
+          here.
+        </p>
+
+        <p class="gasmon-note">
+          Node values are published separately from the flows shown — production, storage and
+          end-use figures at that location, not a sum of the connections touching it — so a node
+          and its edges will not reconcile exactly, by construction rather than by error. Where a
+          pipeline delivers to several points, the individual line is <strong>allocated</strong>
+          across them by size rather than directly measured; where gas moved both ways between the
+          same two points on the day, one line shows the <strong>net</strong> movement, with both
+          raw figures kept in its tooltip.
+        </p>
+
+        <details class="gasmon-reference-block">
+          <summary>The largest flows, as figures</summary>
+          <table class="gasmon-table">
+            <caption>
+              <strong>Edges are an inference where a pipeline serves several delivery points.</strong>
+              The Bulletin Board reports what each pipeline received and delivered at each location,
+              never which receipt fed which delivery, so on {{ network.inferred_pipelines }}
+              pipelines the flow is allocated across deliveries in proportion to their size. Values
+              are net of any opposing flow between the same two points that day.
+            </caption>
+            <thead>
+              <tr><th scope="col">From</th><th scope="col">To</th><th scope="col">TJ/day</th><th scope="col">Via</th></tr>
+            </thead>
+            <tbody>
+              {% for edge in network.edges|slice:":12" %}
+                <tr{% if edge.export %} class="gasmon-row--export"{% endif %}>
+                  <th scope="row">{{ edge.source_label }}</th>
+                  <td>{{ edge.target_label }}</td>
+                  <td>{{ edge.tj|floatformat:0|intcomma }}</td>
+                  <td>
+                    {{ edge.pipelines|join:", " }}
+                    {% if edge.export %}<span class="gasmon-tag gasmon-tag--export">LNG export</span>{% endif %}
+                    {% if edge.inferred %}<span class="gasmon-tag">allocated</span>{% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </details>
+      </section>
+    {% endif %}
+
+    {# ── Thesis claim 3: stress is regional, aggregates hide it ── #}
+    {% if balance %}
+      <section class="gasmon-state-balance">
+        <h2>Where the gas came from</h2>
+        <p>
+          Two demand measures, side by side and never added. <strong>End use</strong> counts
+          facilities reporting directly and is blind where consumption arrives through a
+          transmission system — Victoria's end-use figure understates its real load, because
+          Melbourne is served by a pipeline rather than facilities that report demand directly.
+          <strong>Delivered</strong> counts what pipelines put into the state, which catches that
+          load but double counts wherever a pipeline feeds a facility that also reports. No net
+          column: one balance would have to pick a side and be wrong for half the states.
+        </p>
+        <table class="gasmon-table">
+          <thead>
+            <tr>
+              <th scope="col">State</th>
+              <th scope="col">Supply (TJ)</th>
+              <th scope="col">End use (TJ)</th>
+              <th scope="col">Delivered by pipeline (TJ)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in balance.rows %}
+              <tr>
+                <th scope="row">{{ row.state }}</th>
+                <td>{{ row.supply_tj|floatformat:0|intcomma }}</td>
+                <td>{{ row.end_use_tj|floatformat:0|intcomma }}</td>
+                <td>{{ row.delivered_tj|floatformat:0|intcomma }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">East coast</th>
+              <td>{{ balance.supply_tj|floatformat:0|intcomma }}</td>
+              <td>{{ balance.end_use_tj|floatformat:0|intcomma }}</td>
+              <td>{{ balance.delivered_tj|floatformat:0|intcomma }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </section>
+    {% endif %}
+
+    {# ── Thesis claim 2: the binding constraint is structural, not episodic ── #}
+    {% if constraints %}
+      <section class="gasmon-constraints">
+        <h2>When the system has been tight</h2>
+        <p>
+          One cell per pipeline per gas day, {{ constraints.start }} to {{ constraints.end }}
+          (90 days). <strong>{{ constraints.pipelines_flagged }} of
+          {{ constraints.pipelines_assessed }}</strong> pipelines were flagged at least once; only
+          those are drawn. The band on top counts pipelines flagged each day.
+        </p>
+
+        <div class="gasmon-figure gasmon-scroll" id="gasmon-constraint-chart"></div>
+
+        <ul class="gasmon-legend">
+          <li><span class="gasmon-swatch gasmon-swatch--green"></span>Adequate</li>
+          <li><span class="gasmon-swatch gasmon-swatch--amber"></span>Threatened</li>
+          <li><span class="gasmon-swatch gasmon-swatch--red"></span>Inadequate</li>
+        </ul>
+
+        <p class="gasmon-note">
+          A pipeline flagged on most of its assessed days is set in <em>italics</em> below: it is
+          <strong>chronically</strong> tight, a structural fact about the network, not an event.
+          Reading it the same as a pipeline flagged once turns a permanent condition into a false
+          alarm — which is how a monitor loses its reader.
+        </p>
+
+        {% if constraints.chronic %}
+          <p><strong>Chronic —</strong>
+            {% for row in constraints.chronic %}{{ row.name }} ({{ row.constrained_days }} days){% if not forloop.last %}, {% endif %}{% endfor %}
+          </p>
+        {% endif %}
+        {% if constraints.episodic %}
+          <p><strong>Episodic —</strong>
+            {% for row in constraints.episodic %}{{ row.name }} ({{ row.constrained_days }} day{{ row.constrained_days|pluralize }}){% if not forloop.last %}, {% endif %}{% endfor %}
+          </p>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    {% if utilisation and utilisation.rated %}
+      <section class="gasmon-utilisation">
+        <h2>How full the pipelines were</h2>
+        <p>
+          Throughput on gas day {{ utilisation.gas_date }} against the capacity in force
+          <em>that day</em>, not today's. <strong>{{ utilisation.above_90 }} of
+          {{ utilisation.meaningful_count }}</strong> pipelines ran above {{ tight_pct }}%. Capacity
+          is the largest rated leg, never the sum: a bidirectional pipeline publishes one rating
+          each way, and adding them would invent capacity that cannot exist at once.
+        </p>
+
+        <div class="gasmon-figure gasmon-scroll" id="gasmon-utilisation-chart"></div>
+
+        <ul class="gasmon-legend">
+          <li><span class="gasmon-swatch" style="background: var(--gas-adequate);"></span>Under {{ tight_pct }}%</li>
+          <li><span class="gasmon-swatch" style="background: var(--gas-threatened);"></span>{{ tight_pct }}% or over</li>
+          <li><span class="gasmon-swatch" style="border: 1.5px dashed var(--gas-axis); background: var(--bg-tertiary);"></span>Denominator limit — not scarcity</li>
+        </ul>
+
+        {% if utilisation.suspect %}
+          <p class="gasmon-warning">
+            <strong>{{ utilisation.suspect|length }} pipeline{{ utilisation.suspect|pluralize }}
+            received more than the largest single rated leg allows.</strong> Maximum daily quantity
+            is a <em>point-to-point</em> rating, so a pipeline taking gas in at several points can
+            exceed any one leg — the South West Queensland Pipeline received at both Wallumbilla
+            and Moomba. A limit of this measure, not a pipeline over capacity, so they are excluded
+            from the count above.
+          </p>
+        {% endif %}
+
+        <p class="gasmon-note">
+          Our arithmetic, not an AEMO measure. AEMO's own view is the linepack adequacy flag,
+          shown above and in the forward outlook below.
+        </p>
+      </section>
+    {% endif %}
+
+    {% if storage %}
+      <section class="gasmon-storage-chart">
+        <h2>Storage against its own history</h2>
+        <p>
+          Gas held across the east coast, {{ storage.start }} to {{ storage.end }}, against the
+          median for the same day in other years. A level only means something next to what is
+          usually held at that point in the season.
+        </p>
+
+        <div class="gasmon-figure" id="gasmon-storage-chart"></div>
+
+        <ul class="gasmon-legend">
+          <li><span class="gasmon-swatch" style="background: var(--text-primary);"></span>Held</li>
+          <li><span class="gasmon-swatch" style="background: var(--gas-axis);"></span>Median for this day in other years</li>
+        </ul>
+
+        {% if storage.absent_latest %}
+          <p class="gasmon-warning">
+            <strong>{{ storage.absent_latest|join:", " }} did not report on {{ storage.end }}</strong>,
+            so the total covers {{ storage.reporting|last }} facilities, not
+            {{ storage.facilities|length }}. Both lines cover the same set — comparing a
+            five-facility total against six-facility history invents a shortfall.
+          </p>
+        {% endif %}
+        {% if storage.suspect %}
+          <p class="gasmon-note">
+            {{ storage.suspect|length }} implausible holding{{ storage.suspect|pluralize }} excluded
+            — a facility's stored inventory cannot swing by more than half its usual level between
+            reports without a data error, most often a misplaced digit at the source.
+          </p>
+        {% endif %}
+
+        <table class="gasmon-table">
+          <caption>
+            Each facility against its own seasonal median — the aggregate above can hide one region
+            drawing down while another sits comfortably.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Facility</th>
+              <th scope="col">Held (TJ)</th>
+              <th scope="col">Median for this day (TJ)</th>
+              <th scope="col">Versus median</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for facility in storage.facilities %}
+              <tr{% if facility.latest is None %} class="gasmon-row--inactive"{% endif %}>
+                <th scope="row">{{ facility.name }}</th>
+                <td>{% if facility.latest is not None %}{{ facility.latest|floatformat:0|intcomma }}{% else %}not reported{% endif %}</td>
+                <td>{% if facility.reference_latest %}{{ facility.reference_latest|floatformat:0|intcomma }}{% else %}—{% endif %}</td>
+                <td>
+                  {% if facility.latest is not None and facility.reference_latest %}
+                    {% widthratio facility.latest facility.reference_latest 100 as pct %}{{ pct }}%
+                  {% else %}—{% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">Total, like for like</th>
+              <td>{{ storage.latest_total|floatformat:0|intcomma }}</td>
+              <td>{% if storage.reference_latest %}{{ storage.reference_latest|floatformat:0|intcomma }}{% else %}—{% endif %}</td>
+              <td>
+                {% if storage.reference_latest %}
+                  {% widthratio storage.latest_total storage.reference_latest 100 as total_pct %}{{ total_pct }}%
+                {% else %}—{% endif %}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </section>
+    {% endif %}
+
+    {% if outlook %}
+      <section class="gasmon-outlook">
+        <h2>Constraint outlook</h2>
+        <p>
+          AEMO's linepack adequacy assessment: recent observed days plus the forward outlook, seven
+          days in total. Utilisation above can only be computed after the fact — this is the only
+          forward-looking physical signal in the dataset.
+        </p>
+        <table class="gasmon-table">
+          <caption>
+            The forward leg runs as far as a system-wide assessment holds — three gas days when
+            last measured. One NT pipeline publishes its own outlooks a year ahead; those are
+            excluded, since a single operator's planning is not a view of the east coast.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Gas day</th>
+              <th scope="col">Basis</th>
+              <th scope="col">Flags</th>
+              <th scope="col">Pipelines flagged</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for day in outlook %}
+              <tr>
+                <th scope="row">{{ day.gas_date }}</th>
+                <td>{% if day.observed %}Observed{% else %}Forecast{% endif %}</td>
+                <td>
+                  {% for flag, count in day.counts.items %}{{ count }} {{ flag|lower }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                </td>
+                <td>
+                  {% for flag in day.constrained %}
+                    {{ flag.facility.name }} ({{ flag.flag|lower }}){% if not forloop.last %}, {% endif %}
+                  {% empty %}
+                    none
+                  {% endfor %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    {% endif %}
+
+    {% if demand %}
+      <section class="gasmon-demand">
+        <h2>What the gas is for</h2>
+        <p>
+          End-use demand by consumer type, {{ demand.start }} to {{ demand.end }} (90 days). LNG
+          export is not just the largest category, it is most of the system; generation is the
+          small volatile band. Pipelines are excluded — their reported demand is delivery to
+          consumers and would count the same gas twice.
+        </p>
+
+        {% if demand.truncated %}
+          <p class="gasmon-warning">
+            Starts at {{ demand.expansion_date }}, when the Bulletin Board expanded. Before that
+            date no end-use facility reported at all.
+          </p>
+        {% endif %}
+
+        <div class="gasmon-figure" id="gasmon-demand-chart"></div>
+
+        <ul class="gasmon-legend">
+          {% for series in demand.series %}
+            <li><span class="gasmon-swatch gasmon-swatch--{{ series.code|lower }}"></span>{{ series.label }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    {% if coverage %}
+      <details class="gasmon-coverage gasmon-reference-block">
+        <summary>Data currency — refreshed weekly on Monday, currently to {{ picture.gas_date }}</summary>
+        <table class="gasmon-table">
+          <caption>
+            The flow report is a 31-day rolling window: data that falls out is gone from AEMO's
+            current directory, so <em>margin</em> is how long a refresh can be left before days
+            are lost rather than merely stale.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Source</th>
+              <th scope="col">Covers</th>
+              <th scope="col">Position</th>
+              <th scope="col">Margin</th>
+              <th scope="col">Last refreshed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in coverage %}
+              <tr>
+                <th scope="row">{{ row.source }}</th>
+                <td>{% if row.earliest_gas_date %}{{ row.earliest_gas_date }} to {{ row.latest_gas_date }}{% else %}—{% endif %}</td>
+                <td>
+                  {% if row.days_behind is not None %}
+                    {{ row.days_behind }} day{{ row.days_behind|pluralize }} behind
+                  {% elif row.days_ahead is not None %}
+                    {{ row.days_ahead }} day{{ row.days_ahead|pluralize }} ahead
+                  {% else %}—{% endif %}
+                </td>
+                <td>
+                  {% if row.loses_data_if_skipped and row.days_until_loss is not None %}
+                    {{ row.days_until_loss }} day{{ row.days_until_loss|pluralize }}
+                  {% else %}
+                    forward outlook, nothing lost
+                  {% endif %}
+                </td>
+                <td>{{ row.last_run_at|date:"j M Y H:i" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% if gaps %}
+          <p class="gasmon-warning">
+            <strong>{{ gaps|length }} gas day{{ gaps|pluralize }} missing</strong> from the flow
+            record between the earliest and latest held. A refresh was skipped for long enough
+            that the window dropped them.
+          </p>
+        {% endif %}
+      </details>
+    {% endif %}
+
+    <details class="gasmon-counts gasmon-reference-block">
+      <summary>Reference: {{ summary.facilities }} registered facilities, {{ pipelines|length }} pipelines, {{ summary.connection_points|intcomma }} connection points</summary>
+
+      <h3>Registered facilities</h3>
+      <table class="gasmon-table">
+        <caption>
+          Every facility AEMO requires to report, by type. "Active" is AEMO's own operating
+          state, so a decommissioned facility stays in the model rather than disappearing.
+        </caption>
+        <thead>
+          <tr><th scope="col">Type</th><th scope="col">Total</th><th scope="col">Active</th></tr>
+        </thead>
+        <tbody>
+          {% for row in summary.by_type %}
+            <tr>
+              <th scope="row">{{ row.label }}</th>
+              <td>{{ row.total }}</td>
+              <td>{{ row.active }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr><th scope="row">All facilities</th><td>{{ summary.facilities }}</td><td></td></tr>
+        </tfoot>
+      </table>
+
+      <ul class="gasmon-facts">
+        <li><strong>{{ summary.locations|intcomma }}</strong> locations, of which <strong>{{ summary.hubs }}</strong> are trading hubs</li>
+        <li><strong>{{ summary.connection_points|intcomma }}</strong> connection points, <strong>{{ summary.mapped_zones|intcomma }}</strong> mapped to a demand zone</li>
+        <li><strong>{{ summary.ratings_in_force|intcomma }}</strong> rated capacity legs in force on {{ summary.ratings_as_at }}, of which <strong>{{ summary.reverse_haul }}</strong> pipelines carry more than one (the reverse-haul signal), across <strong>{{ summary.basins }}</strong> basins and <strong>{{ summary.linepack_zones }}</strong> linepack zones</li>
+        <li><strong>{{ summary.ratings|intcomma }}</strong> ratings archived since 2019 — the re-rating history, not a count of legs</li>
+      </ul>
+
+      <h3>Pipelines</h3>
+      <table class="gasmon-table">
+        <caption>
+          Legs <em>in force</em> on {{ summary.ratings_as_at }}, not the count of archived
+          ratings. More than one leg means the pipeline flows both ways or serves several
+          receipt-to-delivery paths — the only way reverse-haul capability is discoverable.
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Pipeline</th>
+            <th scope="col">Operator</th>
+            <th scope="col">Legs in force</th>
+            <th scope="col">Largest leg (TJ/day)</th>
+            <th scope="col">Connection points</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pipe in pipelines %}
+            <tr{% if not pipe.active %} class="gasmon-row--inactive"{% endif %}>
+              <th scope="row">{{ pipe.name }}{% if not pipe.active %} <span class="gasmon-tag">not active</span>{% endif %}</th>
+              <td>{{ pipe.operator|default:"—" }}</td>
+              <td>{{ pipe.legs }}</td>
+              <td>{% if pipe.max_capacity %}{{ pipe.max_capacity|floatformat:0|intcomma }}{% else %}—{% endif %}</td>
+              <td>{{ pipe.connection_points }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3>Storage</h3>
+      <ul class="gasmon-facts">
+        {% for facility in storage_facilities %}
+          <li><strong>{{ facility.name }}</strong> — {{ facility.operator_name|default:"operator not published" }}</li>
+        {% endfor %}
+      </ul>
+
+      <h3>Trading hubs</h3>
+      <ul class="gasmon-facts">
+        {% for hub in hubs %}
+          <li><strong>{{ hub.name }}</strong> ({{ hub.state }}){% if hub.description %} — {{ hub.description }}{% endif %}</li>
+        {% endfor %}
+      </ul>
+    </details>
+
+  {% endif %}
+
+  {% if system_json %}{{ system_json|json_script:"gasmon-balance-data" }}{% endif %}
+  {% if utilisation_json %}{{ utilisation_json|json_script:"gasmon-utilisation-data" }}{% endif %}
+  {% if network_json %}{{ network_json|json_script:"gasmon-network-data" }}{% endif %}
+  {% if demand_json %}{{ demand_json|json_script:"gasmon-demand-data" }}{% endif %}
+  {% if constraint_json %}{{ constraint_json|json_script:"gasmon-constraint-data" }}{% endif %}
+  {% if storage_json %}{{ storage_json|json_script:"gasmon-storage-data" }}{% endif %}
+  <script src="{% static 'gas_monitor/js/gas_monitor.js' %}?v=7"></script>
+
+</div>
+{% endblock %}

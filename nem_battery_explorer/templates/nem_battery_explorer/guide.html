@@ -1,0 +1,91 @@
+{% extends "portfolio/base.html" %}
+{% load static %}
+
+{% block title %}How Grid Batteries Work: A Strategy Guide | ChargeTrace{% endblock %}
+{% block meta_description %}A first-principles guide to grid batteries, the Australian NEM, energy arbitrage, FCAS, degradation, opportunity cost and senior battery trading strategy.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'nem_battery_explorer/css/explorer.css' %}?v=2">
+{% endblock %}
+
+{% block content %}
+<div class="bex bex-guide">
+  <a class="bex-guide__back" href="{% url 'nem_battery_explorer:explorer' %}">← Back to ChargeTrace</a>
+  <header class="bex-hero">
+    <p class="journal-eyebrow">ChargeTrace field guide · From first principles to trading strategy</p>
+    <h1>How a grid battery really works</h1>
+    <p class="bex-guide__dek">A practical introduction to the physical asset, its role in Australia's electricity markets, the economics of stored energy and the questions a senior trading strategist is trying to answer.</p>
+    <div class="bex-guide__meta">
+      <span>Approximately 2,000 words</span>
+      <span>Beginner → advanced</span>
+      <span>Australian NEM focus</span>
+      <span>Updated August 2026</span>
+    </div>
+  </header>
+
+  <article class="bex-guide__article">
+    <h2>1. Begin with the simplest idea: a battery moves electricity through time</h2>
+    <p>An electricity system must balance supply and demand almost continuously. If consumers are using 25,000 megawatts, generators and storage must inject approximately the same amount, after allowing for network losses. A conventional generator creates electrical energy from coal, gas, water, wind or sunlight. A battery does not create energy. It consumes electricity while charging, holds most of that energy chemically, and returns a smaller amount later.</p>
+    <p>This simple time-shifting ability is valuable because electricity does not have one stable price. At noon, rooftop and grid-scale solar can produce more energy than the system immediately needs. Prices may fall to zero or become negative. Several hours later, solar production disappears while households cook, heat or cool their homes. Supply becomes scarcer and prices rise. A battery can buy or absorb energy during the abundant period and sell it during the scarce period.</p>
+    <p>The battery is therefore best understood as a flexible reservoir. The reservoir has a size, a filling and emptying speed, an efficiency and an operating cost. It also has a location. A full battery behind a network constraint may be less valuable than a smaller battery located where the power system urgently needs support.</p>
+
+    <dl>
+      <div><dt>MW: speed</dt><dd>Power capacity describes how quickly the battery can charge or discharge at a point in time.</dd></div>
+      <div><dt>MWh: tank</dt><dd>Energy capacity describes how much usable electrical energy the battery can hold.</dd></div>
+      <div><dt>Duration: endurance</dt><dd>MWh divided by MW gives the approximate hours of full-power discharge.</dd></div>
+    </dl>
+
+    <p>A 100 MW / 200 MWh battery is commonly called a two-hour battery. It can theoretically discharge at 100 MW for two hours, or at 50 MW for four hours. In practice, operating limits, auxiliary loads, temperature management and reserved capacity mean the full nameplate quantity may not always be available.</p>
+
+    <h2>2. What is inside the asset?</h2>
+    <p>A grid battery is a power station assembled from several interacting systems. Thousands of electrochemical cells are grouped into modules, racks and containers. A battery-management system monitors cell voltage, temperature and health. It prevents unsafe charging or discharging and tries to keep cells operating evenly.</p>
+    <p>The cells store direct current, while the power grid operates with alternating current. A power-conversion system—principally bidirectional inverters—converts electricity in both directions. Transformers then raise the voltage so the asset can connect to the transmission or distribution network. Cooling, fire protection, communications and auxiliary power systems keep the facility within its operating envelope.</p>
+    <p>Above the physical equipment sits an energy-management system. This decides or receives instructions about how much power the battery should produce or consume. A commercial optimiser converts forecasts, market prices, state of charge, operating limits, contracts and risk preferences into bids. In Australia's National Electricity Market, AEMO's dispatch engine then co-optimises energy and frequency-control services every five minutes.</p>
+    <aside><strong>State of charge is the battery's fuel gauge.</strong> A battery at 90% state of charge has plenty of energy available to discharge but little room to absorb more. At 10%, the opposite is true. Headroom in both directions can itself be valuable when providing frequency services.</aside>
+
+    <h2>3. Energy is lost, and the battery wears out</h2>
+    <p>If a battery purchases 100 MWh, it cannot later sell the full 100 MWh. Energy is lost in the cells, inverters, transformers and auxiliary systems. A round-trip efficiency of 90% means roughly 90 MWh returns to the grid for every 100 MWh purchased, although actual efficiency changes with power, temperature and state of charge.</p>
+    <p>This creates a minimum economic spread. If the battery charges at $100/MWh and is 90% efficient, it needs a discharge price above roughly $111/MWh merely to recover the energy purchase before considering losses, fees or degradation. A wide difference between the day's low and high prices is not automatically a tradeable profit; the sequence of prices and the asset's physical position matter.</p>
+    <p>Every cycle also changes the cells. High state of charge, deep cycling, heat and aggressive power can accelerate degradation. Owners commonly attach a shadow cost to throughput: each additional MWh discharged consumes a small portion of the battery's finite life or warranty allowance. A trader may rationally ignore a modest price spread because the expected gross margin is lower than the degradation and opportunity cost.</p>
+
+    <h2>4. How the battery participates in the NEM</h2>
+    <p>The NEM connects Queensland, New South Wales, the Australian Capital Territory, Victoria, South Australia and Tasmania. It is divided into five pricing regions and dispatched every five minutes. A scheduled battery submits price-and-quantity bands indicating how much it is willing to charge or discharge at different prices. AEMO solves the dispatch problem subject to demand, generator offers, interconnector limits, network constraints and security requirements.</p>
+    <p>When the battery exports, its dispatch appears as positive generation. When it charges, it behaves as scheduled demand. Integrated Energy Storage System reforms allow a battery to participate as a bidirectional unit rather than maintaining an artificial separation between its generator and load identities. Public dispatch, SCADA, price, availability and energy-storage fields make a substantial portion of its physical behaviour observable.</p>
+    <p>The regional reference price is only the starting point for commercial value. Settlements can also reflect marginal loss factors, participant fees and Frequency Performance Payments. Owners may have tolling agreements, virtual storage contracts, caps, swaps or power purchase arrangements. Some batteries have network-support obligations that take priority over merchant trading. Consequently, public spot-market value is useful evidence but is not participant revenue or profit.</p>
+
+    <h3>Energy arbitrage</h3>
+    <p>The most intuitive strategy is to charge at low prices and discharge at high prices. Negative prices are particularly attractive because the market can effectively pay the battery to consume energy. Yet a battery with only two hours of storage cannot capture every cheap and expensive interval. It must choose which opportunity to preserve energy for.</p>
+
+    <h3>Frequency control ancillary services</h3>
+    <p>System frequency must remain close to 50 hertz. If a large generator trips, supply suddenly falls below demand and frequency declines. Batteries can change output extremely quickly, so they are well suited to raise services that increase injection or reduce charging. Lower services do the reverse when supply is excessive. The NEM procures contingency services over one-second, six-second, sixty-second and five-minute horizons, together with regulation services used continuously by automatic generation control.</p>
+    <p>FCAS and energy compete for the same physical capability. A battery cannot promise unlimited raise response if it is already discharging at maximum power, and it needs stored energy to sustain some raise services. Conversely, charging can create raise headroom because the battery can respond by reducing its consumption. The optimiser values energy, power and headroom simultaneously.</p>
+
+    <h2>5. Why batteries matter to a modern energy economy</h2>
+    <p>Wind and solar have low operating costs but vary with weather and sunlight. Batteries translate part of that variable supply into controllable flexibility. They charge when renewable production is abundant, reduce curtailment, and move energy toward evening demand. Their fast response helps manage forecast errors and sudden equipment failures.</p>
+    <p>Batteries are also changing price formation. A fleet charging during the middle of the day adds demand and can lift very low prices. The same fleet discharging during the evening adds supply and can suppress high prices. This narrows the daily spread. The system benefits through lower volatility and improved renewable integration, while battery owners face a commercial paradox: successful battery deployment erodes the arbitrage opportunity that attracted the investment.</p>
+    <p>The same competition occurs in ancillary services. Early batteries entered relatively shallow FCAS markets and earned unusually high revenues. As more capacity became accredited, supply increased and FCAS prices fell. Future battery business models are therefore likely to combine merchant arbitrage with contracted capacity, network support, system-strength services, renewable firming and portfolio hedging.</p>
+    <p>Grid-forming inverters add another layer. Most traditional inverters follow an existing grid waveform. A grid-forming inverter can establish and regulate its own voltage waveform, helping a power system remain stable as synchronous coal and gas machines retire. Batteries can provide rapid active-power response, voltage support and synthetic or inertia-like behaviour, although the precise service depends on equipment capability and market or contractual arrangements.</p>
+
+    <h2>6. The central trading problem: opportunity cost</h2>
+    <p>Imagine a battery is full at 4 pm and the price reaches $250/MWh. Discharging seems profitable. But the forecast shows a credible chance of $5,000/MWh at 6 pm. Energy sold now cannot be sold again later unless the battery finds time to recharge. The value of waiting is the opportunity cost of dispatch.</p>
+    <p>The decision is made under uncertainty. Traders forecast demand, wind, solar, outages, interconnector flows, constraints, FCAS prices and competitor behaviour. They form a distribution of possible prices rather than one perfect forecast. The optimiser compares the immediate price with the expected future value of the stored MWh, adjusted for risk, efficiency and degradation.</p>
+    <p>Duration changes the strategy. A one-hour battery must concentrate on short, valuable events and frequency services. A four-hour battery can carry more midday solar into the evening and cover longer peaks. An eight-hour battery may capture a broader energy-shifting role, but its additional MWh will be valuable only if the market regularly produces sufficiently long spreads.</p>
+    <aside><strong>A hindsight benchmark is not the trader's information set.</strong> Looking backward, the highest and lowest prices are known. In real time, the operator saw forecasts and probabilities. Comparing actual dispatch with perfect or feasible hindsight is useful for consistency and diagnosis, but the unexplained gap must not automatically be labelled a mistake.</aside>
+
+    <h2>7. What a senior trading strategist wants to know</h2>
+    <p>A senior strategist begins with physical truth. What is the usable power and energy today? Is a unit unavailable? What are the current state of charge, temperature restrictions, warranty limits and FCAS enablements? Has a network constraint changed the effective capability? Public nameplate capacity is not enough.</p>
+    <p>The second layer is market state. The strategist watches regional energy and FCAS prices, demand, renewable forecasts, generator outages, interconnector limits and constraint equations. They also study aggregate battery behaviour. If every large battery is likely to charge at noon and discharge at 6 pm, the anticipated spread may collapse before the event arrives.</p>
+    <p>The third layer is decision quality. Did the asset buy energy in the lowest-value intervals? Did it discharge into the most valuable intervals? How much high-price opportunity was unavailable because the battery was empty? How often did FCAS reservation prevent an energy dispatch, and was the FCAS payment sufficient? Did actual dispatch follow the intended target? Was value concentrated in a few exceptional events or produced repeatedly?</p>
+    <p>The fourth layer is comparability. Absolute dollars favour large batteries. A strategist normalises value by MW, MWh, cycle and availability. They compare capture price, charging price, achieved spread, cycling intensity and value per unit of capacity. They separate market opportunity from execution: a battery in a quiet region may trade well but earn less than a poorly executed battery exposed to an extraordinary price spike.</p>
+    <p>Finally comes forward strategy. The strategist asks whether new competitors, transmission upgrades, renewable entry or rule changes will alter the revenue stack. A project may perform well today but face declining spreads as several gigawatts connect. Conversely, a network bottleneck, capacity contract or grid-forming requirement may create value that is not visible in historical energy arbitrage.</p>
+
+    <h2>8. How to read ChargeTrace</h2>
+    <p>Start with the selected battery's MW, MWh and duration. Then read dispatch and regional price together: positive output is discharging, negative output is charging. Compare this with the published storage trace to see whether the battery preserved or consumed its energy before major price events.</p>
+    <p>The observable value stack combines signed energy dispatch with regional prices and adds gross FCAS enablement value. It excludes contracts, degradation, losses, fees and private operational constraints. The opportunity-capture view asks a narrower question: given public power and energy limits, observed start and end storage, and a 90% efficiency assumption, what could a price-only hindsight schedule have earned? The answer is a benchmark, not estimated lost profit.</p>
+    <p>Next, move from the asset to the fleet. Regional coverage shows whether the selected cohort represents the market reasonably. The power-duration landscape distinguishes fast, short-duration assets from larger energy reservoirs. The quarterly growth-versus-cannibalisation chart then shows the structural story: battery activity can rise quickly even while captured spreads and market revenues decline.</p>
+    <p>The best use of ChargeTrace is disciplined curiosity. Ask what happened, why it may have happened, what public evidence supports the explanation and what remains unknowable. That boundary is not a weakness. It is what separates serious market research from an unjustified claim about a participant's intent or profit.</p>
+
+    <aside>Primary references: <a href="https://www.aemo.com.au/energy-systems/electricity/national-electricity-market-nem/nem-forecasting-and-planning/forecasting-and-planning-data/generation-information" rel="noopener">AEMO Generation Information</a>, <a href="https://www.aemo.com.au/energy-systems/major-publications/quarterly-energy-dynamics-qed" rel="noopener">Quarterly Energy Dynamics</a>, and the <a href="https://www.aemo.com.au/-/media/files/major-publications/isp/2026/2026-integrated-system-plan-isp.pdf" rel="noopener">2026 Integrated System Plan</a>.</aside>
+  </article>
+</div>
+{% endblock %}

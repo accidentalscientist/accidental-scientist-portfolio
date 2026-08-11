@@ -28,5 +28,16 @@ class FuelGenerationData(models.Model):
     fuel_type = models.CharField(max_length=50)
     supply_mw = models.FloatField()
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['timestamp', 'state', 'fuel_type'],
+                name='uniq_fuel_generation_interval',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['timestamp'], name='nem_dashboa_timesta_d8c4d0_idx'),
+        ]
+
     def __str__(self):
         return f"{self.timestamp} | {self.state} | {self.fuel_type} | {self.supply_mw} MW"
