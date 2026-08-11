@@ -150,6 +150,7 @@ def monitor(request):
             'reference': storage['reference'],
             'reporting': storage['reporting'],
             'latest_total': storage['latest_total'],
+            'has_reference': storage['has_reference'],
         } if storage else None,
         # Only the drawing payloads cross into JavaScript. Everything a
         # reader needs is already rendered server-side, so the charts stay
@@ -161,5 +162,8 @@ def monitor(request):
             'totals': constraints['totals'],
             'pipelines_assessed': constraints['pipelines_assessed'],
             'pipelines_flagged': constraints['pipelines_flagged'],
+            'requested_days': constraints['requested_days'],
+            'available_days': constraints['available_days'],
+            'history_complete': constraints['history_complete'],
         } if constraints else None,
     })

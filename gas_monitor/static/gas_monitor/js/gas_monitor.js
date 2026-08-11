@@ -46,7 +46,10 @@
     if (value <= 0) { return 1; }
     var magnitude = Math.pow(10, Math.floor(Math.log10(value)));
     var scaled = value / magnitude;
-    var step = scaled <= 1 ? 1 : scaled <= 2 ? 2 : scaled <= 5 ? 5 : 10;
+    // 2.5 and 7.5 keep a 51k storage series from being flattened beneath
+    // a 100k ceiling while retaining round, readable axis labels.
+    var step = scaled <= 1 ? 1 : scaled <= 2 ? 2 : scaled <= 2.5 ? 2.5 :
+               scaled <= 5 ? 5 : scaled <= 7.5 ? 7.5 : 10;
     return step * magnitude;
   }
 
@@ -393,7 +396,8 @@
     var rowH = 22;
     var gap = 3;
     var count = data.dates.length;
-    var cellW = Math.max(2, Math.min(10, 640 / count));
+    var sparse = count < Math.min(14, data.requested_days || 14);
+    var cellW = sparse ? 18 : Math.max(2, Math.min(10, 640 / count));
     var plotW = cellW * count;
     var width = labelW + plotW + 12;
     var summaryH = 34;
@@ -408,6 +412,15 @@
                     data.dates[count - 1] + '. ' + data.pipelines_flagged + ' of ' +
                     data.pipelines_assessed + ' pipelines were flagged at least once.'
     });
+
+    // A three-day forward file used to stretch a 252-unit SVG across the
+    // whole page, making labels and cells enormous.  Preserve the natural
+    // pixel scale until enough dates exist to behave like a heatmap.
+    if (sparse) {
+      svg.classList.add('gasmon-strip--sparse');
+      svg.style.width = width + 'px';
+      svg.style.maxWidth = '100%';
+    }
 
     // Summary band: how many pipelines were constrained each day.
     var peak = Math.max(1, Math.max.apply(null, data.totals.map(function (t) { return t.constrained; })));
@@ -520,7 +533,9 @@
       class: 'gasmon-chart',
       role: 'img',
       'aria-label': 'East coast gas storage held, ' + data.dates[0] + ' to ' +
-                    data.dates[count - 1] + ', against the median for the same day in other years. ' +
+                    data.dates[count - 1] + (data.has_reference
+                      ? ', against the median for the same day in other years. '
+                      : '. Seasonal comparison is not yet available. ') +
                     'Latest ' + Math.round(data.latest_total).toLocaleString() + ' terajoules.'
     });
 
@@ -683,8 +698,12 @@
     if (!host || !data || !data.nodes.length) { return; }
 
     var width = 1000;
-    var height = 860;
-    var pad = 46;
+    // The original 860-unit canvas made the schematic dominate an entire
+    // desktop screen and amplified its intentionally empty state regions.
+    // The topology is categorical, so a tighter vertical canvas improves
+    // scanning without implying geographic distance.
+    var height = 680;
+    var pad = 42;
     var plotW = width - pad * 2;
     var plotH = height - pad * 2;
 

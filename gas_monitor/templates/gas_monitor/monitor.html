@@ -281,11 +281,23 @@
       <section class="gasmon-constraints">
         <h2>When the system has been tight</h2>
         <p>
-          One cell per pipeline per gas day, {{ constraints.start }} to {{ constraints.end }}
-          (90 days). <strong>{{ constraints.pipelines_flagged }} of
+          One cell per pipeline per available gas day, {{ constraints.start }} to
+          {{ constraints.end }}. <strong>{{ constraints.pipelines_flagged }} of
           {{ constraints.pipelines_assessed }}</strong> pipelines were flagged at least once; only
           those are drawn. The band on top counts pipelines flagged each day.
         </p>
+
+        {% if not constraints.history_complete %}
+          <div class="gasmon-history-status" role="note">
+            <span class="gasmon-history-status__eyebrow">History building</span>
+            <strong>{{ constraints.available_days }} of {{ constraints.requested_days }} gas days available</strong>
+            <p>
+              The current AEMO adequacy file carries a short outlook rather than a 90-day archive.
+              These are the real published days; the full comparison will appear after the
+              historical backfill, without changing the weekly update routine.
+            </p>
+          </div>
+        {% endif %}
 
         <div class="gasmon-figure gasmon-scroll" id="gasmon-constraint-chart"></div>
 
@@ -354,26 +366,47 @@
 
     {% if storage %}
       <section class="gasmon-storage-chart">
-        <h2>Storage against its own history</h2>
-        <p>
-          Gas held across the east coast, {{ storage.start }} to {{ storage.end }}, against the
-          median for the same day in other years. A level only means something next to what is
-          usually held at that point in the season.
-        </p>
+        {% if storage.has_reference %}
+          <h2>Storage against its own history</h2>
+          <p>
+            Gas held across the east coast, {{ storage.start }} to {{ storage.end }}, against the
+            median for the same day in other years. A level only means something next to what is
+            usually held at that point in the season.
+          </p>
+        {% else %}
+          <h2>Current storage holdings</h2>
+          <p>
+            Gas held across the east coast, {{ storage.start }} to {{ storage.end }}. The current
+            record is shown now; the seasonal comparison needs at least one prior year of the same
+            facilities.
+          </p>
+          <div class="gasmon-history-status" role="note">
+            <span class="gasmon-history-status__eyebrow">Seasonal history not yet published</span>
+            <strong>{{ storage.available_days }} current gas days available</strong>
+            <p>
+              Nothing is wrong with the holdings shown below. The prior-year archive has not yet
+              been loaded on this deployment, so drawing a median line or percentage would invent
+              a comparison the data cannot support.
+            </p>
+          </div>
+        {% endif %}
 
         <div class="gasmon-figure" id="gasmon-storage-chart"></div>
 
         <ul class="gasmon-legend">
           <li><span class="gasmon-swatch" style="background: var(--text-primary);"></span>Held</li>
-          <li><span class="gasmon-swatch" style="background: var(--gas-axis);"></span>Median for this day in other years</li>
+          {% if storage.has_reference %}
+            <li><span class="gasmon-swatch" style="background: var(--gas-axis);"></span>Median for this day in other years</li>
+          {% endif %}
         </ul>
 
         {% if storage.absent_latest %}
           <p class="gasmon-warning">
             <strong>{{ storage.absent_latest|join:", " }} did not report on {{ storage.end }}</strong>,
             so the total covers {{ storage.reporting|last }} facilities, not
-            {{ storage.facilities|length }}. Both lines cover the same set — comparing a
-            five-facility total against six-facility history invents a shortfall.
+            {{ storage.facilities|length }}.{% if storage.has_reference %} Both lines cover the
+            same set — comparing a five-facility total against six-facility history invents a
+            shortfall.{% endif %}
           </p>
         {% endif %}
         {% if storage.suspect %}
@@ -386,15 +419,22 @@
 
         <table class="gasmon-table">
           <caption>
-            Each facility against its own seasonal median — the aggregate above can hide one region
-            drawing down while another sits comfortably.
+            {% if storage.has_reference %}
+              Each facility against its own seasonal median — the aggregate above can hide one
+              region drawing down while another sits comfortably.
+            {% else %}
+              Current reported holdings by facility. Seasonal comparison columns appear when the
+              prior-year archive is available.
+            {% endif %}
           </caption>
           <thead>
             <tr>
               <th scope="col">Facility</th>
               <th scope="col">Held (TJ)</th>
-              <th scope="col">Median for this day (TJ)</th>
-              <th scope="col">Versus median</th>
+              {% if storage.has_reference %}
+                <th scope="col">Median for this day (TJ)</th>
+                <th scope="col">Versus median</th>
+              {% endif %}
             </tr>
           </thead>
           <tbody>
@@ -402,12 +442,14 @@
               <tr{% if facility.latest is None %} class="gasmon-row--inactive"{% endif %}>
                 <th scope="row">{{ facility.name }}</th>
                 <td>{% if facility.latest is not None %}{{ facility.latest|floatformat:0|intcomma }}{% else %}not reported{% endif %}</td>
-                <td>{% if facility.reference_latest %}{{ facility.reference_latest|floatformat:0|intcomma }}{% else %}—{% endif %}</td>
-                <td>
-                  {% if facility.latest is not None and facility.reference_latest %}
-                    {% widthratio facility.latest facility.reference_latest 100 as pct %}{{ pct }}%
-                  {% else %}—{% endif %}
-                </td>
+                {% if storage.has_reference %}
+                  <td>{% if facility.reference_latest %}{{ facility.reference_latest|floatformat:0|intcomma }}{% else %}—{% endif %}</td>
+                  <td>
+                    {% if facility.latest is not None and facility.reference_latest %}
+                      {% widthratio facility.latest facility.reference_latest 100 as pct %}{{ pct }}%
+                    {% else %}—{% endif %}
+                  </td>
+                {% endif %}
               </tr>
             {% endfor %}
           </tbody>
@@ -415,12 +457,14 @@
             <tr>
               <th scope="row">Total, like for like</th>
               <td>{{ storage.latest_total|floatformat:0|intcomma }}</td>
-              <td>{% if storage.reference_latest %}{{ storage.reference_latest|floatformat:0|intcomma }}{% else %}—{% endif %}</td>
-              <td>
-                {% if storage.reference_latest %}
-                  {% widthratio storage.latest_total storage.reference_latest 100 as total_pct %}{{ total_pct }}%
-                {% else %}—{% endif %}
-              </td>
+              {% if storage.has_reference %}
+                <td>{% if storage.reference_latest %}{{ storage.reference_latest|floatformat:0|intcomma }}{% else %}—{% endif %}</td>
+                <td>
+                  {% if storage.reference_latest %}
+                    {% widthratio storage.latest_total storage.reference_latest 100 as total_pct %}{{ total_pct }}%
+                  {% else %}—{% endif %}
+                </td>
+              {% endif %}
             </tr>
           </tfoot>
         </table>
@@ -635,7 +679,7 @@
   {% if demand_json %}{{ demand_json|json_script:"gasmon-demand-data" }}{% endif %}
   {% if constraint_json %}{{ constraint_json|json_script:"gasmon-constraint-data" }}{% endif %}
   {% if storage_json %}{{ storage_json|json_script:"gasmon-storage-data" }}{% endif %}
-  <script src="{% static 'gas_monitor/js/gas_monitor.js' %}?v=7"></script>
+  <script src="{% static 'gas_monitor/js/gas_monitor.js' %}?v=8"></script>
 
 </div>
 {% endblock %}

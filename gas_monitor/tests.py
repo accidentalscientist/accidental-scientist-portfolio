@@ -452,6 +452,14 @@ class SeriesTests(TestCase):
         self.assertEqual(strip['totals'][-1]['constrained'], 1)
         self.assertEqual(strip['totals'][-1]['assessed'], 2)
 
+    def test_short_constraint_record_reports_incomplete_history(self):
+        for offset in range(3):
+            self._flag(date(2026, 8, 10) + timedelta(days=offset), 530110, 'AMBER')
+        strip = services.constraint_history(days=90, end=date(2026, 8, 12))
+        self.assertEqual(strip['requested_days'], 90)
+        self.assertEqual(strip['available_days'], 3)
+        self.assertFalse(strip['history_complete'])
+
     def test_series_are_none_when_there_is_nothing_to_draw(self):
         self.assertIsNone(services.demand_composition())
         self.assertIsNone(services.constraint_history(days=5, end=date(2026, 8, 1)))
@@ -551,6 +559,7 @@ class StorageHistoryTests(TestCase):
         history = services.storage_history(days=2000, end=date(2026, 8, 9))
         # Median of 100, 200, 300 — the 2026 value of 400 must not appear.
         self.assertEqual(history['reference_latest'], 200.0)
+        self.assertTrue(history['has_reference'])
 
     def test_a_facility_absent_today_is_excluded_from_both_lines(self):
         """Comparing a five-facility total to six-facility history invents
@@ -570,6 +579,8 @@ class StorageHistoryTests(TestCase):
         self._held(date(2026, 8, 9), 530012, 100.0)
         history = services.storage_history(days=30, end=date(2026, 8, 9))
         self.assertIsNone(history['reference_latest'])
+        self.assertFalse(history['has_reference'])
+        self.assertEqual(history['available_days'], 1)
 
     def test_history_is_none_without_storage_rows(self):
         self.assertIsNone(services.storage_history(days=30, end=date(2026, 8, 9)))
@@ -855,6 +866,30 @@ class ThesisAndReleaseTests(TestCase):
         """Ranges are now fixed per chart rather than chosen on the page."""
         response = self.client.get(reverse('gas_monitor:monitor'))
         self.assertNotContains(response, 'gasmon-ranges')
+
+    def test_current_only_storage_is_presented_as_history_building(self):
+        storage, _ = Facility.objects.get_or_create(
+            facility_id=530012,
+            defaults={'name': 'Iona UGS', 'facility_type': 'STOR',
+                      'operating_state': 'ACTIVE'},
+        )
+        FlowObservation.objects.create(
+            gas_date=date(2026, 8, 6), facility=storage, location_id=550016,
+            demand_tj=0.0, supply_tj=0.0, transfer_in_tj=0.0,
+            transfer_out_tj=0.0, held_in_storage_tj=14500.0,
+        )
+        response = self.client.get(reverse('gas_monitor:monitor'))
+        self.assertContains(response, 'Current storage holdings')
+        self.assertContains(response, 'Seasonal history not yet published')
+        self.assertNotContains(response, '<th scope="col">Versus median</th>')
+
+    def test_short_adequacy_file_is_not_labelled_as_a_full_90_days(self):
+        services.ingest_report('linepack_adequacy', text=LCA_CSV)
+        response = self.client.get(reverse('gas_monitor:monitor'))
+        self.assertContains(response, 'History building')
+        self.assertContains(response, 'of 90 gas days available')
+        section = response.content.decode().split('class="gasmon-constraints"')[1].split('</section>')[0]
+        self.assertNotIn('(90 days)', section)
 
     def test_the_network_payload_carries_nodes_and_regions(self):
         """The renderer holds no map of its own: geography arrives as

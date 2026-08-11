@@ -1269,6 +1269,8 @@ Flows and storage are the binding operating obligation because AEMO's current di
 
 The page exposes data currency and remaining source-window margin. Exact commands, the one-time archive backfill, unified weekly scheduler, verification, and missed-window recovery live only in `docs/DEPLOYMENT.md`.
 
+The first production release can therefore be current without yet being historical. When the archive is absent, FlowTrace now treats that as a first-class publication state: the constraint strip states how many of its requested 90 gas days are available and stays at its natural compact width; storage becomes **Current storage holdings**, removes unsupported median columns, and explains that seasonal history is still building. Once the idempotent archive backfill is complete, the same service response automatically restores the full heatmap and **Storage against its own history** comparison. The weekly maintenance path does not change.
+
 ### Product evolution
 
 | Site release | Date | Iteration | Change | Product consequence |
@@ -1277,6 +1279,7 @@ The page exposes data currency and remaining source-window margin. Exact command
 | `Candidate 2.8.0` |  10 Aug 2026 | Stage two | Current flows, storage, forecasts, adequacy, missing submissions, and currency tracking | Made the latest physical state and source freshness visible |
 | `Candidate 2.8.0` |  10 Aug 2026 | Stage three | Full-history flow and linepack backfill plus constraint and demand charts | Enabled historical context while exposing the March 2023 reporting break |
 | `Candidate 2.8.0` |  10 Aug 2026 | Stage four | Effective-dated utilisation and like-for-like seasonal storage comparison | Prevented false tightness and false storage shortfalls caused by invalid denominators |
+| `Candidate 2.8.1` |  11 Aug 2026 | Production hardening | Compact sparse-history charts, explicit archive-building states, and a tighter network canvas | Prevented thin production history from reading as a broken or fully populated historical view |
 
 ### Roadmap summary
 

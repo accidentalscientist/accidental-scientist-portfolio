@@ -955,6 +955,12 @@ def storage_history(days=1825, end=None):
         'latest_total': totals[-1],
         'reference_latest': reference[-1],
         'years': len({d.year for d in dates}),
+        # The rolling Bulletin Board file is enough to draw current
+        # holdings but not a seasonal comparison.  Make that distinction
+        # explicit so a fresh deployment can present a deliberate
+        # current-only state until the one-time archive has been loaded.
+        'has_reference': any(value is not None for value in reference),
+        'available_days': len(dates),
     }
 
 
@@ -1748,6 +1754,13 @@ def constraint_history(days=180, end=None):
         'pipelines_flagged': len(rows),
         'start': ordered_dates[0],
         'end': ordered_dates[-1],
+        # The live adequacy report is forward-looking and normally carries
+        # only three days.  The requested history window becomes complete
+        # only after the archive backfill, so the view needs both numbers
+        # rather than labelling three available days as a 90-day chart.
+        'requested_days': days,
+        'available_days': len(ordered_dates),
+        'history_complete': len(ordered_dates) >= days,
     }
 
 
