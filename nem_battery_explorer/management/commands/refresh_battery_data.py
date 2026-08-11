@@ -1,3 +1,4 @@
+import gc
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -63,15 +64,33 @@ class Command(BaseCommand):
         ))
 
     def _run(self, start_date, end_date, cache_dir, run, processed_days, warnings):
-        self.stdout.write(f'Downloading AEMO sources for {start_date} to {end_date}...')
-        sources = download_source_set(start_date, end_date, cache_dir)
-        run.source_receipts = sources['receipts']
-        run.save(update_fields=['source_receipts'])
-        self.stdout.write('Parsing, validating, and calculating interval values...')
-        refresh_range(
-            start_date,
-            end_date,
-            sources,
-            processed_days=processed_days,
-            warnings=warnings,
-        )
+        # AEMO's nested dispatch archives expand sharply in memory. Processing
+        # an entire weekly or historical catch-up in one parse exceeded the
+        # production Droplet's 1 GB RAM, while a single operating day stayed
+        # comfortably bounded. Keep one audit record for the requested range,
+        # but download, parse and persist one day at a time so weekly scheduling
+        # and long repairs have the same predictable memory ceiling.
+        receipts = {}
+        operating_date = start_date
+        while operating_date <= end_date:
+            self.stdout.write(f'Downloading AEMO sources for {operating_date}...')
+            sources = download_source_set(operating_date, operating_date, cache_dir)
+            for receipt in sources['receipts']:
+                key = (receipt['source'], receipt['operating_date'], receipt['filename'])
+                receipts[key] = receipt
+            run.source_receipts = list(receipts.values())
+            run.save(update_fields=['source_receipts'])
+
+            self.stdout.write(
+                f'Parsing, validating, and calculating interval values for {operating_date}...'
+            )
+            refresh_range(
+                operating_date,
+                operating_date,
+                sources,
+                processed_days=processed_days,
+                warnings=warnings,
+            )
+            del sources
+            gc.collect()
+            operating_date += timedelta(days=1)

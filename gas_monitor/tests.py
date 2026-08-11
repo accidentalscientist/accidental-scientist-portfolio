@@ -848,7 +848,7 @@ class ThesisAndReleaseTests(TestCase):
 
     def test_the_release_bar_states_cadence_and_currency(self):
         response = self.client.get(reverse('gas_monitor:monitor'))
-        self.assertContains(response, 'Runs at 09:00 Australia/Sydney')
+        self.assertContains(response, 'Runs Mondays at 09:00 Australia/Sydney')
         self.assertContains(response, 'Not live data')
 
     def test_no_range_selector_remains(self):

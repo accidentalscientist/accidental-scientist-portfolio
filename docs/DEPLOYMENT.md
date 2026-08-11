@@ -127,6 +127,8 @@ STATIC_ROOT=/var/www/accidental-site/staticfiles
 
 Article imports may override `ELITE_ARTICLES_DIR`. Contact delivery requires `CONTACT_EMAIL`; `DEFAULT_FROM_EMAIL` should be set only to a provider-verified sender.
 
+The production Droplet has 1 GB RAM and a persistent 2 GB `/swapfile` entry in `/etc/fstab`. Verify `swapon --show` and `free -h` after provisioning or recovery. Swap is only an emergency buffer: ChargeTrace deliberately processes catch-up ranges one operating day at a time, and heavy forecast work is performed sequentially rather than relying on swap as normal working memory.
+
 Nginx must forward:
 
 ```nginx
@@ -154,7 +156,7 @@ This section answers whether the site owner must do recurring work after deploym
 | Project | Owner action required? | Cadence | Current operating method | Consequence of a missed run |
 |---|---|---|---|---|
 | Portfolio and articles | Yes, when content changes | As needed | Import article packages; maintain project rows and media | New content is absent; existing content remains |
-| NEM Dashboard suite | Only until the unified timer is activated | Daily at 09:00 Australia/Sydney | `refresh_nem_suite` updates fuel, prices/weather, batteries and gas; Sunday publishes any missing weekly price origin | Views become stale; the gas rolling window becomes the binding recovery risk after prolonged failure |
+| NEM Dashboard suite | No routine upload; inspect the run result | Mondays at 09:00 Australia/Sydney | `refresh_nem_suite` catches up fuel and batteries, refreshes prices/weather and gas, and publishes the latest Sunday price origin | Views become stale; the gas rolling window becomes the binding recovery risk after several missed weekly runs |
 | World Ledger | Yes only when deliberately revising the dataset | Manual, reviewed release | Generate locally, inspect the dataset diff, test, commit, and deploy | Existing Giga Dataset remains stable |
 | StillPoint | Only when guided content changes | As needed | Upload an MP3 through admin | Existing guided audio remains |
 | Portfolio Pulse | No | None | User CSVs are processed and discarded per request | No persistent dataset exists |
@@ -200,12 +202,13 @@ The underlying sequence is:
 ```bash
 cd /home/thibault/accidental-scientist-portfolio
 venv/bin/python manage.py ingest_nem_prices
-venv/bin/python manage.py ingest_nem_weather --forward
 venv/bin/python manage.py ingest_nem_weather --kind observed --months 1
+venv/bin/python manage.py ingest_nem_weather --kind forecast --months 1
+venv/bin/python manage.py ingest_nem_weather --forward
 venv/bin/python manage.py run_price_forecast
 ```
 
-The unified command ingests settled prices and weather every morning. It publishes `run_price_forecast` only when a region is missing the most recent Sunday origin, so daily runs do not rewrite the public forecast record. Verify that the new origin exists, prior origins were not overwritten, all intended regions have 336 forecast intervals, and the page identifies any observed-weather fallback.
+The unified command runs each Monday. Observed weather supplies settled history, recent archived issue-time forecasts fill the reanalysis tail, and the live forecast supplies the coming week. It publishes `run_price_forecast` only when a region is missing the most recent Sunday origin. Verify that the new origin exists, prior origins were not overwritten, and all six models for all six displayed regions have 336 forecast intervals.
 
 `scikit-learn` remains isolated in `requirements-ml.txt`, but production installs that file because the scheduled forecast job publishes all six documented models. The web request path still serves stored rows and never trains a model.
 
@@ -227,14 +230,14 @@ venv/bin/python manage.py ingest_gbb_flows --weekly
 venv/bin/python manage.py check_gas_coverage
 ```
 
-Manual daily operation:
+Manual incremental operation:
 
 ```bash
 venv/bin/python manage.py ingest_gbb_flows
 venv/bin/python manage.py check_gas_coverage --quiet
 ```
 
-The unified command refreshes current flows, forecasts, linepack adequacy and missing submissions daily. On Mondays it also passes `--weekly` to refresh the slower reference tables first. Review the import summary and public Data currency table.
+The unified Monday command passes `--weekly`, refreshing the slower reference tables before current flows, forecasts, linepack adequacy and missing submissions. Review the import summary and public Data currency table.
 
 Flows and storage are retained for roughly 31 gas days in AEMO's current directory. A missed day is recoverable by the next run; a failure lasting roughly a month can require archive or local-file recovery. Use `--file` with one explicit `--report` only when replaying a reviewed local source. Backfills belong over SSH, not behind an admin request.
 
@@ -251,13 +254,13 @@ venv/bin/python manage.py refresh_battery_data --start 2026-07-01 --end 2026-08-
 
 The dates above reproduce the documented validation window. For a later first production load, extend the end date only after verifying source availability and database capacity.
 
-Manual daily operation:
+Manual incremental operation:
 
 ```bash
 venv/bin/python manage.py refresh_battery_data --cache-dir .battery_cache
 ```
 
-With no dates, the command starts after the latest stored summary and targets the latest common complete source date, normally two days behind wall-clock time. Verify the latest successful **Battery data refresh** admin row, source receipts, warnings, summary counts, page data-through date, and the displayed daily freshness contract.
+With no dates, the command starts after the latest stored summary and targets the latest common complete source date, normally two days behind wall-clock time. It processes one operating day at a time inside one audited range so a weekly catch-up has the same bounded memory peak as a daily repair. Verify the latest successful **Battery data refresh** admin row, source receipts, warnings, summary counts, page data-through date, and the displayed weekly freshness contract.
 
 After changing calculation logic without changing source data:
 
@@ -301,7 +304,7 @@ Use the single timezone-aware persistent systemd timer supplied in `nem_dashboar
 
 | Job | Intended schedule | Command |
 |---|---|---|
-| NEM Dashboard suite | Daily 09:00 Australia/Sydney | `refresh_nem_suite` |
+| NEM Dashboard suite | Monday 09:00 Australia/Sydney | `refresh_nem_suite` |
 
 Install and activate it as a server administrator:
 
@@ -315,7 +318,7 @@ sudo cp nem_dashboard/deploy/nem-suite-refresh.service /etc/systemd/system/
 sudo cp nem_dashboard/deploy/nem-suite-refresh.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 
-systemd-analyze calendar '*-*-* 09:00:00 Australia/Sydney'
+systemd-analyze calendar 'Mon *-*-* 09:00:00 Australia/Sydney'
 sudo systemctl enable --now nem-suite-refresh.timer
 systemctl list-timers nem-suite-refresh.timer --all
 ```
@@ -335,7 +338,7 @@ For every service and timer:
 3. set `Persistent=true` so a missed boot-time run is caught up;
 4. set the Australia/Sydney timezone explicitly and validate with `systemd-analyze calendar`;
 5. send stdout and stderr to the journal;
-6. confirm `systemctl list-timers` shows the next 09:00 Australia/Sydney run; and
+6. confirm `systemctl list-timers` shows the next Monday 09:00 Australia/Sydney run; and
 7. inspect `journalctl -u <service>` plus the application's refresh record after the first automatic run.
 
 Do not call a scheduler active merely because unit files exist. It becomes active only after the timer is enabled, its next run is visible, and one automatic execution has succeeded.

@@ -1,5 +1,5 @@
 [Unit]
-Description=Accidental Scientist NEM Dashboard daily data refresh
+Description=Accidental Scientist NEM Dashboard weekly data refresh
 Documentation=https://accidentalscientist.net/nem/
 After=network-online.target postgresql.service
 Wants=network-online.target

@@ -1,7 +1,10 @@
-from django.test import TestCase, override_settings
+from unittest.mock import call, patch
+
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 
 from .aemo_fuel import classify_fuel
+from .management.commands.refresh_nem_suite import Command as RefreshSuiteCommand
 from .models import FuelGenerationData
 
 
@@ -37,3 +40,31 @@ class FuelClassificationTests(TestCase):
         for inputs, expected in cases:
             with self.subTest(inputs=inputs):
                 self.assertEqual(classify_fuel(*inputs), expected)
+
+
+class RefreshSuiteCommandTests(SimpleTestCase):
+    def test_price_refresh_fills_recent_issue_time_weather_gap(self):
+        command = RefreshSuiteCommand()
+        with patch.object(command, '_run') as run, patch.object(
+            command, '_publish_missing_forecasts'
+        ) as publish:
+            command.handle(
+                skip_fuel=True,
+                skip_price=False,
+                skip_battery=True,
+                skip_gas=True,
+            )
+
+        run.assert_has_calls([
+            call([], 'Settled prices', 'ingest_nem_prices'),
+            call([], 'Observed weather', 'ingest_nem_weather', kind='observed', months=1),
+            call(
+                [],
+                'Recent archived weather forecasts',
+                'ingest_nem_weather',
+                kind='forecast',
+                months=1,
+            ),
+            call([], 'Forward weather', 'ingest_nem_weather', forward=True),
+        ])
+        publish.assert_called_once_with([])

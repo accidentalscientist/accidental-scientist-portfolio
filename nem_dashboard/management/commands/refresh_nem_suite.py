@@ -24,6 +24,13 @@ class Command(BaseCommand):
                 failures, 'Observed weather', 'ingest_nem_weather',
                 kind='observed', months=1,
             )
+            # Reanalysis lags several days. Archived issue-time forecasts fill
+            # that tail so a Monday run can build every leakage-safe weekly
+            # feature instead of publishing a truncated learned-model horizon.
+            self._run(
+                failures, 'Recent archived weather forecasts', 'ingest_nem_weather',
+                kind='forecast', months=1,
+            )
             self._run(failures, 'Forward weather', 'ingest_nem_weather', forward=True)
             self._publish_missing_forecasts(failures)
 
@@ -35,7 +42,7 @@ class Command(BaseCommand):
 
         if not options['skip_gas']:
             # Static system reference data changes slowly; refresh it on Monday.
-            # The rolling flow and outlook files are still ingested every day.
+            # The rolling flow and outlook files are ingested on every suite run.
             self._run(
                 failures, 'Gas system', 'ingest_gbb_flows',
                 weekly=timezone.localdate().weekday() == 0,

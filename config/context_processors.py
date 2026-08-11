@@ -2,7 +2,7 @@ from django.conf import settings
 from django.utils.timezone import now
 
 # Single source of truth for the site release version rendered site-wide.
-SITE_VERSION = "2.8.0"
+SITE_VERSION = "2.8.1"
 
 
 def inject_now(request):

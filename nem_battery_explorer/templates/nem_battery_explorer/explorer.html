@@ -20,7 +20,7 @@
   {% include "portfolio/_nem_suite_nav.html" with active="battery" %}
 
   <div class="bex-project-note" aria-label="Project status">
-    <span>NEM Dashboard project</span><span>Public AEMO data</span><span>Daily refresh</span>
+    <span>NEM Dashboard project</span><span>Public AEMO data</span><span>Weekly refresh</span>
   </div>
 
   <details class="bex-thesis">
@@ -28,12 +28,12 @@
     <div class="bex-thesis__body">
       <p>Batteries are becoming the NEM's marginal intraday balancing technology. They do not create energy; they move it through time, absorb surplus supply, respond to frequency deviations and preserve scarce capacity for periods when the system values flexibility most. As more batteries connect, their collective behaviour increasingly shapes the prices from which they earn revenue.</p>
       <p>ChargeTrace tests how that transition appears in public evidence. It reconstructs what selected batteries did at five-minute resolution, estimates the observable value of energy and FCAS enablement, and compares actual operation with a transparent, price-only hindsight benchmark. The purpose is not to estimate participant profit. Private contracts, degradation costs, network obligations, losses and trading intent remain outside the public dataset.</p>
-      <p>The central commercial question is whether growing battery volume creates more value or competes it away. More capacity can shift more renewable energy, reduce extreme prices and strengthen the grid, while simultaneously compressing arbitrage spreads and ancillary-service prices. ChargeTrace therefore treats dispatch, stored energy, market value and fleet growth as one connected story. Refreshed daily, it is an independent research and post-trade intelligence view—not a live operational terminal—and every estimate retains a visible method and boundary.</p>
+      <p>The central commercial question is whether growing battery volume creates more value or competes it away. More capacity can shift more renewable energy, reduce extreme prices and strengthen the grid, while simultaneously compressing arbitrage spreads and ancillary-service prices. ChargeTrace therefore treats dispatch, stored energy, market value and fleet growth as one connected story. Refreshed weekly, it is an independent research and post-trade intelligence view—not a live operational terminal—and every estimate retains a visible method and boundary.</p>
     </div>
   </details>
 
   {% if has_data %}
-    <div class="bex-release" role="status"><strong>Daily data refresh</strong><span>Runs at 09:00 Australia/Sydney</span><span>Currently published through {{ published_through|date:'j F Y' }}</span><em>Not live data</em></div>
+    <div class="bex-release" role="status"><strong>Weekly data refresh</strong><span>Runs Mondays at 09:00 Australia/Sydney</span><span>Currently published through {{ published_through|date:'j F Y' }}</span><em>Not live data</em></div>
   {% endif %}
 
   {% if not has_data %}
@@ -128,7 +128,7 @@
 
     <section class="bex-card bex-card--wide bex-market-trend"><div class="bex-card__head"><div><p class="bex-kicker">Growth versus cannibalisation</p><h2>More battery activity, thinner captured spreads</h2></div></div><p class="bex-card__intro">Average NEM battery discharge has more than doubled since Q3 2025, but the fleet's captured price spread and estimated quarterly market revenue have not risen with it.</p><div class="bex-chart bex-chart--trend" id="market-trend-chart"></div><div class="bex-trend-callout"><strong>Q2 2026:</strong> average discharge reached 476 MW while the fleet spread fell to $51/MWh and estimated energy-plus-FCAS revenue fell to $57.5 million.</div><p class="bex-source">Source: <a href="https://www.aemo.com.au/energy-systems/major-publications/quarterly-energy-dynamics-qed" rel="noopener">AEMO Quarterly Energy Dynamics</a>, Q3 2025 to Q2 2026.</p></section>
 
-    <section class="bex-method"><div><p class="bex-kicker">Method and boundary</p><h2>Useful operational evidence, not participant profit</h2></div><div class="bex-method__grid"><p><strong>Energy</strong> integrates signed SCADA output over five minutes and applies regional RRP. Transmission loss factors, fees, hedges and settlement metering are excluded.</p><p><strong>FCAS</strong> is enabled MW × service price ÷ 12 across ten Raise and Lower services.</p><p><strong>Storage</strong> uses AEMO's initial and projected BDU energy-storage fields. Values above public nameplate remain visible and flagged.</p><p><strong>Freshness</strong> uses AEMO next-day files and refreshes at 09:00 Australia/Sydney, normally through the latest common complete source date. It is not live.</p></div><p class="bex-source">Source: AEMO NEMWeb Next Day Dispatch, DispatchIS and Dispatch SCADA. {% if refresh %}Last local refresh completed {{ refresh.finished_at|date:'j M Y H:i' }} · data through {{ refresh.completed_through|date:'j M Y' }}.{% endif %}</p></section>
+    <section class="bex-method"><div><p class="bex-kicker">Method and boundary</p><h2>Useful operational evidence, not participant profit</h2></div><div class="bex-method__grid"><p><strong>Energy</strong> integrates signed SCADA output over five minutes and applies regional RRP. Transmission loss factors, fees, hedges and settlement metering are excluded.</p><p><strong>FCAS</strong> is enabled MW × service price ÷ 12 across ten Raise and Lower services.</p><p><strong>Storage</strong> uses AEMO's initial and projected BDU energy-storage fields. Values above public nameplate remain visible and flagged.</p><p><strong>Freshness</strong> uses AEMO next-day files and refreshes Mondays at 09:00 Australia/Sydney, normally through the latest common complete source date available at that weekly run. It is not live.</p></div><p class="bex-source">Source: AEMO NEMWeb Next Day Dispatch, DispatchIS and Dispatch SCADA. {% if refresh %}Last local refresh completed {{ refresh.finished_at|date:'j M Y H:i' }} · data through {{ refresh.completed_through|date:'j M Y' }}.{% endif %}</p></section>
 
     {{ interval_payload|json_script:"bex-interval-data" }}
     {{ opportunity.rows|json_script:"bex-opportunity-data" }}

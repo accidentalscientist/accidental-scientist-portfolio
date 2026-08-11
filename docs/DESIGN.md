@@ -12,10 +12,10 @@ Together with `docs/DEPLOYMENT.md`, it forms the complete documentation system. 
 | Last reviewed | 11 August 2026 |
 | Next monthly review | 7 September 2026 |
 | Repository | `accidentalscientist2025` |
-| Current code version | `2.7.3` |
-| Next candidate release | `2.8.0`, subject to release review |
-| Production version | Not verified by this document |
-| Current branch at review | `main`, aligned with `origin/main` at `50f6c94`, with later local work uncommitted |
+| Current code version | `2.8.1` candidate |
+| Next candidate release | `2.8.1`, weekly-cadence and bounded-memory operational correction |
+| Production version | `v2.8.0` at `0833774`, manually verified 11 August 2026; first automatic weekly run pending |
+| Current branch at review | `main` at `0833774`, with the `2.8.1` correction in local review |
 | Operational source of truth | `docs/DEPLOYMENT.md` |
 
 The document is reviewed after every release and during the monthly roadmap and parking-lot review. A material change to product purpose, analysis, architecture, data boundaries, visual design, roadmap status, or operating responsibility must update the relevant section here in the same change.
@@ -82,7 +82,7 @@ The site is one Django deployment containing nine public-facing apps with differ
 | `portfolio` | Home, projects, blog, about, and contact | Employers, collaborators, readers | PostgreSQL and media storage | Mature portfolio shell |
 | `nem_dashboard` | Anchor the unified NEM market suite and explain the fuel mix | Energy and data audiences | PostgreSQL populated from daily AEMO SCADA and a quarterly unit register | Functional, automated pipeline ready |
 | `nem_price_lab` | Publish leakage-safe NEM price forecasts and keep a visible weekly model record | Energy analysts, forecasting audiences, employers | PostgreSQL plus versioned model runs | Evolving weekly research product |
-| `nem_battery_explorer` | Explain five-minute battery operation, observable value, opportunity capture, fleet coverage, and market cannibalisation | Energy traders, strategists, asset owners, analysts, informed readers | PostgreSQL populated from AEMO public files through the shared daily NEM-suite job | Evolving, expanded MVP |
+| `nem_battery_explorer` | Explain five-minute battery operation, observable value, opportunity capture, fleet coverage, and market cannibalisation | Energy traders, strategists, asset owners, analysts, informed readers | PostgreSQL populated from AEMO public files through the shared weekly NEM-suite job | Evolving, expanded MVP |
 | `gas_monitor` | Explain east-coast gas flows, storage, demand composition, constraints, and data currency | Gas, electricity, strategy, and infrastructure audiences | PostgreSQL populated from AEMO gas sources | Evolving physical-market product |
 | `stillpoint` | Provide a quiet meditation timer with optional guided audio | General visitors and human-performance audience | Guided audio in PostgreSQL/media; session history in browser storage | Mature small product |
 | `portfolio_pulse` | Turn customer, contract, usage, and ARR data into executive and CSM decisions | CEOs, CS leaders, CSMs | None by design; uploads are request-scoped | Mature portfolio demonstration, not a calibrated production model |
@@ -212,7 +212,8 @@ Project dataset, registry, schema, and calculation versions remain separate from
 | `2.6.0` | 25 Jun 2026 | Visual identity overhaul, StillPoint, and NEM reframing | Site shell, NEM, StillPoint | Historical tag or commit not recorded here | Historical release |
 | `2.7.0` | 26 Jun 2026 | Production trust, metadata, indexing, and discoverability | Site-wide | Historical tag or commit not recorded here | Historical release |
 | `2.7.1` to `2.7.3` | 27 Jun 2026 | Navigation, footer, split CSS, and visible versioning | Site-wide | Historical tag or commit not recorded here | Historical release |
-| Unreleased candidate `2.8.0` | Not deployed | Portfolio Pulse, Life Compass, World Ledger, Price Predictor Lab, Gas Monitor, ChargeTrace, and later refinements | Site-wide | Local work after `50f6c94` | Not verified |
+| `2.8.0` | 11 Aug 2026 | Unified NEM suite, ChargeTrace and FlowTrace, expanded Price Predictor, portfolio hierarchy, direct AEMO ingestion, and shared automation | Site-wide, especially NEM projects | `v2.8.0` / `0833774` | Manual deployment, routes, migrations, source loads and unified refresh verified; first timer-triggered run pending |
+| Unreleased candidate `2.8.1` | Not deployed | Weekly NEM cadence, honest public freshness copy, recent issue-time weather fill, and bounded-memory battery catch-up | NEM Dashboard suite | Local work after `0833774` | Targeted checks pending |
 
 Starting with the next release, the Git reference must be exact and optional release evidence may include before-and-after screenshots in `docs/images/releases/<version>/`. Git tags preserve the working implementation; screenshots preserve the visible iteration.
 
@@ -238,7 +239,7 @@ Dates below are based on repository history unless explicitly identified as cont
 | 30 Jul 2026 | Life Compass execution overhaul, StillPoint roadmap completion, Portfolio Pulse repurposing | Matured three products through direct product review rather than feature accumulation |
 | 4 Aug 2026 | StillPoint visual redesign and Portfolio Pulse scoring-system redesign | Added the current three-model health architecture and refined product presentation |
 | 10 Aug 2026 | ChargeTrace built, expanded, and documented as an independent NEM battery research product | Added weekly AEMO ingestion, 17-asset coverage, opportunity benchmarking, fleet context, market-structure analysis, and a first-principles strategy guide |
-| 11 Aug 2026 | NEM products unified and daily data operations implemented | Renamed the parent NEM Dashboard, nested price, battery and gas views, added direct fuel-SCADA ingestion, and created one 09:00 daily server workflow |
+| 11 Aug 2026 | NEM products unified and weekly data operations implemented | Renamed the parent NEM Dashboard, nested price, battery and gas views, added direct fuel-SCADA ingestion, and created one Monday 09:00 server workflow |
 
 ## 1.8 Article history
 
@@ -360,12 +361,12 @@ The next site-shell work is operational trust and maintainability: dependency an
 
 | Field | Current value |
 |---|---|
-| Status | Unified four-view market suite; daily automation ready for production activation |
+| Status | Unified four-view market suite; weekly production automation active |
 | Introduced | 4 August 2025 |
 | Last materially changed | 11 August 2026, candidate release `2.8.0` |
 | Public route | `/nem/` |
 | Application | `nem_dashboard` |
-| Data operation | Unified daily 09:00 refresh and direct AEMO SCADA fuel ingestion; see `docs/DEPLOYMENT.md` |
+| Data operation | Unified Monday 09:00 refresh and direct AEMO SCADA fuel ingestion; see `docs/DEPLOYMENT.md` |
 | Roadmap references | `NEMF-S01`, `NEM-S01`, `NEM-I01` |
 
 ### Purpose
@@ -388,7 +389,7 @@ The current page uses an explicitly dated seven-day generation window and a sepa
 
 Battery is labelled as storage rather than renewable generation. The three-month trend uses strong green and red lines because the comparison is the analytical story. The page does not claim to be a live feed.
 
-The shared tab strip mounts Fuel mix at `/nem/`, Price Predictor Lab at `/nem/price-lab/`, ChargeTrace at `/nem/charge-trace/`, and FlowTrace at `/nem/flow-trace/`. Previous `/charge-trace/`, `/gas/`, `/battery-explorer/`, and `/nem/battery-explorer/` URLs are permanent redirects. One orchestration command updates all four source families at 09:00 Australia/Sydney every day; the weekly price forecast itself is created only for a missing Sunday origin.
+The shared tab strip mounts Fuel mix at `/nem/`, Price Predictor Lab at `/nem/price-lab/`, ChargeTrace at `/nem/charge-trace/`, and FlowTrace at `/nem/flow-trace/`. Previous `/charge-trace/`, `/gas/`, `/battery-explorer/`, and `/nem/battery-explorer/` URLs are permanent redirects. One orchestration command updates all four source families each Monday at 09:00 Australia/Sydney and publishes the latest missing Sunday price origin.
 
 ### Product evolution
 
@@ -397,7 +398,8 @@ The shared tab strip mounts Fuel mix at `/nem/`, Price Predictor Lab at `/nem/pr
 | Pre-version-history | 4 Aug 2025 | First substantial NEM dashboard introduced | Add a working energy-data product |
 | `2.6.0` | 25 Jun 2026 | Rebuilt around a bounded seven-day window and three-month trend | Replace misleading lifetime aggregation with an honest reporting frame |
 | `2.7.0` | 26 Jun 2026 | Production trust and discoverability pass | Improve public credibility and operational framing |
-| Candidate `2.8.0` | 11 Aug 2026 | Unified NEM suite, direct SCADA fuel pipeline, daily scheduler | Replace disconnected cards and manual fuel uploads with one navigable and maintainable operating system |
+| `2.8.0` | 11 Aug 2026 | Unified NEM suite, direct SCADA fuel pipeline, and shared scheduler | Replace disconnected cards and manual fuel uploads with one navigable and maintainable operating system |
+| Candidate `2.8.1` | 11 Aug 2026 | Weekly public cadence, archived-weather tail fill, and bounded-memory battery catch-up | Match the owner’s decision-use cadence and keep the one-gigabyte production host reliable |
 
 ### Roadmap summary
 
@@ -408,7 +410,7 @@ The immediate remaining correction is a unit and payload-name audit. The product
 - Production timer activation and first-run observation still require server access.
 - The seven-day total is energy in MWh. Detailed fuel rows still need an explicit unit audit so aggregated values are not labelled MW.
 - Internal payload names such as `total_mw` may preserve old terminology and should be corrected at the aggregation boundary.
-- AEMO's generation register is quarterly. `NEM_GENERATION_REGISTER_URL` must be updated when a new workbook is reviewed; daily dispatch ingestion otherwise requires no manual upload.
+- AEMO's generation register is quarterly. `NEM_GENERATION_REGISTER_URL` must be updated when a new workbook is reviewed; incremental dispatch ingestion otherwise requires no manual upload.
 
 ## 2.3 NEM Price Predictor Lab
 
@@ -1130,7 +1132,7 @@ A formal accessibility audit remains future work. Each SVG currently has an acce
 | Last materially changed | 10 August 2026 |
 | Public route | `/nem/flow-trace/` (`/gas/` redirects permanently) |
 | Application | `gas_monitor` |
-| Data operation | One-time archive backfill plus daily time-series refresh and Monday reference refresh; see `docs/DEPLOYMENT.md` |
+| Data operation | One-time archive backfill plus unified Monday reference and time-series refresh; see `docs/DEPLOYMENT.md` |
 | Roadmap references | `NEM-S01`, `GAS-P01`, `GAS-P02` |
 
 ### Purpose
@@ -1261,11 +1263,11 @@ Source is `nemweb.com.au/Reports/Current/GBB/` — unauthenticated HTTP GETs, st
 
 ### Data maintainability and operating boundary
 
-The product now participates in the daily 09:00 NEM-suite refresh. Current flows and outlooks update every day; reference data are loaded before time series each Monday so newly registered facilities exist before dependent flows arrive. Source revisions resolve newer-wins, archive and incremental ingestion are idempotent, and coverage checks make missed days visible.
+The product participates in the Monday 09:00 NEM-suite refresh. Reference data are loaded before current flows and outlooks so newly registered facilities exist before dependent observations arrive. Source revisions resolve newer-wins, archive and incremental ingestion are idempotent, and coverage checks make missed weeks visible.
 
 Flows and storage are the binding operating obligation because AEMO's current directory holds approximately 31 gas days. A failed day reduces freshness but does not lose coverage; a failure lasting roughly a month can require archive recovery. Missing-submission history has approximately a year of slack, while nominations and linepack adequacy are forward-looking.
 
-The page exposes data currency and remaining source-window margin. Exact commands, the one-time archive backfill, unified daily scheduler, verification, and missed-window recovery live only in `docs/DEPLOYMENT.md`.
+The page exposes data currency and remaining source-window margin. Exact commands, the one-time archive backfill, unified weekly scheduler, verification, and missed-window recovery live only in `docs/DEPLOYMENT.md`.
 
 ### Product evolution
 
@@ -1278,7 +1280,7 @@ The page exposes data currency and remaining source-window margin. Exact command
 
 ### Roadmap summary
 
-The scheduled operating work is the first production archive backfill and activation of the unified daily refresh. Planned product stages add hub prices, a system schematic, and a transparent stress decomposition. Event replay must use a post-March-2023 event for full demand coverage or explicitly limit earlier events to supply and transport. See Part 3.
+The scheduled operating work is the first production archive backfill and observation of the first automatic weekly refresh. Planned product stages add hub prices, a system schematic, and a transparent stress decomposition. Event replay must use a post-March-2023 event for full demand coverage or explicitly limit earlier events to supply and transport. See Part 3.
 
 ### Known boundaries
 
@@ -1306,7 +1308,7 @@ The scheduled operating work is the first production archive backfill and activa
 | Last materially changed | 10 August 2026 |
 | Public routes | `/nem/charge-trace/` and `/nem/charge-trace/guide/` (former top-level routes redirect) |
 | Application | `nem_battery_explorer` |
-| Data operation | Registry review plus the unified daily 09:00 refresh; see `docs/DEPLOYMENT.md` |
+| Data operation | Registry review plus the unified Monday 09:00 refresh; see `docs/DEPLOYMENT.md` |
 | Roadmap references | `NEM-S01`, `CT-P01` to `CT-P05` |
 
 ### Purpose
@@ -1329,7 +1331,7 @@ The collapsible thesis appears near the top of the interface so the analytical p
 >
 > ChargeTrace tests how that transition appears in public evidence. It reconstructs what selected batteries did at five-minute resolution, estimates the observable value of energy and FCAS enablement, and compares actual operation with a transparent, price-only hindsight benchmark. The purpose is not to estimate participant profit. Private contracts, degradation costs, network obligations, losses and trading intent remain outside the public dataset.
 >
-> The central commercial question is whether growing battery volume creates more value or competes it away. More capacity can shift more renewable energy, reduce extreme prices and strengthen the grid, while simultaneously compressing arbitrage spreads and ancillary-service prices. ChargeTrace therefore treats dispatch, stored energy, market value and fleet growth as one connected story. Refreshed daily, it is an analytically independent research and post-trade intelligence view within the NEM Dashboard, not a live operational terminal, and every estimate retains a visible method and boundary.
+> The central commercial question is whether growing battery volume creates more value or competes it away. More capacity can shift more renewable energy, reduce extreme prices and strengthen the grid, while simultaneously compressing arbitrage spreads and ancillary-service prices. ChargeTrace therefore treats dispatch, stored energy, market value and fleet growth as one connected story. Refreshed weekly, it is an analytically independent research and post-trade intelligence view within the NEM Dashboard, not a live operational terminal, and every estimate retains a visible method and boundary.
 
 The shorter editorial expression is: **ChargeTrace explains how finite stored energy is converted into grid flexibility and observable market value, and whether each battery captured the opportunity available to it.**
 
@@ -1345,7 +1347,7 @@ The public name is **ChargeTrace**. "NEM Battery Dispatch and Value Stack Explor
 
 **Maturity:** expanded MVP, locally implemented and populated on 10 August 2026.  
 **Primary audience:** senior energy trading strategists, battery asset and portfolio analysts, energy-market practitioners, investors, policy and system-planning audiences, and informed readers learning battery fundamentals.  
-**Cadence:** daily refresh at 09:00 Australia/Sydney, normally complete through the latest common source date two days behind wall-clock time.  
+**Cadence:** weekly refresh each Monday at 09:00 Australia/Sydney, normally complete through the latest common source date available at that run.
 **Product type:** forensic market intelligence and post-trade research, not a live dispatch terminal or trading recommendation system.
 
 ### Battery fundamentals and system role
@@ -1469,7 +1471,7 @@ The current page contains:
 
 1. ChargeTrace identity, a plain-language purpose statement, and NEM Dashboard membership badges. Redundant guide and project-catalogue links are deliberately absent from the hero.
 2. A collapsible project thesis near the top.
-3. A daily refresh strip showing the 09:00 schedule, current data-through date, and "Not live data."
+3. A weekly refresh strip showing the Monday 09:00 schedule, current data-through date, and "Not live data."
 4. One page-level **Week / 3 Months** switch. It changes the reporting basis for every headline KPI and period comparison together.
 5. Asset and period-ending controls with MW, MWh, and duration chips.
 6. A selected-range overview that states published days, expected days, and any incomplete-history coverage explicitly.
@@ -1544,7 +1546,7 @@ The maintenance design is intentionally small:
 
 1. `data/battery_registry_v1.json` is the reviewed, effective-dated source of physical assets and registrations.
 2. `load_battery_registry` validates and idempotently applies registry changes.
-3. `refresh_battery_data` downloads each required AEMO archive once, filters every selected DUID from the same files, validates coverage, and upserts intervals and summaries.
+3. `refresh_battery_data` processes one operating day at a time inside one audited range, reuses cached AEMO archives, filters every selected DUID, validates coverage, and idempotently upserts intervals and summaries.
 4. Source receipts record URL, filename, byte count, and SHA-256 checksum.
 5. Page requests use local PostgreSQL only. They never call AEMO.
 6. A failed run leaves the last complete public dataset online.
@@ -1552,9 +1554,9 @@ The maintenance design is intentionally small:
 8. `recalculate_battery_summaries` rebuilds the derived daily layer and benchmark without downloading source files when calculation logic changes.
 9. The source cache makes retries and historical rebuilding cheaper.
 
-The 17-asset expansion does not multiply source downloads. AEMO's files already contain the wider NEM dispatch set; the added cost is local filtering, validation, and database rows. The one-off 39-day rebuild took materially longer than a normal incremental update. Each daily job processes only newly available dates after the last stored summary.
+The 17-asset expansion does not multiply source families. AEMO's files already contain the wider NEM dispatch set; the added cost is local filtering, validation, and database rows. Production evidence showed that parsing a 39-day range at once exceeded the one-gigabyte host, while one-day parsing completed cleanly. The command therefore keeps one range-level audit but releases source structures after each operating day; the two-gigabyte swap file is an emergency buffer rather than the primary memory strategy.
 
-Production scheduling remains server configuration, not web-request behavior. The unified service runs at 09:00 Australia/Sydney every day and ChargeTrace keeps its Week and 3 Months analytical ranges while gaining fresher underlying observations. Exact commands, timer configuration, verification, and repair steps live only in `docs/DEPLOYMENT.md`.
+Production scheduling remains server configuration, not web-request behavior. The unified service runs Mondays at 09:00 Australia/Sydney. ChargeTrace keeps its Week and 3 Months analytical ranges while the page states the data-through date rather than implying a live feed. Exact commands, timer configuration, verification, and repair steps live only in `docs/DEPLOYMENT.md`.
 
 ### Verification, 11 August 2026
 
@@ -1572,7 +1574,7 @@ Production scheduling remains server configuration, not web-request behavior. Th
 
 ### Roadmap summary
 
-The scheduled task is production activation and observation of the unified daily release. Planned work expands clean history and reconciliation, adds loss-adjusted estimates, deepens operational and event analysis, improves practical and sensitivity benchmarks, and adds auditable exports and accessible interactions. See Part 3.
+The scheduled task is observation of the first automatic unified weekly release. Planned work expands clean history and reconciliation, adds loss-adjusted estimates, deepens operational and event analysis, improves practical and sensitivity benchmarks, and adds auditable exports and accessible interactions. See Part 3.
 
 ### Known boundaries
 
@@ -1598,7 +1600,8 @@ The scheduled task is production activation and observation of the unified daily
 | `Candidate 2.8.0`  10 Aug 2026 | Opportunity-capture benchmark added | Introduced decision-quality research without labelling the gap lost profit |
 | `Candidate 2.8.0`  10 Aug 2026 | Fleet coverage and growth-versus-cannibalisation views added | Connected individual asset behavior to market structure |
 | `Candidate 2.8.0`  10 Aug 2026 | Collapsible thesis and 2,091-word strategy guide added | Made the product legible to both senior specialists and readers learning from first principles |
-| `Candidate 2.8.0`  11 Aug 2026 | Moved under `/nem/charge-trace/` and joined the daily NEM-suite refresh | Preserved analytical and schema independence while giving users one market product and one operating schedule |
+| `2.8.0`  11 Aug 2026 | Moved under `/nem/charge-trace/` and joined the shared NEM-suite refresh | Preserved analytical and schema independence while giving users one market product and one operating schedule |
+| Candidate `2.8.1`  11 Aug 2026 | Changed the public and operational contract to Monday weekly releases and bounded battery catch-up by operating day | Matched the owner’s decision cadence while retaining daily analytical grain and safe low-memory operation |
 
 ---
 
@@ -1628,7 +1631,7 @@ A target may be a release or operating event rather than a calendar date.
 | `SITE-S02` | Portfolio | Verify production contact delivery without exposing the recipient | Before the next production release | Valid mail-provider and recipient configuration | A real message is delivered, zero-send is treated as failure, and no private address appears client-side |
 | `SITE-S03` | Site-wide | Prevent returning browsers from retaining stale static assets | Candidate release `2.8.0` | Storage choice and production `collectstatic` check | Content-hashed assets or an explicitly versioned interim strategy is active and verified |
 | `NEMF-S01` | NEM Dashboard | Correct aggregated fuel units and misleading payload names | Next release affecting the fuel view | Regression tests for totals and labels | Seven-day energy is labelled MWh and MW is used only for instantaneous quantities |
-| `NEM-S01` | NEM Dashboard suite | Deploy and observe the unified 09:00 daily refresh | First production release of the unified suite | Database backup, source access, ML requirements, systemd installation, logs, and source caches | One automatic run updates all four views, the Sunday origin is not rewritten, public currency matches stored data, and failures are visible in the journal |
+| `NEM-S01` | NEM Dashboard suite | Observe the first automatic Monday 09:00 refresh | First production operating event after `v2.8.1` | Database backup, source access, ML requirements, systemd installation, logs, source caches, and bounded-memory catch-up | One automatic run updates all four views, all forecast runs hold 336 intervals, public currency matches stored data, and failures are visible in the journal |
 
 ## 3.3 Planned
 
@@ -1642,7 +1645,7 @@ A target may be a release or operating event rather than a calendar date.
 | `GAS-P01` | Gas Monitor | Add hub prices with tested gas-day alignment | STTM, Gas Supply Hub, and DWGM time-boundary rules | Price and physical series share a documented comparable period and no untested conversion is plotted |
 | `GAS-P02` | Gas Monitor | Add the system schematic, stress decomposition, and a defensible event replay | Prices plus completed source and route definitions | Components are traceable; inferred routes are labelled; the event uses valid demand coverage or states its narrower boundary |
 | `WORLD-P01` | World Ledger | Add coverage-confidence and rank-robustness evidence | Source-vintage metadata and scenario method | Every rank can show source recency and a defensible range under plausible weight changes |
-| `CT-P01` | ChargeTrace | Extend clean history, add monthly reconciliation, and alert on failed daily releases | Storage and retention plan | History reaches at least July 2025, revisions are reported, and a missed scheduled release is visible |
+| `CT-P01` | ChargeTrace | Extend clean history, add monthly reconciliation, and alert on failed weekly releases | Storage and retention plan | History reaches at least July 2025, revisions are reported, and a missed scheduled release is visible |
 | `CT-P02` | ChargeTrace | Add effective transmission-loss factors and loss-adjusted estimates | Effective-dated loss-factor source | Gross regional-price and loss-adjusted estimates are separately labelled and reproducible |
 | `CT-P03` | ChargeTrace | Add operational and event context | Target, availability, constraints, and event definitions | Target versus SCADA, availability, limits, headroom, and selected events are visible without implying private intent |
 | `CT-P04` | ChargeTrace | Add a practical rules benchmark and sensitivity analysis | Stable current hindsight benchmark | Practical and upper-bound comparators are distinct and every efficiency, capacity, and degradation assumption is visible |
