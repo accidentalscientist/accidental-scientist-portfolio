@@ -13,14 +13,9 @@
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:type" content="website">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <script type="module" crossorigin src="/static/life_compass/assets/execution-DbiV0Rjk.js"></script>
-    <script type="module" src="/static/life_compass/assets/execution-reset-daily-tasks.js"></script>
-    <script type="module" src="/static/life_compass/assets/execution-visual-enhancements.js"></script>
-    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-DhRl8kmx.js">
-    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/dom-Sxd6wgz5.js">
-    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-1GJT3dt7.css">
-    <link rel="stylesheet" href="/static/life_compass/assets/execution-reset-daily-tasks.css">
-    <link rel="stylesheet" href="/static/life_compass/assets/execution-visual-enhancements.css">
+    <script type="module" crossorigin src="/static/life_compass/assets/execution-TRpQ4na_.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-CKHAb45Z.js">
+    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-BI2OeD6B.css">
   </head>
   <body data-page="execution" data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}" data-login-url="{% url 'life_compass:login' %}" data-logout-url="{% url 'life_compass:logout' %}">
     <svg class="icon-sprite" aria-hidden="true">
@@ -53,15 +48,15 @@
         <div class="focus-strip-grid">
           <label class="focus-strip-item">
             <svg class="focus-symbol" aria-hidden="true"><use href="#icon-flag"></use></svg>
-            <span><span class="focus-strip-label">Main</span><input id="focus-main" type="text" autocomplete="off"></span>
+            <span><span class="focus-strip-label">Main</span><textarea id="focus-main" rows="2" autocomplete="off"></textarea></span>
           </label>
           <label class="focus-strip-item">
             <svg class="focus-symbol" aria-hidden="true"><use href="#icon-compass"></use></svg>
-            <span><span class="focus-strip-label">Secondary</span><input id="focus-secondary" type="text" autocomplete="off"></span>
+            <span><span class="focus-strip-label">Secondary</span><textarea id="focus-secondary" rows="2" autocomplete="off"></textarea></span>
           </label>
-          <label class="focus-strip-item">
+          <label class="focus-strip-item focus-strip-last-of-week">
             <svg class="focus-symbol" aria-hidden="true"><use href="#icon-anchor"></use></svg>
-            <span><span class="focus-strip-label">Health Focus</span><input id="focus-health" type="text" autocomplete="off"></span>
+            <span><span class="focus-strip-label">Health Focus</span><textarea id="focus-health" rows="2" autocomplete="off"></textarea></span>
           </label>
           <div class="focus-strip-item north-star-item">
             <svg class="focus-symbol north-star-symbol" aria-hidden="true"><use href="#icon-star"></use></svg>
@@ -76,13 +71,13 @@
           <div class="section-title-with-icon">
             <svg class="section-symbol" aria-hidden="true"><use href="#icon-sailboat"></use></svg>
             <div>
-              <h2>Three Daily Tasks</h2>
+              <h2>Three Daily Tasks.</h2>
               <p class="section-subtitle" id="today-label">Today</p>
             </div>
           </div>
           <span class="reset-day-wrap is-locked" id="reset-day-wrap" data-edit-only>
             <button class="icon-button" id="reset-day" type="button" aria-label="Clear completed daily task slots" aria-describedby="reset-day-hint" disabled>R</button>
-            <span class="reset-day-hint" id="reset-day-hint" role="tooltip">When 3 Tasks are completed, R let's you add 3 new tasks to complete. A sign of great productivity!</span>
+            <span class="reset-day-hint" id="reset-day-hint" role="tooltip">When all three daily tasks are done, Reset clears the slots so you can add three new ones.</span>
           </span>
         </div>
         <div class="daily-task-list" id="daily-task-list"></div>
@@ -93,7 +88,7 @@
           <div class="section-title-with-icon">
             <svg class="section-symbol" aria-hidden="true"><use href="#icon-anchor"></use></svg>
             <div>
-              <h2>X Calendar</h2>
+              <h2>X Calendar.</h2>
               <p class="section-subtitle">Move The Needle.</p>
             </div>
           </div>
@@ -107,7 +102,7 @@
           <div class="section-title-with-icon">
             <svg class="section-symbol section-symbol-brass" aria-hidden="true"><use href="#icon-wheel"></use></svg>
             <div>
-              <h2>Projects Kanban</h2>
+              <h2>Projects Kanban.</h2>
               <p class="section-subtitle">Move Ideas Forward.</p>
             </div>
           </div>
@@ -124,8 +119,8 @@
           <div class="section-title-with-icon">
             <svg class="section-symbol" aria-hidden="true"><use href="#icon-lighthouse"></use></svg>
             <div>
-              <h2>Done Ledger</h2>
-              <p class="section-subtitle">Recent Completions</p>
+              <h2>Done Ledger.</h2>
+              <p class="section-subtitle">Recent Completions.</p>
             </div>
           </div>
         </div>
@@ -137,7 +132,7 @@
       <div class="modal-heading">
         <div>
           <p class="eyebrow">This Week</p>
-          <h2>Pick today's task</h2>
+          <h2>Pick today's task.</h2>
         </div>
         <button class="icon-button" type="button" id="close-task-picker" aria-label="Close task picker">x</button>
       </div>
@@ -152,7 +147,7 @@
       <div class="modal-heading">
         <div>
           <p class="eyebrow">Archive</p>
-          <h2>All completed tasks</h2>
+          <h2>All completed tasks.</h2>
         </div>
         <button class="icon-button" type="button" id="close-ledger-archive" aria-label="Close completed task archive">x</button>
       </div>
@@ -163,7 +158,7 @@
       <div class="modal-heading">
         <div>
           <p class="eyebrow">Kanban</p>
-          <h2>Archived projects</h2>
+          <h2>Archived projects.</h2>
         </div>
         <button class="icon-button" type="button" id="close-archive" aria-label="Close project archive">x</button>
       </div>
@@ -175,7 +170,7 @@
         <div class="modal-heading">
           <div>
             <p class="eyebrow">New week</p>
-            <h2>It's a new week &mdash; write this week's focus</h2>
+            <h2>It's a new week &mdash; write this week's focus.</h2>
           </div>
         </div>
         <div class="edit-fields">
