@@ -5,7 +5,7 @@
   max-width: 540px;
   margin: 0 auto;
   text-align: center;
-  padding: var(--sp-space-md) 0 var(--sp-space-3xl);
+  padding: var(--sp-space-md) 0 var(--sp-space-xl);
 
   /* A small spacing scale so vertical rhythm reads as deliberate steps
      rather than ad hoc values scattered through the file. Reach for these
@@ -24,7 +24,7 @@
    title (bigger, ink-coloured, sits right at the top); the old h1 steps
    down to a tagline underneath it rather than competing for the same
    role. The timer is meant to be the loudest thing on the page. */
-.stillpoint__hero { margin-bottom: var(--sp-space-lg); }
+.stillpoint__hero { margin-bottom: var(--sp-space-md); }
 
 .stillpoint__hero .journal-eyebrow {
   font-size: 1.05rem;
@@ -121,34 +121,50 @@
   margin: var(--sp-space-sm) 0 0;
 }
 
-/* Mode toggle — one restrained capsule: a thin hairline border, a single
-   filled state, nothing extra. */
+/* Mode toggle — plain text tabs, not a filled segmented control. Weight,
+   opacity and a hairline underline carry the selected state instead of a
+   pill background, so it reads as a quiet label rather than a piece of
+   dashboard chrome. Pulled closer to the instrument below it (tighter
+   margin) so the two read as one grouped unit. */
 .stillpoint__modes {
   display: inline-flex;
-  gap: 0.25rem;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  padding: 4px;
-  margin-bottom: var(--sp-space-xl);
+  gap: 1.75rem;
+  margin-bottom: var(--sp-space-sm);
 }
 
 .stillpoint__mode {
   border: 0;
-  background: transparent;
-  padding: 0.5rem 1.25rem;
-  border-radius: 999px;
+  background: none;
+  padding: 0.2rem 0;
   font-family: inherit;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--text-secondary);
+  opacity: 0.6;
   cursor: pointer;
-  transition: all 0.18s ease;
+  position: relative;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.stillpoint__mode:hover {
+  opacity: 0.85;
 }
 
 .stillpoint__mode--active {
+  opacity: 1;
+  color: var(--accent-color);
+}
+
+.stillpoint__mode--active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 1px;
   background: var(--accent-color);
-  color: #fff;
 }
 
 /* Timer ring — a real <button>, chrome reset so it reads purely as the
@@ -160,10 +176,19 @@
   margin-bottom: var(--sp-space-lg);
 }
 
+/* Shrink-wraps to the ring's own box (its only in-flow child) so the
+   calibration marks below can be positioned as percentages of this exact
+   box, at every size the ring takes — idle, mobile, or grown for a running
+   session — without duplicating the ring's own size rules. */
+.stillpoint__instrument {
+  position: relative;
+  display: inline-block;
+}
+
 .stillpoint__ring {
   position: relative;
-  width: 300px;
-  height: 300px;
+  width: 320px;
+  height: 320px;
   background: none;
   border: 0;
   padding: 0;
@@ -184,12 +209,14 @@
   transform: rotate(-90deg);
 }
 
-/* Lightened from the original 5px — a thinner line reads as more
-   deliberate/refined rather than heavy. */
+/* Lightened further and given a touch of transparency — the track is a
+   reference line, not a shape competing with the timer digits for
+   attention. */
 .sp-ring__track {
   fill: none;
   stroke: var(--bg-tertiary);
-  stroke-width: 3;
+  stroke-width: 2;
+  opacity: 0.7;
 }
 
 .sp-ring__progress {
@@ -201,6 +228,9 @@
   transition: stroke-dashoffset 0.4s linear, stroke 0.3s ease;
 }
 
+/* A small upward nudge — serif tabular numerals plus the caption beneath
+   them sit slightly low against true geometric centre, so the whole block
+   is optically (not just mathematically) centred in the circle. */
 .stillpoint__readout {
   position: absolute;
   inset: 0;
@@ -208,11 +238,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  transform: translateY(-2%);
 }
 
+/* +26% over the previous 3.4rem — the timer, not the ring stroke or the
+   controls around it, should be the thing the eye lands on first. */
 .stillpoint__time {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 3.4rem;
+  font-size: 4.3rem;
   line-height: 1;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
@@ -228,51 +261,53 @@
   line-height: 1.6;
 }
 
-/* The pill: a small curved-rectangle (not a full pill capsule — 10px
-   radius, not 999px) sitting inside the ring under the readout, with more
-   air between it and the time than before. It's only a solid button for
-   "Begin"/"Complete" — the actual primary action. Once running, "End
-   early" steps back to plain underlined text (fading in on hover/focus,
-   not a competing button), and the armed confirm keeps that same quiet
-   text treatment in warm terracotta — the confirm step itself is
-   unchanged, only its styling stopped shouting. The ring itself stays
-   clickable throughout regardless of hover, so touch users can still tap
-   to end early without needing to see the text first. */
+/* The pill is no longer a pill: no fill, no border-radius, no button
+   chrome. "Begin" reads as a word engraved under the timer — wide letter
+   spacing, low-contrast until touched — rather than a call-to-action
+   competing with the circle that already is the control. Once running,
+   "End early" and the armed confirm drop the spaced caps treatment (they're
+   full words, not a single instruction) but keep the same plain-text,
+   underline-on-hover language rather than reverting to a button. */
 .stillpoint__pill {
   display: inline-block;
-  margin-top: var(--sp-space-md);
-  padding: 0.4rem 1.1rem;
-  border-radius: 10px;
-  background: var(--accent-color);
-  color: #fff;
-  font-size: 0.8rem;
+  margin-top: var(--sp-space-lg);
+  font-size: 0.66rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  opacity: 0.68;
+  transition: opacity 0.3s ease, letter-spacing 0.3s ease, color 0.3s ease;
+}
+
+.stillpoint__ring:hover .stillpoint__pill,
+.stillpoint__ring:focus-visible .stillpoint__pill {
   opacity: 1;
-  transition: opacity 0.25s ease, background-color 0.3s ease, color 0.3s ease;
+  letter-spacing: 0.4em;
+  color: var(--accent-color);
 }
 
 .stillpoint__ring.is-breathing .stillpoint__pill {
   opacity: 0;
-  background: none;
-  color: var(--text-secondary);
-  padding: 0.2rem 0;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
 }
 
 .stillpoint__ring.is-breathing:hover .stillpoint__pill,
 .stillpoint__ring.is-breathing:focus-visible .stillpoint__pill {
-  opacity: 1;
+  opacity: 0.85;
+  letter-spacing: 0.1em;
+  text-transform: none;
+  color: var(--text-secondary);
 }
 
 .stillpoint__ring.is-armed .stillpoint__pill {
   opacity: 1;
-  background: none;
+  letter-spacing: 0.1em;
+  text-transform: none;
   color: var(--accent-warm);
-  padding: 0.2rem 0;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
 }
 
 /* A faint idle pulse before a session starts, so the page feels alive at
@@ -287,7 +322,12 @@
    aren't perfectly flat — a few in-between keyframes give them a faint
    fluctuation, because real lungs are never fully still even at rest. A
    soft green glow (::before, below) breathes at the same rhythm, echoing
-   the app's own accent colour rather than an unrelated hue. */
+   the app's own accent colour rather than an unrelated hue. Every keyframe
+   also re-centres the ring (translate(-50%, -50%)) because a running
+   session pins the ring to the exact centre of the viewport (see the
+   sp-focus rules below) rather than letting it sit in normal page flow —
+   is-breathing and that fixed positioning are only ever applied together,
+   so baking the centring into the same transform is safe. */
 .stillpoint__ring.is-breathing {
   animation: spBreathRing 24s ease-in-out infinite;
 }
@@ -310,16 +350,20 @@
   z-index: 1;
 }
 
-/* The green wash lives inside the ring's own disc, not as a halo escaping
-   past its stroke — it blooms out from the centre on the inhale and
-   recedes to a dim core on the exhale, sitting behind the readout but
-   above nothing else, so it reads as the circle itself breathing colour.
-   Built from the accent colour itself (not the much fainter --accent-glow
-   token) so it actually reads as a faded deep green, not a hint of one. */
+/* The green wash lives inside the ring's own disc, well short of its
+   stroke, so it never reads as pressing against or escaping past the
+   circle that contains it — a 15% inset (up from 7%) keeps a clear,
+   deliberate margin between the glow's outer edge and the track at every
+   point in the breath cycle, not just at rest. It blooms out from the
+   centre on the inhale and recedes to a dim core on the exhale, sitting
+   behind the readout but above nothing else, so it reads as the circle
+   itself breathing colour. Built from the accent colour itself (not the
+   much fainter --accent-glow token) so it actually reads as a faded deep
+   green, not a hint of one. */
 .stillpoint__ring.is-breathing::before {
   content: '';
   position: absolute;
-  inset: 7%;
+  inset: 15%;
   border-radius: 50%;
   background: radial-gradient(circle,
     color-mix(in srgb, var(--accent-color) 55%, transparent) 0%,
@@ -336,13 +380,13 @@
 }
 
 @keyframes spBreathRing {
-  0%    { transform: scale(0.94); }
-  25%   { transform: scale(1.07); }
-  37.5% { transform: scale(1.058); }
-  50%   { transform: scale(1.07); }
-  75%   { transform: scale(0.94); }
-  87.5% { transform: scale(0.952); }
-  100%  { transform: scale(0.94); }
+  0%    { transform: translate(-50%, -50%) scale(0.94); }
+  25%   { transform: translate(-50%, -50%) scale(1.07); }
+  37.5% { transform: translate(-50%, -50%) scale(1.058); }
+  50%   { transform: translate(-50%, -50%) scale(1.07); }
+  75%   { transform: translate(-50%, -50%) scale(0.94); }
+  87.5% { transform: translate(-50%, -50%) scale(0.952); }
+  100%  { transform: translate(-50%, -50%) scale(0.94); }
 }
 
 /* Roughly 40% of the ring's own scale range — a clear pulse, but the ring
@@ -388,38 +432,82 @@
   }
 }
 
-/* Duration presets */
-.stillpoint__durations {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.6rem;
-  min-height: 84px;
-  margin-bottom: var(--sp-space-lg);
+/* Duration calibration — five numbers around the lower arc of the ring,
+   each connected to the ring's own edge by a short radial line, like
+   markings on a dial rather than another row of controls. The lines live
+   in their own SVG, sharing the exact same viewBox (0 0 240 240) and
+   circle geometry (cx=120, cy=120, r=110) as the ring's own track/progress
+   circles a few lines of markup away — so a line's start point (r=110)
+   sits exactly on the visible ring stroke, not floating near it, and every
+   line reads as coming out of the timer itself rather than an
+   independently-placed decoration. Line endpoints and number positions
+   are precomputed plain numbers (not live trig), so placement is
+   identical across every browser. The numbers container is absolutely
+   positioned over the instrument (so it never adds to page flow) and only
+   re-enables pointer events on the numbers themselves. */
+.stillpoint__calibration-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
-.sp-duration {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 1px solid var(--border-color);
-  background: transparent;
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+.sp-calibration-line {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0.55;
+  transition: stroke 0.2s ease, stroke-width 0.2s ease, opacity 0.2s ease;
+}
+
+.sp-calibration-line--active {
+  stroke: var(--accent-color);
+  stroke-width: 1.75;
+  opacity: 1;
+}
+
+.stillpoint__calibration {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sp-calmark {
+  position: absolute;
+  left: var(--sp-cx);
+  top: var(--sp-cy);
+  transform: translate(-50%, -50%);
+  background: none;
+  border: 0;
+  padding: 0.35rem;
+  margin: 0;
+  font: inherit;
   cursor: pointer;
-  transition: all 0.16s ease;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.sp-duration:hover { border-color: var(--border-strong); color: var(--text-primary); }
+.sp-calmark__num {
+  display: block;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  opacity: 0.6;
+  transition: color 0.2s ease, font-size 0.2s ease, opacity 0.2s ease;
+}
 
-/* Was tinted with --accent-warm-bg (terracotta) under a green border/text —
-   an accidental second colour on a single control. One accent only. */
-.sp-duration--active {
-  border-color: var(--accent-color);
+.sp-calmark:hover .sp-calmark__num,
+.sp-calmark:focus-visible .sp-calmark__num {
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.sp-calmark--active .sp-calmark__num {
   color: var(--accent-color);
-  background: color-mix(in srgb, var(--accent-color) 10%, transparent);
+  font-weight: 600;
+  font-size: 0.86rem;
+  opacity: 1;
 }
 
 /* Guided picker */
@@ -488,7 +576,14 @@ body.is-complete .stillpoint__phase {
 /* Focus: while a session is actually running, the ring grows to be the
    clear centre of attention and everything else softens into the
    background (blurred, dimmed, inert) rather than disappearing outright —
-   down to just the "StillPoint" eyebrow standing in for a header. */
+   down to just the "StillPoint" eyebrow standing in for a header. Body
+   scroll is suppressed for the same reason: the enlarged, fixed-centred
+   ring (below) is sized entirely from viewport units, so nothing about a
+   running session should ever require scrolling to see in full. */
+body.sp-focus {
+  overflow: hidden;
+}
+
 body.sp-focus .navbar,
 body.sp-focus .edge-brick,
 body.sp-focus footer,
@@ -496,7 +591,8 @@ body.sp-focus .page-mark,
 body.sp-focus .stillpoint__hero h1,
 body.sp-focus .stillpoint__guide,
 body.sp-focus .stillpoint__modes,
-body.sp-focus .stillpoint__durations,
+body.sp-focus .stillpoint__calibration-lines,
+body.sp-focus .stillpoint__calibration,
 body.sp-focus .stillpoint__guided,
 body.sp-focus .stillpoint__stats {
   filter: blur(5px);
@@ -505,27 +601,47 @@ body.sp-focus .stillpoint__stats {
   transition: filter 0.6s ease, opacity 0.6s ease;
 }
 
-/* max(250px, ...) matters on narrow phones: without a floor, 58vw on a
-   375px-wide screen is ~218px — smaller than the 250px mobile idle size,
-   so the ring would shrink while running instead of growing. */
+/* The eyebrow is the one piece of "header" left unblurred during a
+   session (see above); pin it above the fixed ring below so a short
+   viewport can never let the enlarged circle paint over it. */
+body.sp-focus .stillpoint__hero {
+  position: relative;
+  z-index: 5;
+}
+
+/* Once a session starts, the ring is pulled out of normal page flow
+   entirely and centred on the viewport itself — not the page, which may
+   be taller than the screen once you count the (now blurred, inert)
+   content above and below it. This is what guarantees "always fits one
+   page": ring size no longer has any relationship to document height, so
+   there is nothing left for the page to scroll to. max(260px, ...) is a
+   floor for narrow phones; the 74vw/68vh/620px cap is deliberately short
+   of 100% on every axis — the ring should dominate the screen, not fill it
+   edge to edge. */
 body.sp-focus .stillpoint__ring {
-  width: max(250px, min(58vw, 62vh, 520px));
-  height: max(250px, min(58vw, 62vh, 520px));
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: max(260px, min(74vw, 68vh, 620px));
+  height: max(260px, min(74vw, 68vh, 620px));
+  transform: translate(-50%, -50%);
   transition: width 0.5s ease, height 0.5s ease;
 }
 
 body.sp-focus .stillpoint__time {
-  font-size: clamp(3.6rem, 9vw, 5rem);
+  font-size: clamp(4.8rem, 12vw, 7rem);
 }
 
-/* Local session history — no account needed, just localStorage. Separated
-   from the controls above by space alone, not a rule — a line would be one
-   more element competing for attention that spacing already handles. */
+/* Local session history — no account needed, just localStorage. Sits
+   further below the instrument than before (xl → 2xl) so it reads clearly
+   as a tertiary layer rather than a fourth peer alongside mode, duration
+   and the timer itself. */
 .stillpoint__stats {
   display: flex;
   justify-content: center;
   gap: 2.5rem;
-  margin-top: var(--sp-space-xl);
+  margin-top: var(--sp-space-2xl);
 }
 
 .sp-stat {
@@ -604,8 +720,8 @@ body.sp-focus .stillpoint__time {
 }
 
 @media (max-width: 720px) {
-  .stillpoint__ring { width: 250px; height: 250px; }
-  .stillpoint__time { font-size: 2.8rem; }
-  .sp-duration { width: 46px; height: 46px; }
+  .stillpoint__ring { width: 280px; height: 280px; }
+  .stillpoint__time { font-size: 3.5rem; }
+  .sp-calmark__num { font-size: 0.7rem; }
+  .sp-calmark--active .sp-calmark__num { font-size: 0.78rem; }
 }
-

@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const timeEl = $('sp-time');
   const phaseEl = $('sp-phase');
   const pillEl = $('sp-begin');
-  const durationsEl = $('sp-durations');
+  const calibrationEl = $('sp-calibration');
+  const calibrationLinesEl = $('sp-calibration-lines');
   const guidedEl = $('sp-guided');
   const select = $('sp-audio-select');
   const audio = $('sp-audio');
@@ -52,23 +53,50 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   loadBowl();
 
-  function playBowl() {
+  // A second, distinct set of struck-bowl recordings for the two-minute
+  // interval marks during Master mode — one is picked at random for each
+  // mark, so a long sit hears a varying mix rather than the same bell on
+  // repeat (repeats are allowed; nothing tracks "last played").
+  let intervalBowlBuffers = [];
+  let intervalBowlLoadPromise = null;
+  function loadIntervalBowls() {
+    const urls = window.STILLPOINT_INTERVAL_BELL_URLS;
+    if (intervalBowlLoadPromise || !urls || !urls.length) return intervalBowlLoadPromise;
+    intervalBowlLoadPromise = Promise.all(urls.map(url =>
+      fetch(url)
+        .then(r => r.arrayBuffer())
+        .then(data => {
+          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          return audioCtx.decodeAudioData(data);
+        })
+        .catch(() => null)
+    )).then(buffers => {
+      intervalBowlBuffers = buffers.filter(Boolean);
+    });
+    return intervalBowlLoadPromise;
+  }
+  loadIntervalBowls();
+
+  // Shared playback for any decoded bowl buffer — tiny fades at each end
+  // guard against a click at the sample boundary (the recording's own
+  // strike-and-decay already does the "soft start, slow fade" shape, so
+  // nothing more is layered on top of it). `peak` lets interval bells sit
+  // quieter than the start/end chime without needing a second code path.
+  function playBowlBuffer(buffer, peak) {
     const now = audioCtx.currentTime;
     const source = audioCtx.createBufferSource();
     const gain = audioCtx.createGain();
-    source.buffer = bowlBuffer;
+    source.buffer = buffer;
     source.connect(gain);
     gain.connect(audioCtx.destination);
-    // Tiny fades at each end guard against a click at the sample boundary —
-    // the recording's own strike-and-decay already does the "soft start,
-    // slow fade" shape, so nothing more is layered on top of it.
-    const fadeOutStart = Math.max(0, bowlBuffer.duration - 0.3);
+    const fadeOutStart = Math.max(0, buffer.duration - 0.3);
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.9, now + 0.06);
-    gain.gain.setValueAtTime(0.9, now + fadeOutStart);
-    gain.gain.linearRampToValueAtTime(0, now + bowlBuffer.duration);
+    gain.gain.linearRampToValueAtTime(peak, now + 0.06);
+    gain.gain.setValueAtTime(peak, now + fadeOutStart);
+    gain.gain.linearRampToValueAtTime(0, now + buffer.duration);
     source.start(now);
   }
+  function playBowl() { playBowlBuffer(bowlBuffer, 0.9); }
 
   // Fallback only — four inharmonic partials, each a pair of oscillators a
   // fraction of a Hz apart so the pair slowly beats against itself, soft
@@ -109,8 +137,9 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // A quieter, single-tone variant for interval bells during Master mode —
-  // distinct from the two-tone start/end chime so it reads as a gentle
-  // marker, not another completion signal.
+  // distinct from the start/end chime so it reads as a gentle marker, not
+  // another completion signal. Used only as a fallback when none of the
+  // recorded interval bowls have finished decoding yet.
   function softBell() {
     try {
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
@@ -129,6 +158,24 @@ document.addEventListener('DOMContentLoaded', function () {
     } catch (e) { /* audio not available: stay silent */ }
   }
 
+  // Picks one of the interval bowl recordings at random (repeats allowed —
+  // that's what makes a long sit hear "two or three in a row" sometimes
+  // instead of a strict rotation) and plays it quieter than the start/end
+  // chime. Falls back to the synthesized soft bell if the recordings
+  // haven't finished loading.
+  function intervalBell() {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (intervalBowlBuffers.length) {
+        const buffer = intervalBowlBuffers[Math.floor(Math.random() * intervalBowlBuffers.length)];
+        playBowlBuffer(buffer, 0.5);
+        return;
+      }
+      softBell();
+      loadIntervalBowls(); // in case the first attempt hasn't kicked off yet
+    } catch (e) { /* audio not available: stay silent */ }
+  }
+
   // Interval bells always run in Master mode, no toggle — scheduled from
   // the point a session (re)starts, not from a fixed session start, so
   // resuming after a pause only schedules whatever marks are still ahead
@@ -140,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function () {
     for (let mark = intervalSec; mark < durationSec; mark += intervalSec) {
       if (mark <= elapsedAtStart) continue;
       const delayMs = (mark - elapsedAtStart) * 1000;
-      bellTimers.push(setTimeout(() => { if (running) softBell(); }, delayMs));
+      bellTimers.push(setTimeout(() => { if (running) intervalBell(); }, delayMs));
     }
   }
   function clearIntervalBells() {
@@ -450,13 +497,22 @@ document.addEventListener('DOMContentLoaded', function () {
     if (mode === 'master') startMaster(); else startStudent();
   });
 
-  // Duration presets (master)
-  if (durationsEl) {
-    durationsEl.querySelectorAll('.sp-duration').forEach(btn => {
+  // Duration calibration marks (master) — same behaviour as the old preset
+  // buttons, just renamed to match the dial-marking markup/classes. Each
+  // number has a matching radial line (same data-min) in the calibration
+  // SVG; both get their active class toggled together so the line stays
+  // in sync with the number it points to.
+  if (calibrationEl) {
+    calibrationEl.querySelectorAll('.sp-calmark').forEach(btn => {
       btn.addEventListener('click', () => {
         if (running) return;
-        durationsEl.querySelectorAll('.sp-duration').forEach(b => b.classList.remove('sp-duration--active'));
-        btn.classList.add('sp-duration--active');
+        calibrationEl.querySelectorAll('.sp-calmark').forEach(b => b.classList.remove('sp-calmark--active'));
+        btn.classList.add('sp-calmark--active');
+        if (calibrationLinesEl) {
+          calibrationLinesEl.querySelectorAll('.sp-calibration-line').forEach(l => l.classList.remove('sp-calibration-line--active'));
+          const line = calibrationLinesEl.querySelector('[data-min="' + btn.dataset.min + '"]');
+          if (line) line.classList.add('sp-calibration-line--active');
+        }
         durationSec = parseInt(btn.dataset.min, 10) * 60;
         remaining = durationSec;
         renderTime();
@@ -484,13 +540,13 @@ document.addEventListener('DOMContentLoaded', function () {
         b.classList.toggle('stillpoint__mode--active', active);
         b.setAttribute('aria-selected', active ? 'true' : 'false');
       });
-      if (durationsEl) durationsEl.hidden = mode !== 'master';
+      if (calibrationEl) calibrationEl.hidden = mode !== 'master';
       if (guidedEl) guidedEl.hidden = mode !== 'student';
 
       // Disable begin in guided mode when no audio is configured.
       ring.disabled = (mode === 'student' && !window.STILLPOINT_HAS_AUDIO);
 
-      if (mode === 'master') { durationSec = (parseInt((durationsEl.querySelector('.sp-duration--active') || {}).dataset?.min, 10) || 15) * 60; }
+      if (mode === 'master') { durationSec = (parseInt((calibrationEl.querySelector('.sp-calmark--active') || {}).dataset?.min, 10) || 15) * 60; }
       goIdle();
     });
   });

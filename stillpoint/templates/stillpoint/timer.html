@@ -9,7 +9,7 @@
 
   <header class="stillpoint__hero">
     <p class="journal-eyebrow">StillPoint</p>
-    <h1>Quieten Your Mind Through Stillness.</h1>
+    <h1>Quieten Your Mind.</h1>
     <details class="stillpoint__guide">
       <summary>How to meditate</summary>
       <div class="stillpoint__guide-body">
@@ -26,28 +26,47 @@
     <button class="stillpoint__mode" data-mode="student" role="tab" aria-selected="false">Guide me</button>
   </div>
 
-  {# ── Timer ring: the ring is the Begin/End-early control; the pill inside it is the same control's visible label, not a second one ── #}
+  {# ── Timer ring: the ring is the Begin/End-early control; the pill inside it is the same control's visible label, not a second one. The calibration marks are a sibling, not a nested button, since a <button> can't validly contain other interactive controls. ── #}
   <div class="stillpoint__stage">
-    <button type="button" class="stillpoint__ring" id="sp-ring" aria-label="Begin meditation">
-      <svg viewBox="0 0 240 240" aria-hidden="true">
-        <circle class="sp-ring__track" cx="120" cy="120" r="110"></circle>
-        <circle class="sp-ring__progress" id="sp-progress" cx="120" cy="120" r="110"></circle>
-      </svg>
-      <div class="stillpoint__readout">
-        <span class="stillpoint__time" id="sp-time">15:00</span>
-        <span class="stillpoint__phase" id="sp-phase" role="status" aria-live="polite" hidden></span>
-        <span class="stillpoint__pill" id="sp-begin">Begin</span>
-      </div>
-    </button>
-  </div>
+    <div class="stillpoint__instrument" id="sp-instrument">
+      <button type="button" class="stillpoint__ring" id="sp-ring" aria-label="Begin meditation">
+        <svg viewBox="0 0 240 240" aria-hidden="true">
+          <circle class="sp-ring__track" cx="120" cy="120" r="110"></circle>
+          <circle class="sp-ring__progress" id="sp-progress" cx="120" cy="120" r="110"></circle>
+        </svg>
+        <div class="stillpoint__readout">
+          <span class="stillpoint__time" id="sp-time">15:00</span>
+          <span class="stillpoint__phase" id="sp-phase" role="status" aria-live="polite" hidden></span>
+          <span class="stillpoint__pill" id="sp-begin">Begin</span>
+        </div>
+      </button>
 
-  {# ── Master: duration presets ── #}
-  <div class="stillpoint__durations" id="sp-durations" aria-label="Session length in minutes">
-    <button class="sp-duration" data-min="2">2</button>
-    <button class="sp-duration" data-min="9">9</button>
-    <button class="sp-duration sp-duration--active" data-min="15">15</button>
-    <button class="sp-duration" data-min="30">30</button>
-    <button class="sp-duration" data-min="60">60</button>
+      {# ── Master: duration, as calibration marks around the lower arc rather than a row of buttons. Each line starts exactly on the ring's own track (r=110, same viewBox/centre as the ring's SVG above) so it reads as coming out of the circle itself, not a floating decoration. ── #}
+      <svg class="stillpoint__calibration-lines" id="sp-calibration-lines" viewBox="0 0 240 240" aria-hidden="true">
+        <line class="sp-calibration-line" data-min="2" x1="35.7" y1="190.7" x2="25.0" y2="199.7"></line>
+        <line class="sp-calibration-line" data-min="9" x1="73.5" y1="219.7" x2="67.6" y2="232.4"></line>
+        <line class="sp-calibration-line sp-calibration-line--active" data-min="15" x1="120" y1="230" x2="120" y2="244"></line>
+        <line class="sp-calibration-line" data-min="30" x1="166.5" y1="219.7" x2="172.4" y2="232.4"></line>
+        <line class="sp-calibration-line" data-min="60" x1="204.3" y1="190.7" x2="215.0" y2="199.7"></line>
+      </svg>
+      <div class="stillpoint__calibration" id="sp-calibration" role="group" aria-label="Session length in minutes">
+        <button type="button" class="sp-calmark" data-min="2" style="--sp-cx: 7.9%; --sp-cy: 85.4%;">
+          <span class="sp-calmark__num">2</span>
+        </button>
+        <button type="button" class="sp-calmark" data-min="9" style="--sp-cx: 26.8%; --sp-cy: 99.9%;">
+          <span class="sp-calmark__num">9</span>
+        </button>
+        <button type="button" class="sp-calmark sp-calmark--active" data-min="15" style="--sp-cx: 50%; --sp-cy: 105%;">
+          <span class="sp-calmark__num">15</span>
+        </button>
+        <button type="button" class="sp-calmark" data-min="30" style="--sp-cx: 73.2%; --sp-cy: 99.9%;">
+          <span class="sp-calmark__num">30</span>
+        </button>
+        <button type="button" class="sp-calmark" data-min="60" style="--sp-cx: 92.1%; --sp-cy: 85.4%;">
+          <span class="sp-calmark__num">60</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   {# ── Student: guided session picker ── #}
@@ -83,7 +102,12 @@
 
 <script>
   window.STILLPOINT_HAS_AUDIO = {% if guided_sessions %}true{% else %}false{% endif %};
-  window.STILLPOINT_BELL_URL = "{% static 'stillpoint/audio/tibetan-bowl.mp3' %}";
+  window.STILLPOINT_BELL_URL = "{% static 'stillpoint/audio/tibetan-bowl_1.mp3' %}";
+  window.STILLPOINT_INTERVAL_BELL_URLS = [
+    "{% static 'stillpoint/audio/tibetan-bowl_2.mp3' %}",
+    "{% static 'stillpoint/audio/tibetan-bowl_3.mp3' %}",
+    "{% static 'stillpoint/audio/tibetan-bowl_4.mp3' %}"
+  ];
 </script>
-<script src="{% static 'stillpoint/js/timer.js' %}?v=9"></script>
+<script src="{% static 'stillpoint/js/timer.js' %}?v=12"></script>
 {% endblock %}

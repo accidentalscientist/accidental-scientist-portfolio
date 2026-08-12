@@ -547,7 +547,7 @@ The operating priority is to establish a durable weekly publish-and-review recor
 |---|---|
 | Status | Mature small product |
 | Introduced | Release `2.6.0`, 25 June 2026 |
-| Last materially changed | 4 August 2026, unreleased after `2.7.3` |
+| Last materially changed | 12 August 2026, unreleased after `2.7.3` |
 | Public route | `/stillpoint/` |
 | Application | `stillpoint` |
 | Data operation | Optional guided MP3 upload through Django admin; see `docs/DEPLOYMENT.md` |
@@ -569,7 +569,7 @@ The 25 June 2026 MVP shipped one Django model, one view, and one page. `GuidedMe
 
 Master mode is self-timed with the current preset set intentionally reduced after review. Guide Me mode follows an admin-uploaded MP3. Audio upload is MP3-only; the earlier acceptance of a 46 MB WAV was rejected as an unsuitable web policy.
 
-The timer uses real end-time calculations, Wake Lock where available, a timeout backstop, and `visibilitychange` recovery so background throttling cannot silently prevent completion. Session history is held locally in the browser. The interface uses a small three-day completion indicator rather than streak totals or accumulated minutes. Bells occur automatically during Master sessions without a settings panel. The breathing animation affects the ring itself with a restrained green glow. The August 2026 redesign further strengthened the minimal, quiet visual system.
+The timer uses real end-time calculations, Wake Lock where available, a timeout backstop, and `visibilitychange` recovery so background throttling cannot silently prevent completion. Session history is held locally in the browser. The interface uses a small three-day completion indicator rather than streak totals or accumulated minutes. Bells occur automatically during Master sessions without a settings panel, mixing one recorded bowl strike for the start/end chime with a random pick from three further recordings for the two-minute interval marks (a synthesized tone remains as a fallback if a recording hasn't finished loading). The breathing animation affects the ring itself with a restrained green glow. The August 2026 redesign further strengthened the minimal, quiet visual system.
 
 ### Product evolution
 
@@ -580,6 +580,8 @@ The timer uses real end-time calculations, Wake Lock where available, a timeout 
 | `Candidate 2.8.0` |  30 Jul 2026 | Wake Lock, local history, accessibility, interval bells, guidance, and breathing work | Complete the functional improvement roadmap |
 | `Candidate 2.8.0` |  30 Jul 2026 | Stats and controls simplified; preset set reduced; naming corrected to StillPoint | Restore the stoic brief after the feature pass became too configurable |
 | `Candidate 2.8.0` |  4 Aug 2026 | Full visual redesign | Make the quiet product feel intentional and coherent |
+| `Candidate 2.8.1` |  12 Aug 2026 | Running-session ring grows to dominate the viewport (up to ~74vw/68vh, capped so it never fills the screen edge-to-edge); Master-mode interval bells now draw at random from four recorded bowl strikes instead of one synthesized tone, with a fifth recording reserved for the start/end chime | Make the running state read as more immersive and less mechanically repetitive on a long sit, while keeping the layout honest on small phones |
+| `Candidate 2.8.1` |  12 Aug 2026 | Instrument-language refinement: the Begin pill loses its button chrome for an engraved uppercase cue; duration presets move from five separate circular buttons to calibration marks on the ring's own lower arc; the mode toggle drops its filled-pill background for plain underlined text; the timer digits grow ~26%; a running session pins the ring to a fixed, viewport-centred position (with `overflow:hidden` on body) so the page can never scroll regardless of how large the ring grows; the headline shortens to "Quieten Your Mind." | Reduce every SaaS-dashboard convention (pills, segmented controls, button chrome) in favour of typography, spacing and restrained motion, in line with the project thesis that StillPoint should read as an instrument rather than an application |
 
 ### Design rationale and boundaries
 
