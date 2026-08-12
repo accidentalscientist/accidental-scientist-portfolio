@@ -108,6 +108,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Django's own default (/accounts/profile/) doesn't exist on this site and
+# 404s. Life Compass's login link always passes ?next=<current path>, which
+# takes priority over this when present — this only matters as the fallback
+# for a login reached without one (e.g. a bookmarked /life-compass/login/
+# link), so a successful login never stands on a dead page.
+LOGIN_REDIRECT_URL = '/life-compass/'
+LOGIN_URL = 'life_compass:login'
+
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [

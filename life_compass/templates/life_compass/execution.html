@@ -13,9 +13,9 @@
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:type" content="website">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <script type="module" crossorigin src="/static/life_compass/assets/execution-TRpQ4na_.js"></script>
-    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-CKHAb45Z.js">
-    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-BI2OeD6B.css">
+    <script type="module" crossorigin src="/static/life_compass/assets/execution-chvdE6ZP.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/life_compass/assets/sync-ByUL2BPb.js">
+    <link rel="stylesheet" crossorigin href="/static/life_compass/assets/sync-BNeNehzX.css">
   </head>
   <body data-page="execution" data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}" data-login-url="{% url 'life_compass:login' %}" data-logout-url="{% url 'life_compass:logout' %}">
     <svg class="icon-sprite" aria-hidden="true">
@@ -43,89 +43,112 @@
     </header>
 
     <main class="shell execution-layout">
-      <section class="panel execution-hero execution-focus-strip" aria-labelledby="weekly-focus-heading">
-        <p class="eyebrow" id="weekly-focus-heading">This Week's Focus</p>
-        <div class="focus-strip-grid">
-          <label class="focus-strip-item">
-            <svg class="focus-symbol" aria-hidden="true"><use href="#icon-flag"></use></svg>
-            <span><span class="focus-strip-label">Main</span><textarea id="focus-main" rows="2" autocomplete="off"></textarea></span>
-          </label>
-          <label class="focus-strip-item">
-            <svg class="focus-symbol" aria-hidden="true"><use href="#icon-compass"></use></svg>
-            <span><span class="focus-strip-label">Secondary</span><textarea id="focus-secondary" rows="2" autocomplete="off"></textarea></span>
-          </label>
-          <label class="focus-strip-item focus-strip-last-of-week">
-            <svg class="focus-symbol" aria-hidden="true"><use href="#icon-anchor"></use></svg>
-            <span><span class="focus-strip-label">Health Focus</span><textarea id="focus-health" rows="2" autocomplete="off"></textarea></span>
-          </label>
-          <div class="focus-strip-item north-star-item">
-            <svg class="focus-symbol north-star-symbol" aria-hidden="true"><use href="#icon-star"></use></svg>
-            <span><span class="focus-strip-label">North Star</span><strong id="execution-north-star">Build a meaningful career</strong></span>
+      <section class="panel execution-hero execution-focus-strip">
+        <div class="focus-strip-columns">
+          <div class="focus-strip-group" aria-labelledby="weekly-focus-heading">
+            <p class="eyebrow" id="weekly-focus-heading">This Week's Focus</p>
+            <div class="focus-strip-grid">
+              <label class="focus-strip-item">
+                <svg class="focus-symbol" aria-hidden="true"><use href="#icon-flag"></use></svg>
+                <span>
+                  <span class="focus-strip-label">Main</span>
+                  <span class="focus-strip-display" id="focus-main-display"></span>
+                  <textarea id="focus-main" rows="2" autocomplete="off"></textarea>
+                </span>
+              </label>
+              <label class="focus-strip-item">
+                <svg class="focus-symbol" aria-hidden="true"><use href="#icon-compass"></use></svg>
+                <span>
+                  <span class="focus-strip-label">Secondary</span>
+                  <span class="focus-strip-display" id="focus-secondary-display"></span>
+                  <textarea id="focus-secondary" rows="2" autocomplete="off"></textarea>
+                </span>
+              </label>
+              <label class="focus-strip-item">
+                <svg class="focus-symbol" aria-hidden="true"><use href="#icon-anchor"></use></svg>
+                <span>
+                  <span class="focus-strip-label">Health Focus</span>
+                  <span class="focus-strip-display" id="focus-health-display"></span>
+                  <textarea id="focus-health" rows="2" autocomplete="off"></textarea>
+                </span>
+              </label>
+            </div>
+          </div>
+          <div class="focus-strip-group focus-strip-north-star">
+            <p class="eyebrow">North Star</p>
+            <div class="north-star-item">
+              <svg class="focus-symbol north-star-symbol" aria-hidden="true"><use href="#icon-star"></use></svg>
+              <strong id="execution-north-star">Build a meaningful career</strong>
+            </div>
           </div>
         </div>
         <span class="visually-hidden" id="weekly-focus-summary">Write project brief + Review prototype + Move for 20 minutes</span>
       </section>
 
-      <section class="panel daily-panel">
-        <div class="panel-heading">
-          <div class="section-title-with-icon">
-            <svg class="section-symbol" aria-hidden="true"><use href="#icon-sailboat"></use></svg>
-            <div>
-              <h2>Three Daily Tasks.</h2>
-              <p class="section-subtitle" id="today-label">Today</p>
+      <div class="panel-cluster panel-cluster-sail">
+        <section class="panel daily-panel">
+          <div class="panel-heading">
+            <div class="section-title-with-icon">
+              <svg class="section-symbol" aria-hidden="true"><use href="#icon-sailboat"></use></svg>
+              <div>
+                <h2>Three Daily Tasks.</h2>
+                <p class="section-subtitle" id="today-label">Today</p>
+              </div>
             </div>
+            <span class="reset-day-wrap is-locked" id="reset-day-wrap" data-edit-only>
+              <button class="icon-button" id="reset-day" type="button" aria-label="Clear completed daily task slots" aria-describedby="reset-day-hint" disabled>R</button>
+              <span class="reset-day-hint" id="reset-day-hint" role="tooltip">When all three daily tasks are done, Reset clears the slots so you can add three new ones.</span>
+            </span>
           </div>
-          <span class="reset-day-wrap is-locked" id="reset-day-wrap" data-edit-only>
-            <button class="icon-button" id="reset-day" type="button" aria-label="Clear completed daily task slots" aria-describedby="reset-day-hint" disabled>R</button>
-            <span class="reset-day-hint" id="reset-day-hint" role="tooltip">When all three daily tasks are done, Reset clears the slots so you can add three new ones.</span>
-          </span>
-        </div>
-        <div class="daily-task-list" id="daily-task-list"></div>
-      </section>
+          <div class="daily-task-list" id="daily-task-list"></div>
+        </section>
 
-      <section class="panel calendar-panel">
-        <div class="panel-heading">
-          <div class="section-title-with-icon">
-            <svg class="section-symbol" aria-hidden="true"><use href="#icon-anchor"></use></svg>
-            <div>
-              <h2>X Calendar.</h2>
-              <p class="section-subtitle">Move The Needle.</p>
+        <section class="panel ledger-panel">
+          <div class="panel-heading clickable-heading" id="open-ledger-archive" role="button" tabindex="0" aria-label="View all completed projects">
+            <div class="section-title-with-icon">
+              <svg class="section-symbol" aria-hidden="true"><use href="#icon-lighthouse"></use></svg>
+              <div>
+                <h2>Done Ledger.</h2>
+                <p class="section-subtitle">Recent Completions.</p>
+              </div>
             </div>
           </div>
-          <span class="mini-stat" id="chain-count">0 marked</span>
-        </div>
-        <div class="calendar-wrap" id="calendar-wrap"></div>
-      </section>
+          <ol class="ledger-list" id="done-ledger"></ol>
+        </section>
+      </div>
 
-      <section class="panel kanban-panel">
-        <div class="panel-heading">
-          <div class="section-title-with-icon">
-            <svg class="section-symbol section-symbol-brass" aria-hidden="true"><use href="#icon-wheel"></use></svg>
-            <div>
-              <h2>Projects Kanban.</h2>
-              <p class="section-subtitle">Move Ideas Forward.</p>
+      <div class="panel-cluster panel-cluster-bireme">
+        <section class="panel calendar-panel">
+          <div class="panel-heading">
+            <div class="section-title-with-icon">
+              <svg class="section-symbol" aria-hidden="true"><use href="#icon-anchor"></use></svg>
+              <div>
+                <h2>X Calendar.</h2>
+                <p class="section-subtitle">Move The Needle.</p>
+              </div>
             </div>
+            <span class="mini-stat" id="chain-count">0 marked</span>
           </div>
-          <div class="button-pair">
-            <button class="text-button" type="button" id="open-archive" data-edit-only>Archive (0)</button>
-            <button class="text-button wrap-button" type="button" id="open-new-project" data-edit-only>Develop an idea into a project</button>
-          </div>
-        </div>
-        <div class="kanban-board" id="kanban-board"></div>
-      </section>
+          <div class="calendar-wrap" id="calendar-wrap"></div>
+        </section>
 
-      <section class="panel ledger-panel">
-        <div class="panel-heading clickable-heading" id="open-ledger-archive" role="button" tabindex="0" aria-label="View all completed projects">
-          <div class="section-title-with-icon">
-            <svg class="section-symbol" aria-hidden="true"><use href="#icon-lighthouse"></use></svg>
-            <div>
-              <h2>Done Ledger.</h2>
-              <p class="section-subtitle">Recent Completions.</p>
+        <section class="panel kanban-panel">
+          <div class="panel-heading">
+            <div class="section-title-with-icon">
+              <svg class="section-symbol section-symbol-brass" aria-hidden="true"><use href="#icon-wheel"></use></svg>
+              <div>
+                <h2>Projects Kanban.</h2>
+                <p class="section-subtitle">Move Ideas Forward.</p>
+              </div>
+            </div>
+            <div class="button-pair">
+              <button class="text-button" type="button" id="open-archive" data-edit-only>Archive (0)</button>
+              <button class="text-button wrap-button" type="button" id="open-new-project" data-edit-only>Develop an idea into a project</button>
             </div>
           </div>
-        </div>
-        <ol class="ledger-list" id="done-ledger"></ol>
-      </section>
+          <div class="kanban-board" id="kanban-board"></div>
+        </section>
+      </div>
     </main>
 
     <dialog class="modal" id="task-picker-modal">
