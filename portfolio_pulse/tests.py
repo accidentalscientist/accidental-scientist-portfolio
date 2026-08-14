@@ -282,12 +282,15 @@ class TimelineMetricTests(TestCase):
         )
         self.assertTrue(metrics.is_hidden_renewal_risk(rows))
 
-    def test_obvious_arr_decline_is_not_hidden_renewal_risk(self):
+    def test_arr_and_usage_decline_is_an_attention_signal(self):
         rows = _timeline_rows(
             arrs=[100_000 - i * 5_000 for i in range(13)],
             utils=[80 - i * 3 for i in range(13)],
         )
-        self.assertFalse(metrics.is_hidden_renewal_risk(rows))
+        signal = metrics.classify_attention_signal(rows)
+        self.assertTrue(metrics.is_hidden_renewal_risk(rows))
+        self.assertEqual(signal["attention_state"], "attention")
+        self.assertEqual(signal["attention_reason"], "ARR and usage are both materially declining")
 
     def test_arr_expansion_without_usage_growth_is_hidden_renewal_risk(self):
         rows = _timeline_rows(
@@ -302,6 +305,17 @@ class TimelineMetricTests(TestCase):
             utils=[60 + i for i in range(13)],
         )
         self.assertFalse(metrics.is_hidden_renewal_risk(rows))
+
+    def test_short_history_acceleration_is_visible_but_not_twelve_month_eligible(self):
+        rows = _timeline_rows(
+            arrs=[100_000, 105_000, 112_000, 118_000],
+            utils=[40, 48, 56, 64],
+        )
+        signal = metrics.classify_attention_signal(rows)
+        self.assertEqual(signal["attention_state"], "acceleration")
+        self.assertFalse(signal["evidence"]["eligible"])
+        self.assertIn("early signal", signal["evidence"]["window_label"])
+        self.assertIn("not smoothed", signal["evidence"]["method"])
 
     def test_monthly_arr_movement(self):
         jan, feb = date(2026, 1, 1), date(2026, 2, 1)
@@ -461,6 +475,22 @@ class DashboardContextTests(TestCase):
         self.assertFalse(context["has_timeline"])
         self.assertNotIn("chart_arr_trend", context)
 
+    def test_attention_map_exposes_three_states_and_evidence(self):
+        context = self._context()
+        rows = context["chart_usage_arr_divergence"]
+        self.assertTrue(rows)
+        self.assertTrue({"standard", "attention", "acceleration"}.issubset({
+            row["attention_state"] for row in rows
+        }))
+        self.assertTrue(all("window_label" in row for row in rows))
+        self.assertTrue(context["chart_account_journeys"])
+        early_accelerators = {
+            account["account_name"] for account in context["accelerating_accounts"]
+            if not account["trend_evidence"]["eligible"]
+        }
+        self.assertIn("Redwood Media", early_accelerators)
+        self.assertIn("Anchor Supply Co", early_accelerators)
+
 
 class DashboardViewTests(TestCase):
     def _sample_files(self):
@@ -517,6 +547,7 @@ class DashboardViewTests(TestCase):
             "pulse-chart-qbr",
             "pulse-chart-growers",
             "pulse-chart-divergence",
+            "pulse-chart-account-journey",
             "pulse-chart-portfolio-trend",
             "pulse-chart-arr-movement",
             "pulse-chart-arr-group",
@@ -526,9 +557,9 @@ class DashboardViewTests(TestCase):
         self.assertNotContains(response, "ARR bridge")
         self.assertNotContains(response, "NRR / GRR")
         self.assertNotContains(response, "Part I")
-        self.assertContains(response, "One portfolio, three decisions")
-        self.assertContains(response, "expansion potential")
-        self.assertContains(response, "Hand-calculable and consistent")
+        self.assertContains(response, "one portfolio, three decisions")
+        self.assertContains(response, "Explain scoring metric")
+        self.assertContains(response, "Fixed, hand-calculable thresholds")
         self.assertEqual(
             response.content.decode().count('class="pulse-model-picker__descriptor"'),
             1,
@@ -564,8 +595,8 @@ class DashboardViewTests(TestCase):
         self.assertContains(response, '<option value="plain_pulse" selected>', html=False)
         self.assertContains(response, "Adds or removes fixed points")
         self.assertContains(response, 'data-sample-mode="true"', html=False)
-        self.assertContains(response, "Selected health model")
-        self.assertContains(response, "View scoring method")
+        self.assertContains(response, "Explain scoring metric")
+        self.assertContains(response, "Open the complete method")
         self.assertNotContains(response, "pulse-model-card")
 
     def test_invalid_health_model_falls_back_to_plain_pulse(self):

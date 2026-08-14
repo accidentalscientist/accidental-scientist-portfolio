@@ -1,14 +1,24 @@
 """ARR-first snapshot and timeline metrics for Portfolio Pulse."""
 
+from statistics import median
+
 UTIL_TREND_CLEAN, UTIL_TREND_BAD, UTIL_TREND_MAX = 85, 30, 25
 ACTIVE_TREND_CLEAN, ACTIVE_TREND_BAD, ACTIVE_TREND_MAX = 75, 20, 20
 TICKET_TREND_CLEAN, TICKET_TREND_BAD, TICKET_TREND_MAX = 1, 8, 15
 ARR_MOMENTUM_MAX = 20
 
 SILENT_DECLINE_ARR_FLOOR = -2.0
-SILENT_DECLINE_USAGE_DROP_PCT = -15.0
+SILENT_DECLINE_USAGE_DROP_PP = -10.0
 EXPANSION_DIVERGENCE_ARR_GROWTH_PCT = 20.0
-EXPANSION_DIVERGENCE_USAGE_CEILING_PCT = 5.0
+EXPANSION_DIVERGENCE_USAGE_CEILING_PP = 2.0
+ACTIVE_DECLINE_ARR_DROP_PCT = -10.0
+ACTIVE_DECLINE_USAGE_DROP_PP = -5.0
+ACCELERATOR_ARR_GROWTH_PCT = 10.0
+ACCELERATOR_USAGE_GROWTH_PP = 10.0
+TREND_MIN_SPAN_MONTHS = 12
+TREND_MIN_OBSERVATIONS = 10
+TREND_MIN_USAGE_OBSERVATIONS = 8
+EARLY_ACCELERATOR_MIN_OBSERVATIONS = 4
 
 
 def _ramp_down(value, bad, clean, max_penalty):
@@ -82,6 +92,134 @@ def usage_trend(rows, months=12):
     return round((points[-1] - points[0]) / points[0] * 100, 1)
 
 
+def _month_span(start, end):
+    return (end.year - start.year) * 12 + end.month - start.month
+
+
+def trend_evidence(rows, months=12):
+    """Return a stable, explicit evidence record for the attention map.
+
+    ARR compares the median of the first and last three available observations.
+    Usage is expressed as a percentage-point change because utilisation is
+    already a percentage. A full-strength classification needs observations
+    spanning twelve months; shorter histories remain visible as early signals.
+    """
+    comparison_rows = rows[-min(len(rows), months + 1):]
+    if len(comparison_rows) < 2:
+        return None
+
+    arr_rows = [row for row in comparison_rows if row.get("arr") is not None]
+    usage_rows = [
+        row for row in comparison_rows
+        if row.get("seat_utilisation_pct") is not None
+    ]
+    if len(arr_rows) < 2 or len(usage_rows) < 2:
+        return None
+
+    span_months = _month_span(comparison_rows[0]["month"], comparison_rows[-1]["month"])
+    eligible = bool(
+        span_months >= TREND_MIN_SPAN_MONTHS
+        and len(comparison_rows) >= TREND_MIN_OBSERVATIONS
+        and len(usage_rows) >= TREND_MIN_USAGE_OBSERVATIONS
+    )
+    if eligible:
+        start_arr = median(row["arr"] for row in arr_rows[:3])
+        end_arr = median(row["arr"] for row in arr_rows[-3:])
+        start_usage = median(row["seat_utilisation_pct"] for row in usage_rows[:3])
+        end_usage = median(row["seat_utilisation_pct"] for row in usage_rows[-3:])
+        method = "Median of first 3 vs last 3 observations"
+    else:
+        start_arr, end_arr = arr_rows[0]["arr"], arr_rows[-1]["arr"]
+        start_usage = usage_rows[0]["seat_utilisation_pct"]
+        end_usage = usage_rows[-1]["seat_utilisation_pct"]
+        method = "First vs last observation; early evidence is not smoothed"
+    arr_change_pct = (
+        round((end_arr - start_arr) / start_arr * 100, 1)
+        if start_arr > 0 else None
+    )
+    usage_change_pp = round(end_usage - start_usage, 1)
+
+    return {
+        "arr_change_pct": arr_change_pct,
+        "usage_change_pp": usage_change_pp,
+        "observation_count": len(comparison_rows),
+        "usage_observation_count": len(usage_rows),
+        "span_months": span_months,
+        "start_month": comparison_rows[0]["month"],
+        "end_month": comparison_rows[-1]["month"],
+        "eligible": eligible,
+        "window_label": (
+            "12-month eligible"
+            if eligible
+            else f"early signal: {span_months} months / {len(comparison_rows)} observations"
+        ),
+        "method": method,
+        "validation": "Rule-based; outcome validation pending",
+    }
+
+
+def classify_attention_signal(rows):
+    """Classify movement without pretending that an unlabelled rule predicts churn."""
+    evidence = trend_evidence(rows)
+    if not evidence:
+        return {
+            "attention_state": "standard",
+            "attention_reason": "Insufficient timeline evidence",
+            "evidence": None,
+        }
+
+    arr_change = evidence["arr_change_pct"]
+    usage_change = evidence["usage_change_pp"]
+    state = "standard"
+    reason = "Movement remains within the material attention thresholds"
+
+    if arr_change is None:
+        return {
+            "attention_state": state,
+            "attention_reason": "ARR baseline cannot support a percentage comparison",
+            "evidence": evidence,
+        }
+
+    if evidence["eligible"]:
+        if (
+            arr_change >= SILENT_DECLINE_ARR_FLOOR
+            and usage_change <= SILENT_DECLINE_USAGE_DROP_PP
+        ):
+            state = "attention"
+            reason = "Silent usage decline while ARR is holding"
+        elif (
+            arr_change >= EXPANSION_DIVERGENCE_ARR_GROWTH_PCT
+            and usage_change <= EXPANSION_DIVERGENCE_USAGE_CEILING_PP
+        ):
+            state = "attention"
+            reason = "ARR expansion without matching adoption"
+        elif (
+            arr_change <= ACTIVE_DECLINE_ARR_DROP_PCT
+            and usage_change <= ACTIVE_DECLINE_USAGE_DROP_PP
+        ):
+            state = "attention"
+            reason = "ARR and usage are both materially declining"
+        elif (
+            arr_change >= ACCELERATOR_ARR_GROWTH_PCT
+            and usage_change >= ACCELERATOR_USAGE_GROWTH_PP
+        ):
+            state = "acceleration"
+            reason = "Twelve-month ARR and usage acceleration"
+    elif (
+        evidence["observation_count"] >= EARLY_ACCELERATOR_MIN_OBSERVATIONS
+        and arr_change >= ACCELERATOR_ARR_GROWTH_PCT
+        and usage_change >= ACCELERATOR_USAGE_GROWTH_PP
+    ):
+        state = "acceleration"
+        reason = "Early acceleration; twelve-month eligibility not yet reached"
+
+    return {
+        "attention_state": state,
+        "attention_reason": reason,
+        "evidence": evidence,
+    }
+
+
 def apply_timeline_overrides(accounts, timeline_by_account):
     """Make the ARR timeline the source of truth when it is present."""
     overridden = {}
@@ -107,22 +245,7 @@ def apply_timeline_overrides(accounts, timeline_by_account):
 
 
 def is_hidden_renewal_risk(rows):
-    arr_pct = arr_trend(rows)
-    usage_pct = usage_trend(rows)
-    return bool(
-        arr_pct is not None
-        and usage_pct is not None
-        and (
-            (
-                arr_pct >= SILENT_DECLINE_ARR_FLOOR
-                and usage_pct <= SILENT_DECLINE_USAGE_DROP_PCT
-            )
-            or (
-                arr_pct >= EXPANSION_DIVERGENCE_ARR_GROWTH_PCT
-                and usage_pct <= EXPANSION_DIVERGENCE_USAGE_CEILING_PCT
-            )
-        )
-    )
+    return classify_attention_signal(rows)["attention_state"] == "attention"
 
 
 def _months(timeline_by_account):

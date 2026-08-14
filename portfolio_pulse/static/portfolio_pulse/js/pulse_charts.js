@@ -387,6 +387,12 @@ document.addEventListener('DOMContentLoaded', function () {
   const divergenceCanvas = document.getElementById('pulse-chart-divergence');
   if (divergence && divergenceCanvas) {
     const maxArr = Math.max(1, ...divergence.map(account => account.arr));
+    const roundedLimit = values => {
+      const observed = Math.max(0, ...values.map(value => Math.abs(value || 0)));
+      return Math.max(20, Math.ceil((observed * 1.12) / 10) * 10);
+    };
+    const detailXLimit = roundedLimit(divergence.map(account => account.arr_trend));
+    const detailYLimit = roundedLimit(divergence.map(account => account.usage_trend));
     const quadrantPlugin = {
       id: 'quadrants',
       beforeDraw(chart) {
@@ -396,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const y0 = scales.y.getPixelForValue(0);
         const areas = [
           [x0, chartArea.top, chartArea.right - x0, y0 - chartArea.top, 'rgba(76,142,96,0.12)', 'Compounding', 'right'],
-          [x0, y0, chartArea.right - x0, chartArea.bottom - y0, 'rgba(215,165,70,0.15)', 'Hidden renewal risk', 'right'],
+          [x0, y0, chartArea.right - x0, chartArea.bottom - y0, 'rgba(215,165,70,0.15)', 'Adoption lag', 'right'],
           [chartArea.left, y0, x0 - chartArea.left, chartArea.bottom - y0, 'rgba(105,119,135,0.12)', 'Active decline', 'left'],
           [chartArea.left, chartArea.top, x0 - chartArea.left, y0 - chartArea.top, 'rgba(126,113,169,0.11)', 'Commercial mismatch', 'left'],
         ];
@@ -414,7 +420,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const y0 = scales.y.getPixelForValue(0);
         const labels = [
           [x0, chartArea.top, chartArea.right - x0, 'Compounding', 'right'],
-          [x0, y0, chartArea.right - x0, 'Hidden renewal risk', 'right'],
+          [x0, y0, chartArea.right - x0, 'Adoption lag', 'right'],
           [chartArea.left, y0, x0 - chartArea.left, 'Active decline', 'left'],
           [chartArea.left, chartArea.top, x0 - chartArea.left, 'Commercial mismatch', 'left'],
         ];
@@ -429,30 +435,43 @@ document.addEventListener('DOMContentLoaded', function () {
       },
     };
     const points = accounts => accounts.map(account => ({
-      x: Math.max(-100, Math.min(100, account.arr_trend)),
-      y: Math.max(-100, Math.min(100, account.usage_trend)),
+      x: account.arr_trend,
+      y: account.usage_trend,
       r: 4 + (account.arr / maxArr) * 13,
+      id: account.id,
       name: account.name,
       arr: account.arr,
-      rawX: account.arr_trend,
-      rawY: account.usage_trend,
+      reason: account.attention_reason,
+      eligible: account.eligible,
+      windowLabel: account.window_label,
+      observations: account.observation_count,
+      method: account.method,
+      validation: account.validation,
     }));
-    const standardAccounts = divergence.filter(account => !account.hidden_renewal_risk);
-    const hiddenRenewalRisks = divergence.filter(account => account.hidden_renewal_risk);
-    new Chart(divergenceCanvas, {
+    const standardAccounts = divergence.filter(account => account.attention_state === 'standard');
+    const acceleratingAccounts = divergence.filter(account => account.attention_state === 'acceleration');
+    const attentionAccounts = divergence.filter(account => account.attention_state === 'attention');
+    const divergenceChart = new Chart(divergenceCanvas, {
       type: 'bubble',
       data: {
         datasets: [
           {
-            label: 'Portfolio accounts',
+            label: 'Standard portfolio',
             data: points(standardAccounts),
             backgroundColor: 'rgba(66,105,142,0.60)',
             borderColor: '#355a78',
             borderWidth: 1,
           },
           {
-            label: 'Hidden renewal risk',
-            data: points(hiddenRenewalRisks),
+            label: 'Acceleration',
+            data: points(acceleratingAccounts),
+            backgroundColor: 'rgba(45,106,45,0.78)',
+            borderColor: '#1f5125',
+            borderWidth: 1.4,
+          },
+          {
+            label: 'Needs attention',
+            data: points(attentionAccounts),
             backgroundColor: 'rgba(185,62,50,0.82)',
             borderColor: '#983126',
             borderWidth: 1.2,
@@ -469,18 +488,117 @@ document.addEventListener('DOMContentLoaded', function () {
           },
           tooltip: {
             callbacks: {
-              label: context => `${context.raw.name}: ARR ${context.raw.rawX}%, usage ${context.raw.rawY}%`,
-              afterLabel: context => `${compactMoney(context.raw.arr)} current ARR`,
+              title: items => items[0].raw.name,
+              label: context => [
+                `ARR ${context.raw.x}%`,
+                `Usage ${context.raw.y > 0 ? '+' : ''}${context.raw.y} percentage points`,
+                `${compactMoney(context.raw.arr)} current ARR`,
+              ],
+              afterLabel: context => [
+                context.raw.reason,
+                context.raw.windowLabel,
+                context.raw.method,
+                context.raw.validation,
+              ],
             },
           },
         },
+        onClick: (_event, elements, chart) => {
+          if (!elements.length) return;
+          const raw = chart.data.datasets[elements[0].datasetIndex].data[elements[0].index];
+          const picker = document.getElementById('pulse-journey-account');
+          if (!picker || !raw.id) return;
+          picker.value = raw.id;
+          picker.dispatchEvent(new Event('change'));
+          document.getElementById('pulse-chart-account-journey')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        },
         scales: {
-          x: { min: -100, max: 100, title: { display: true, text: 'ARR change %' }, ticks: { callback: value => value + '%' }, grid: { color: gridColor } },
-          y: { min: -100, max: 100, title: { display: true, text: 'Usage change %' }, ticks: { callback: value => value + '%' }, grid: { color: gridColor } },
+          x: { min: -detailXLimit, max: detailXLimit, title: { display: true, text: 'Smoothed ARR change %' }, ticks: { callback: value => value + '%' }, grid: { color: gridColor } },
+          y: { min: -detailYLimit, max: detailYLimit, title: { display: true, text: 'Seat-utilisation change (percentage points)' }, ticks: { callback: value => value + 'pp' }, grid: { color: gridColor } },
         },
       },
       plugins: [quadrantPlugin],
     });
+
+    document.querySelectorAll('[data-map-scale]').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('[data-map-scale]').forEach(item => item.classList.remove('is-active'));
+        button.classList.add('is-active');
+        const isFull = button.dataset.mapScale === 'full';
+        const xLimit = isFull ? Math.max(100, detailXLimit) : detailXLimit;
+        const yLimit = isFull ? Math.max(100, detailYLimit) : detailYLimit;
+        divergenceChart.options.scales.x.min = -xLimit;
+        divergenceChart.options.scales.x.max = xLimit;
+        divergenceChart.options.scales.y.min = -yLimit;
+        divergenceChart.options.scales.y.max = yLimit;
+        divergenceChart.update();
+      });
+    });
+  }
+
+  const accountJourneys = get('pulse-data-account-journeys');
+  const journeyCanvas = document.getElementById('pulse-chart-account-journey');
+  const journeyPicker = document.getElementById('pulse-journey-account');
+  const journeyEvidence = document.getElementById('pulse-journey-evidence');
+  let journeyChart = null;
+  if (accountJourneys && journeyCanvas && journeyPicker) {
+    accountJourneys.forEach(account => {
+      const option = document.createElement('option');
+      option.value = account.id;
+      option.textContent = `${account.name} · ${account.attention_state === 'attention' ? 'needs attention' : account.attention_state}`;
+      journeyPicker.appendChild(option);
+    });
+
+    const renderJourney = accountId => {
+      const account = accountJourneys.find(candidate => candidate.id === accountId) || accountJourneys[0];
+      if (!account) return;
+      if (journeyChart) journeyChart.destroy();
+      journeyChart = new Chart(journeyCanvas, {
+        type: 'line',
+        data: {
+          labels: account.labels,
+          datasets: [
+            {
+              label: 'ARR',
+              data: account.arr,
+              yAxisID: 'y',
+              borderColor: COLORS.blue,
+              backgroundColor: COLORS.blue,
+              pointRadius: 1.5,
+              pointHoverRadius: 4,
+              borderWidth: 2.5,
+              tension: 0.2,
+            },
+            {
+              label: 'Seat utilisation',
+              data: account.usage,
+              yAxisID: 'y1',
+              borderColor: account.attention_state === 'attention' ? COLORS.red : COLORS.green,
+              backgroundColor: account.attention_state === 'attention' ? COLORS.red : COLORS.green,
+              pointRadius: 1.5,
+              pointHoverRadius: 4,
+              borderWidth: 2.5,
+              tension: 0.2,
+            },
+          ],
+        },
+        options: {
+          ...baseOptions,
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            x: { ticks: { maxTicksLimit: 12, font: { size: 9 } }, grid: { display: false } },
+            y: { position: 'left', title: { display: true, text: 'ARR' }, ticks: { callback: compactMoney }, grid: { color: gridColor } },
+            y1: { position: 'right', min: 0, max: 100, title: { display: true, text: 'Seat utilisation' }, ticks: { callback: value => value + '%' }, grid: { drawOnChartArea: false } },
+          },
+        },
+      });
+      if (journeyEvidence) {
+        journeyEvidence.textContent = `${account.attention_reason} · ${account.window_label || 'timeline available'} · ${compactMoney(account.current_arr)} current ARR`;
+      }
+    };
+
+    journeyPicker.addEventListener('change', () => renderJourney(journeyPicker.value));
+    renderJourney(accountJourneys[0]?.id);
   }
 
   const arrTrend = get('pulse-data-arr-trend');
@@ -642,9 +760,9 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (arrGroup) buildArrGroupChart('by_industry');
-  document.querySelectorAll('.pulse-group-toggle__btn').forEach(button => {
+  document.querySelectorAll('.pulse-group-toggle__btn[data-group]').forEach(button => {
     button.addEventListener('click', () => {
-      document.querySelectorAll('.pulse-group-toggle__btn').forEach(item => item.classList.remove('is-active'));
+      document.querySelectorAll('.pulse-group-toggle__btn[data-group]').forEach(item => item.classList.remove('is-active'));
       button.classList.add('is-active');
       buildArrGroupChart(button.dataset.group);
     });

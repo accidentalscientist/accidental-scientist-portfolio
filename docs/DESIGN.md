@@ -670,6 +670,7 @@ The upload surface has two panes. Snapshot and Timeline files plus sample resour
 - **Load sample portfolio prepares data only.** It shows a Sample Portfolio Ready state without rendering analysis.
 - **Build my Portfolio Pulse performs analysis.** Changing the model updates its descriptor but does not change the dashboard until Build is clicked.
 - **Nothing uploaded is stored.** A new build with uploaded data requires the files again.
+- **The project thesis and selected scoring method are collapsible.** Both sit above the three product views. The scoring explainer shows the model progression, exact selected-model mechanics, shared bands, missing-data policy, affected views, and the boundary between the current transparent indices and future trained ML.
 
 ### Portfolio Outlook
 
@@ -705,7 +706,8 @@ Supporting views are:
 - **The Health Footprint:** account count by band with ARR written in each bar.
 - **The Executive Contact Gap:** ARR versus days since last QBR, coloured by contract runway from red through deep green.
 - **Commercial Tides:** five largest ARR-dollar decliners and growers over the trailing twelve months on a symmetrical axis.
-- **The Early-Warning Map:** ARR change and usage change on fixed -100% to +100% axes, with bubble size representing current ARR. Muted quadrant backgrounds identify Compounding, Hidden Renewal Risk, Active Decline, and Commercial Mismatch. Standard accounts are blue; hidden-renewal-risk accounts are red. Hidden risk includes usage falling while ARR holds and material ARR growth without corresponding usage growth.
+- **The Early-Warning Map:** smoothed ARR change and seat-utilisation percentage-point change, with bubble size representing current ARR. The default portfolio-detail scale expands to the observed data without clipping; a fixed ±100 reference remains available. Muted quadrant backgrounds identify Compounding, Adoption Lag, Active Decline, and Commercial Mismatch. Standard accounts are blue, acceleration is green, and material attention signals are red. A full-strength classification requires a twelve-month span, at least ten monthly observations, and at least eight usage observations. Eligible accounts compare the median of the first three observations with the last three. Short histories remain visible as explicitly unsmoothed early evidence. Red means ARR at least -2% with usage at most -10 points, ARR growth of at least 20% with usage at most +2 points, or ARR at most -10% with usage at most -5 points. Green requires at least 10% ARR growth and a ten-percentage-point usage gain. These are transparent rules whose outcome validation remains pending.
+- **The Account Signal Journey:** a selectable dual-axis timeline of monthly ARR and seat utilisation for every active account. Map bubbles can open their corresponding journey so the user can distinguish sustained movement from an isolated observation and inspect the evidence window behind a classification.
 
 ### Revenue Story
 
@@ -835,7 +837,9 @@ z={}&0.40+1.10\operatorname{clip}(T/1825,0,1)\\
 
 \(T\) is tenure days; \(Q\) is effective QBR age; \(U\) is utilisation; \(A\) is active-user rate; \(L\) is contract months; \(R\) is renewal runway days; \(I_o\) indicates overdue payment; \(K\) is ticket volume; \(K_c\) and \(K_b\) are segment clean and bad thresholds; \(G\) is ARR trend; and \(I_g=1\) only for negative ARR trend. Missing features contribute nothing except a missing QBR with known tenure, which uses tenure as its effective age.
 
-Displayed driver and strength values equal signed linear contributions multiplied by 10, but do not enter the calculation again. The logistic output is not a posterior probability or calibrated survival estimate. Coefficients are design assumptions because the data contain no labelled renewal, churn, contraction, expansion, or value-realisation outcomes.
+Here (z) is the logistic form's linear predictor, not a statistical z-score. Displayed driver and strength values equal signed linear contributions multiplied by 10, but do not enter the calculation again. The logistic output is not a posterior probability or calibrated survival estimate. Coefficients are design assumptions because the data contain no labelled renewal, churn, contraction, expansion, or value-realisation outcomes.
+
+A random forest is not offered as a health model because the current uploads contain no labelled outcome target on which to train it. Unsupervised clustering could describe peer archetypes, but clusters have no inherent Healthy-to-Critical ordering and therefore cannot honestly substitute for a health score. Either method remains contingent on an explicit evaluation design rather than being added for model theatre.
 
 ### Data contract
 
@@ -861,6 +865,7 @@ Known limits:
 
 - Historical QBR, overdue-payment, contract-state, and ticket-severity snapshots do not exist, so historical full-health replay would create false precision.
 - Retention Horizon has not been fitted or calibrated.
+- Early-Warning Map attention and acceleration thresholds are declared and stabilised but not yet validated against renewal or contraction outcomes.
 - Direct business outcomes and stakeholder strength are absent from the CSV.
 - There is no intervention log, override audit, CRM integration, cohort calibration, or saved history.
 - PDF export was specified in an earlier build document but was not implemented; browser print remains available.

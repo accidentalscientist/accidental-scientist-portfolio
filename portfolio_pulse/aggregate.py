@@ -58,7 +58,13 @@ def build_dashboard_context(scored_accounts, today, timeline_by_account=None):
             account["usage_trend"] = metrics.usage_trend(rows)
             account["arr_trend_pct"] = metrics.arr_trend(rows)
             account["arr_change_dollars"] = metrics.arr_change_dollars(rows)
-            account["hidden_renewal_risk"] = metrics.is_hidden_renewal_risk(rows)
+            attention_signal = metrics.classify_attention_signal(rows)
+            evidence = attention_signal.get("evidence") or {}
+            account["attention_state"] = attention_signal["attention_state"]
+            account["attention_reason"] = attention_signal["attention_reason"]
+            account["trend_evidence"] = evidence
+            # Retained for backwards-compatible template and API consumers.
+            account["hidden_renewal_risk"] = attention_signal["attention_state"] == "attention"
 
     context = {
         "has_timeline": has_timeline,
@@ -77,10 +83,21 @@ def build_dashboard_context(scored_accounts, today, timeline_by_account=None):
         context.update({
             "chart_growers_decliners": _growers_decliners(scored_accounts),
             "chart_usage_arr_divergence": _usage_arr_divergence(active_accounts),
+            "attention_accounts": [
+                account for account in active_accounts
+                if account.get("attention_state") == "attention"
+            ],
             "hidden_renewal_risks": [
                 account for account in active_accounts
-                if account.get("hidden_renewal_risk")
+                if account.get("attention_state") == "attention"
             ],
+            "accelerating_accounts": [
+                account for account in active_accounts
+                if account.get("attention_state") == "acceleration"
+            ],
+            "chart_account_journeys": _account_signal_journeys(
+                active_accounts, timeline_by_account,
+            ),
             "chart_arr_trend": _arr_trend(timeline_by_account),
             "chart_health_trend": _health_trend(timeline_by_account),
             "chart_arr_movement": _arr_movement(timeline_by_account),
@@ -419,15 +436,57 @@ def _growers_decliners(accounts):
 
 
 def _usage_arr_divergence(accounts):
-    return [{
-        "name": account["account_name"],
-        "arr_trend": account.get("arr_trend_pct"),
-        "usage_trend": account.get("usage_trend"),
-        "hidden_renewal_risk": account.get("hidden_renewal_risk", False),
-        "arr": round(account.get("current_arr", 0.0), 2),
-    } for account in accounts
-        if account.get("arr_trend_pct") is not None
-        and account.get("usage_trend") is not None]
+    rows = []
+    for account in accounts:
+        evidence = account.get("trend_evidence") or {}
+        if (
+            evidence.get("arr_change_pct") is None
+            or evidence.get("usage_change_pp") is None
+        ):
+            continue
+        rows.append({
+            "id": account["account_id"],
+            "name": account["account_name"],
+            "arr_trend": evidence["arr_change_pct"],
+            "usage_trend": evidence["usage_change_pp"],
+            "attention_state": account.get("attention_state", "standard"),
+            "attention_reason": account.get("attention_reason"),
+            "arr": round(account.get("current_arr", 0.0), 2),
+            "eligible": evidence.get("eligible", False),
+            "window_label": evidence.get("window_label"),
+            "observation_count": evidence.get("observation_count"),
+            "span_months": evidence.get("span_months"),
+            "method": evidence.get("method"),
+            "validation": evidence.get("validation"),
+        })
+    return rows
+
+
+def _account_signal_journeys(accounts, timeline_by_account):
+    account_by_id = {account["account_id"]: account for account in accounts}
+    journeys = []
+    for account_id, account in account_by_id.items():
+        rows = timeline_by_account.get(account_id, [])
+        if not rows:
+            continue
+        journeys.append({
+            "id": account_id,
+            "name": account["account_name"],
+            "attention_state": account.get("attention_state", "standard"),
+            "attention_reason": account.get("attention_reason"),
+            "current_arr": round(account.get("current_arr", 0.0), 2),
+            "window_label": (account.get("trend_evidence") or {}).get("window_label"),
+            "labels": [row["month"].strftime("%b %Y") for row in rows],
+            "arr": [round(row["arr"], 2) for row in rows],
+            "usage": [row.get("seat_utilisation_pct") for row in rows],
+        })
+    state_rank = {"attention": 0, "acceleration": 1, "standard": 2}
+    journeys.sort(key=lambda row: (
+        state_rank.get(row["attention_state"], 3),
+        -row["current_arr"],
+        row["name"],
+    ))
+    return journeys
 
 
 def _arr_trend(timeline_by_account):

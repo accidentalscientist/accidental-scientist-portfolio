@@ -12,16 +12,16 @@ DEFAULT_HEALTH_MODEL = "plain_pulse"
 HEALTH_MODELS = {
     "plain_pulse": {
         "name": "Plain Pulse",
-        "kind": "Basic checklist",
+        "kind": "Auditable baseline",
         "short_explainer": (
             "Adds or removes fixed points for QBRs, payment, usage, contract length, "
             "renewal timing, and longevity."
         ),
-        "interpretation": "Hand-calculable and consistent, with no multipliers.",
+        "interpretation": "Hand-calculable fixed thresholds, with no multipliers.",
     },
     "signal_compass": {
         "name": "Signal Compass",
-        "kind": "Contextual rules",
+        "kind": "Gradual contextual rules",
         "short_explainer": (
             "Starts at 100, then adjusts for engagement, payment, usage, contract length, "
             "renewal timing, longevity, and ARR decline."
@@ -30,13 +30,13 @@ HEALTH_MODELS = {
     },
     "retention_horizon": {
         "name": "Retention Horizon",
-        "kind": "ML-inspired linear model",
+        "kind": "Experimental logistic index",
         "short_explainer": (
-            "Weights the available signals, combines their contributions, then converts "
-            "the result into a stable 0 to 100 index."
+            "Weights the available signals, combines their contributions, then uses a "
+            "logistic curve to produce a stable 0 to 100 index."
         ),
         "interpretation": (
-            "An ML-inspired index, not a trained probability, because the CSV has no "
+            "An experimental weighted index, not a trained probability, because the CSV has no "
             "historical churn labels."
         ),
     },

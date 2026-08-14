@@ -74,16 +74,15 @@
   </section>
 
   {% if has_data %}
-    <nav class="pulse-view-nav" aria-label="Portfolio Pulse sections">
-      <a href="#portfolio-outlook">Portfolio Outlook</a>
-      <a href="#customer-action">Customer Action Centre</a>
-      {% if has_timeline %}<a href="#revenue-story">Revenue Story</a>{% endif %}
-    </nav>
-
-    <aside class="pulse-thesis">
-      <p class="pulse-thesis__eyebrow">One portfolio, three decisions</p>
-      <p class="pulse-thesis__statement">See the shape of the book, decide where to intervene, then understand how the result was made.</p>
-      <div class="pulse-thesis__summary" data-thesis-summary>
+    <details class="pulse-thesis">
+      <summary>
+        <span>
+          <span class="pulse-thesis__eyebrow">Project thesis &middot; one portfolio, three decisions</span>
+          <strong class="pulse-thesis__statement">See the shape of the book, decide where to intervene, then understand how the result was made.</strong>
+        </span>
+        <span class="pulse-thesis__action">Read the thesis</span>
+      </summary>
+      <div class="pulse-thesis__summary">
         <p class="pulse-thesis__body">
           Portfolio Pulse gives leaders and customer-success teams one shared account of recurring-revenue health.
           It begins with a belief: customer condition matters most when it is connected to value, contract timing,
@@ -106,7 +105,86 @@
           better questions and helping CSMs act before customer weakness becomes lost ARR.
         </p>
       </div>
-    </aside>
+    </details>
+
+    <details class="pulse-explainer pulse-explainer--primary">
+      <summary>
+        <span class="pulse-explainer__label">Explain scoring metric</span>
+        <strong>{{ selected_health_model.name }}</strong>
+        <span class="pulse-explainer__action">Open the complete method</span>
+      </summary>
+      <div class="pulse-explainer__body">
+        <div class="pulse-model-progression" aria-label="Health model progression">
+          <div class="{% if selected_health_model.id == 'plain_pulse' %}is-selected{% endif %}"><strong>1 &middot; Plain Pulse</strong><span>Fixed, hand-calculable thresholds</span></div>
+          <div class="{% if selected_health_model.id == 'signal_compass' %}is-selected{% endif %}"><strong>2 &middot; Signal Compass</strong><span>Gradual penalties plus business context</span></div>
+          <div class="{% if selected_health_model.id == 'retention_horizon' %}is-selected{% endif %}"><strong>3 &middot; Retention Horizon</strong><span>Weighted evidence through a logistic curve</span></div>
+        </div>
+        <p>
+          Every model produces one account-health index from 0 to 100: <strong>Critical is 50 or below</strong>,
+          <strong>Watch is above 50 through 75</strong>, and <strong>Healthy is above 75</strong>. The portfolio
+          headline is the ARR-weighted average, so large accounts influence the book-level result without
+          receiving a better individual score merely because they are large.
+        </p>
+        {% if selected_health_model.id == "plain_pulse" %}
+          <h3>Plain Pulse &middot; the auditable baseline</h3>
+          <p><code>Health = clip(100 − deductions + strengths, 0, 100)</code></p>
+          <p>
+            Plain Pulse deliberately uses cliffs. It removes 20 points when a QBR is over 180 days old,
+            20 for overdue payment, 10 below 50% seat utilisation, 10 below 40% active-user rate, 15 for
+            a term of 12 months or less (or 5 for 24 months or less), and 10 when renewal is within six months.
+            It adds small strengths for a recent QBR, utilisation of at least 80%, active-user rate of at least
+            70%, and one, three, or five years of tenure.
+          </p>
+          <p>
+            This is the easiest model to reproduce and challenge. Its trade-off is threshold sensitivity:
+            49% utilisation is penalised while 50% is not. Tickets, segment context, ARR direction, and
+            interactions are intentionally excluded.
+          </p>
+        {% elif selected_health_model.id == "signal_compass" %}
+          <h3>Signal Compass &middot; gradual rather than cliff-based</h3>
+          <p><code>Health = clip(100 − gradual deductions × context + strengths, 0, 100)</code></p>
+          <p>
+            Signal Compass keeps the transparent 100-point structure but measures degree. QBR age and ticket
+            load ramp between segment-specific clean and poor thresholds. Utilisation gradually loses up to
+            15 points between 70% and 20%; active-user rate loses up to 10 between 60% and 15%. Payment and
+            short-contract evidence remain explicit deductions.
+          </p>
+          <p>
+            Context then amplifies the combined deduction: up to 1.25× when renewal is close, 1.15× for a
+            customer younger than six months, and 1.15× when ARR is declining by more than 5%. These factors
+            can compound. This produces finer nuance than Plain Pulse, but the ramps and multipliers are still
+            transparent expert assumptions rather than learned effects.
+          </p>
+        {% else %}
+          <h3>Retention Horizon &middot; a logistic-shaped experimental index</h3>
+          <p><code>Health = 100 ÷ (1 + e<sup>−z</sup>)</code></p>
+          <p>
+            The linear value <code>z</code> starts at 0.40. Longevity contributes up to +1.10; QBR recency
+            ranges from +0.70 to −0.70; utilisation from −0.80 to +0.80; active-user rate from −0.70 to
+            +0.70; contract commitment and renewal runway each add or remove up to roughly 0.55 and 0.45.
+            Overdue payment contributes −1.20, while support demand and ARR decline contribute up to −0.45
+            and −0.55. The logistic curve then converts that total into a bounded 0–100 index.
+          </p>
+          <p>
+            Here <code>z</code> means the logistic model&rsquo;s linear predictor; it is <strong>not</strong> a
+            statistical z-score. The coefficients have not been fitted to churn outcomes, so this is not a
+            renewal probability or trained logistic regression. Its value is showing how a richer weighted
+            model behaves while remaining inspectable.
+          </p>
+        {% endif %}
+        <div class="pulse-method-notes">
+          <p><strong>Missing QBR:</strong> when no QBR is recorded, its effective age becomes customer tenure and data completeness falls. Other missing signals are generally neutral rather than silently imputed.</p>
+          <p><strong>What this changes:</strong> portfolio health, health bands, health-led colours, Sector Weather, and Intervention Queue priority. Historical ARR movement and the Early-Warning Map remain model-independent.</p>
+          <p><strong>ML boundary:</strong> a random forest needs labelled renewal, churn, or contraction outcomes. Clustering can reveal peer archetypes, but clusters do not inherently mean Healthy or Critical. Portfolio Pulse will keep those methods separate until they can add evidence without manufacturing certainty.</p>
+        </div>
+      </div>
+    </details>
+
+    <nav class="pulse-view-nav" aria-label="Portfolio Pulse sections">
+      <a href="#portfolio-outlook">Portfolio Outlook</a>
+      <a href="#customer-action">Customer Action Centre</a>
+      {% if has_timeline %}<a href="#revenue-story">Revenue Story</a>{% endif %}
+    </nav>
 
     <section class="pulse-product" id="portfolio-outlook">
       <header class="pulse-product__header">
@@ -174,58 +252,6 @@
         {% endfor %}
       </div>
       <p class="pulse-summary-sentence">{{ summary_sentence }}</p>
-
-      <details class="pulse-explainer">
-        <summary>
-          <span class="pulse-explainer__label">Selected health model</span>
-          <strong>{{ selected_health_model.name }}</strong>
-          <span class="pulse-explainer__action">View scoring method</span>
-        </summary>
-        <div class="pulse-explainer__body">
-          <p>
-            Health estimates whether the customer will renew, keep realising value, and create
-            expansion potential over the next three years. {{ selected_health_model.interpretation }}
-          </p>
-          {% if selected_health_model.id == "plain_pulse" %}
-            <ol>
-              <li>Every account starts at 100.</li>
-              <li>Fixed points are removed for a QBR over 180 days old, overdue payment, clearly weak usage, a short contract, or renewal inside six months.</li>
-              <li>Recent QBRs, clearly strong usage, and longevity restore a small number of points.</li>
-              <li>There are no multipliers, segment adjustments, ARR effects, or ticket-volume effects.</li>
-            </ol>
-          {% elif selected_health_model.id == "retention_horizon" %}
-            <ol>
-              <li>Each available CSV signal contributes a positive or negative weighted value.</li>
-              <li>Longevity, recent QBRs, strong usage, longer contracts, and more renewal runway move the index upward.</li>
-              <li>Overdue payment, high support demand, weak usage, old QBRs, short runway, and ARR decline move it downward.</li>
-              <li>A logistic curve converts the combined value into a stable 0 to 100 score. ARR expansion and low ticket volume are neutral.</li>
-            </ol>
-            <p>
-              This uses the mathematical shape of logistic regression, but its weights are transparent
-              design assumptions rather than coefficients learned from churn outcomes. A future trained
-              version requires historical renewal and churn labels that are not present in the current CSVs.
-            </p>
-          {% else %}
-            <ol>
-              <li>Every account starts at 100.</li>
-              <li>Gradual points are removed for an overdue or missing QBR, overdue payment, heavy support demand, weak utilisation, weak active-user rates, or a short contract.</li>
-              <li>Recent QBRs, strong usage, and longevity restore a small number of points.</li>
-              <li>Deductions become somewhat larger when renewal is close, the customer is new, or ARR is falling.</li>
-              <li>Low ticket volume and ARR expansion do not add points. The final score is capped between 0 and 100.</li>
-            </ol>
-          {% endif %}
-          <p>
-            A blank <code>last_qbr_date</code> means the QBR has never happened, so its age is
-            treated as the full customer tenure. Data completeness separately shows how much
-            evidence was available for the calculation.
-          </p>
-          <p>
-            The portfolio headline gives larger customers more influence by weighting each
-            account score by ARR. It is a portfolio warning index, not the percentage of
-            customers that will definitely remain.
-          </p>
-        </div>
-      </details>
 
       <div class="pulse-chart-grid">
         <article class="pulse-chart-card">
@@ -317,13 +343,45 @@
           </article>
           <article class="pulse-chart-card">
             <h3 class="pulse-subhead">The Early-Warning Map</h3>
-            <p class="pulse-chart-intro">ARR change and usage change place every account into one of four commercial-behavioural quadrants, with bubble size reflecting current ARR. Muted background colours separate the four conditions, while red dots identify hidden renewal risk and blue dots show the rest of the portfolio.</p>
+            <p class="pulse-chart-intro">This view uses the optional monthly Timeline, not just the current Snapshot. It compares smoothed ARR growth with the change in seat-utilisation percentage points. Bubble size is current ARR; red marks material attention signals, green marks acceleration, and blue is the standard portfolio.</p>
+            <div class="pulse-map-toolbar" aria-label="Early-Warning Map scale">
+              <span>Scale</span>
+              <button type="button" class="pulse-group-toggle__btn is-active" data-map-scale="detail">Portfolio detail</button>
+              <button type="button" class="pulse-group-toggle__btn" data-map-scale="full">Full ±100 reference</button>
+            </div>
             <div class="pulse-canvas pulse-canvas--tall"><canvas id="pulse-chart-divergence"></canvas></div>
-            {% if hidden_renewal_risks %}
-              <p class="pulse-decliner-callout">
-                Hidden renewal risk: {% for account in hidden_renewal_risks %}{{ account.account_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-              </p>
+            {% if attention_accounts %}
+              <div class="pulse-signal-callout pulse-signal-callout--attention">
+                <strong>Needs attention</strong>
+                <ul>{% for account in attention_accounts %}<li>{{ account.account_name }} <span>{{ account.attention_reason }}</span></li>{% endfor %}</ul>
+              </div>
             {% endif %}
+            {% if accelerating_accounts %}
+              <div class="pulse-signal-callout pulse-signal-callout--acceleration">
+                <strong>Acceleration to understand</strong>
+                <ul>{% for account in accelerating_accounts %}<li>{{ account.account_name }} <span>{{ account.attention_reason }}</span></li>{% endfor %}</ul>
+              </div>
+            {% endif %}
+            <details class="pulse-map-method">
+              <summary>How eligibility, stability, materiality, and validation work</summary>
+              <div class="pulse-map-method__grid">
+                <p><strong>Eligibility</strong><span>A full signal needs at least 10 monthly observations, 8 usage observations, and a 12-month span. Short histories remain visible but are labelled early.</span></p>
+                <p><strong>Stability</strong><span>ARR and usage compare the median of the first three observations with the median of the final three, reducing single-month noise.</span></p>
+                <p><strong>Materiality</strong><span>Red means ARR ≥ −2% with usage ≤ −10 points; ARR ≥ +20% with usage ≤ +2 points; or ARR ≤ −10% with usage ≤ −5 points. Green requires ARR ≥ +10% and usage ≥ +10 points.</span></p>
+                <p><strong>Validation</strong><span>These are transparent evidence rules, not churn probabilities. Outcome validation remains pending until labelled renewal and contraction history exists.</span></p>
+              </div>
+            </details>
+          </article>
+          <article class="pulse-chart-card pulse-chart-card--wide">
+            <div class="pulse-chart-heading-row">
+              <div>
+                <h3 class="pulse-subhead">The Account Signal Journey</h3>
+                <p class="pulse-chart-intro">Choose an account to see monthly ARR and seat utilisation together. This separates a sustained movement from a one-month spike and makes the time behind each map bubble inspectable.</p>
+              </div>
+              <label class="pulse-journey-picker">Account <select id="pulse-journey-account"></select></label>
+            </div>
+            <p class="pulse-journey-evidence" id="pulse-journey-evidence" aria-live="polite"></p>
+            <div class="pulse-canvas pulse-canvas--tall"><canvas id="pulse-chart-account-journey"></canvas></div>
           </article>
         {% endif %}
       </div>
@@ -371,6 +429,7 @@
     {% if has_timeline %}
       {{ chart_growers_decliners|json_script:"pulse-data-growers" }}
       {{ chart_usage_arr_divergence|json_script:"pulse-data-divergence" }}
+      {{ chart_account_journeys|json_script:"pulse-data-account-journeys" }}
       {{ chart_arr_trend|json_script:"pulse-data-arr-trend" }}
       {{ chart_health_trend|json_script:"pulse-data-health-trend" }}
       {{ chart_arr_movement|json_script:"pulse-data-arr-movement" }}
@@ -378,7 +437,7 @@
     {% endif %}
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-    <script src="{% static 'portfolio_pulse/js/pulse_charts.js' %}?v=7"></script>
+    <script src="{% static 'portfolio_pulse/js/pulse_charts.js' %}?v=8"></script>
   {% endif %}
   {{ health_model_options|json_script:"pulse-health-model-options" }}
   <script src="{% static 'portfolio_pulse/js/health_model_selector.js' %}?v=1"></script>
