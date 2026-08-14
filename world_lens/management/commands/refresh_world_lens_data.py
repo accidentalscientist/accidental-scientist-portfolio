@@ -16,6 +16,16 @@ WORLD_BANK_API = 'https://api.worldbank.org/v2'
 ATLAS_API = 'https://atlas.hks.harvard.edu/api/graphql'
 BIS_API = 'https://stats.bis.org/api/v1/data'
 UIS_API = 'https://api.uis.unesco.org/api/public/data/indicators'
+SIPRI_API = 'https://atbackend.sipri.org/api/p/trades/import-export-top-csv-str/'
+SIPRI_TOP_N = 150
+SIPRI_NAME_ALIASES = {
+    'russia': 'RUS', 'south korea': 'KOR', 'north korea': 'PRK', 'egypt': 'EGY',
+    'slovakia': 'SVK', 'vietnam': 'VNM', 'viet nam': 'VNM', 'czech republic': 'CZE',
+    'turkey': 'TUR', 'syria': 'SYR', 'laos': 'LAO', 'iran': 'IRN', 'venezuela': 'VEN',
+    'brunei': 'BRN', 'moldova': 'MDA', 'tanzania': 'TZA', 'bolivia': 'BOL',
+    'democratic republic of the congo': 'COD', 'republic of the congo': 'COG',
+    'united arab emirates': 'ARE', 'ivory coast': 'CIV',
+}
 START_YEAR = 2015
 END_YEAR = 2024
 BASELINE_START_YEAR = 2000
@@ -787,19 +797,70 @@ class Command(BaseCommand):
                 latest = max(series, key=lambda item: item['year'])
                 entry[key] = {'raw': round(latest['value'], 3), 'year': latest['year']}
             military[iso3] = entry
-        arms_data, vintage = self._load_sipri_arms_exports()
+        arms_data, vintage = self._fetch_sipri_arms_exports(countries)
+        if not arms_data:
+            arms_data, vintage = self._load_sipri_arms_exports_csv()
         for iso3, value in arms_data.items():
             if iso3 in military:
                 military[iso3]['arms_export_tiv'] = value
         return military, vintage
 
-    def _load_sipri_arms_exports(self):
+    def _fetch_sipri_arms_exports(self, countries):
+        name_lookup = {meta['name'].strip().lower(): iso3 for iso3, meta in countries.items()}
+        body = {
+            'filters': [
+                {'field': 'Include top', 'oldField': '', 'condition': 'contains', 'value1': SIPRI_TOP_N, 'value2': '', 'listData': []},
+                {'field': 'Year range 1', 'oldField': '', 'condition': 'contains', 'value1': START_YEAR, 'value2': END_YEAR, 'listData': []},
+                {'field': 'orderbyseller', 'oldField': '', 'condition': '', 'value1': '', 'value2': '', 'listData': []},
+                {'field': 'Status', 'oldField': '', 'condition': '', 'value1': '0', 'value2': '', 'listData': []},
+                {'field': 'Main Suppliers', 'oldField': '', 'condition': '', 'value1': 0, 'value2': '', 'listData': []},
+                {'field': 'PercentChange', 'oldField': '', 'condition': '', 'value1': '0', 'value2': '', 'listData': []},
+                {'field': 'MovingAverage', 'oldField': '', 'condition': '', 'value1': False, 'value2': '', 'listData': []},
+            ],
+            'logic': 'AND',
+        }
+        try:
+            payload = self._request_json(SIPRI_API, body)
+        except (HTTPError, TimeoutError, OSError, ValueError, KeyError) as exc:
+            self.stdout.write(self.style.WARNING(f'SIPRI live fetch failed ({exc}); trying manual CSV fallback.'))
+            return {}, None
+        csv_text = payload.get('result', '') if isinstance(payload, dict) else ''
+        lines = csv_text.strip().split('\n')
+        vintage = None
+        for line in lines[:10]:
+            if line.startswith('Data generated:'):
+                vintage = line.split('Data generated:', 1)[1].strip()
+            elif 'Data generated:' in line:
+                vintage = line.split('Data generated:', 1)[1].strip()
+        data, unmatched = {}, []
+        for row in csv.reader(lines):
+            if len(row) < 15 or not row[1].strip().isdigit():
+                continue
+            name_raw = row[3].strip()
+            name_key = name_raw.rstrip('*').strip().lower()
+            iso3 = name_lookup.get(name_key) or SIPRI_NAME_ALIASES.get(name_key)
+            if not iso3 or iso3 not in countries:
+                if name_raw and name_raw not in ('Others', 'Total'):
+                    unmatched.append(name_raw)
+                continue
+            try:
+                total = float(row[14])
+            except (ValueError, IndexError):
+                continue
+            data[iso3] = {'raw': total, 'period': f'{START_YEAR}-{END_YEAR}', 'observations': 1}
+        if data:
+            self.stdout.write(self.style.SUCCESS(
+                f'SIPRI live fetch matched {len(data)} economies to arms-export data (data as of {vintage}).'
+            ))
+        if unmatched:
+            self.stdout.write(f'SIPRI suppliers not matched to a cohort economy: {sorted(set(unmatched))[:15]}')
+        return data, vintage
+
+    def _load_sipri_arms_exports_csv(self):
         if not SIPRI_CSV_PATH.is_file():
             self.stdout.write(self.style.WARNING(
-                f'No SIPRI export file at {SIPRI_CSV_PATH}; arms_export_tiv omitted from the military '
-                'panel. Generate one at https://armstransfers.sipri.org/ArmsTransfer/ImportExportTop '
-                '(Report with: Exported weapons; Break down: Off; Show percentage change: Off) and save '
-                'columns iso3,tiv_value,period,data_as_of.'
+                f'No SIPRI export file at {SIPRI_CSV_PATH} and the live SIPRI fetch failed; '
+                'arms_export_tiv omitted from the military panel.'
             ))
             return {}, None
         data = {}
