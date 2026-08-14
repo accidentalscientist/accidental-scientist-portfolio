@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const areas = [
           [x0, chartArea.top, chartArea.right - x0, y0 - chartArea.top, 'rgba(76,142,96,0.12)', 'Compounding', 'right'],
           [x0, y0, chartArea.right - x0, chartArea.bottom - y0, 'rgba(215,165,70,0.15)', 'Adoption lag', 'right'],
-          [chartArea.left, y0, x0 - chartArea.left, chartArea.bottom - y0, 'rgba(105,119,135,0.12)', 'Active decline', 'left'],
+          [chartArea.left, y0, x0 - chartArea.left, chartArea.bottom - y0, 'rgba(192,57,43,0.10)', 'Active decline', 'left'],
           [chartArea.left, chartArea.top, x0 - chartArea.left, y0 - chartArea.top, 'rgba(126,113,169,0.11)', 'Commercial mismatch', 'left'],
         ];
         ctx.save();
@@ -491,7 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
               title: items => items[0].raw.name,
               label: context => [
                 `ARR ${context.raw.x}%`,
-                `Usage ${context.raw.y > 0 ? '+' : ''}${context.raw.y} percentage points`,
+                `Usage ${context.raw.y > 0 ? '+' : ''}${context.raw.y}%`,
                 `${compactMoney(context.raw.arr)} current ARR`,
               ],
               afterLabel: context => [
@@ -514,7 +514,7 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         scales: {
           x: { min: -detailXLimit, max: detailXLimit, title: { display: true, text: 'Smoothed ARR change %' }, ticks: { callback: value => value + '%' }, grid: { color: gridColor } },
-          y: { min: -detailYLimit, max: detailYLimit, title: { display: true, text: 'Seat-utilisation change (percentage points)' }, ticks: { callback: value => value + 'pp' }, grid: { color: gridColor } },
+          y: { min: -detailYLimit, max: detailYLimit, title: { display: true, text: 'Seat-utilisation change %' }, ticks: { callback: value => value + '%' }, grid: { color: gridColor } },
         },
       },
       plugins: [quadrantPlugin],
@@ -534,6 +534,126 @@ document.addEventListener('DOMContentLoaded', function () {
         divergenceChart.update();
       });
     });
+  }
+
+  const archetypeData = get('pulse-data-account-archetypes');
+  const archetypeRoot = document.getElementById('pulse-archetype-fingerprint');
+  const archetypeDetail = document.getElementById('pulse-archetype-detail');
+  if (archetypeData?.available && archetypeRoot && archetypeDetail) {
+    const fingerprintDescription = value => {
+      if (value >= 1) return 'well above portfolio norm';
+      if (value >= 0.35) return 'above portfolio norm';
+      if (value <= -1) return 'well below portfolio norm';
+      if (value <= -0.35) return 'below portfolio norm';
+      return 'near portfolio norm';
+    };
+    const header = document.createElement('div');
+    header.className = 'pulse-archetype-header';
+    header.setAttribute('role', 'row');
+    const accountHeader = document.createElement('span');
+    accountHeader.textContent = 'Behavioural archetype';
+    accountHeader.setAttribute('role', 'columnheader');
+    header.appendChild(accountHeader);
+    archetypeData.features.forEach(feature => {
+      const label = document.createElement('span');
+      label.textContent = feature.label;
+      label.setAttribute('role', 'columnheader');
+      header.appendChild(label);
+    });
+    archetypeRoot.appendChild(header);
+
+    const rowsById = new Map();
+    const renderArchetypeDetail = archetype => {
+      rowsById.forEach((row, id) => {
+        const selected = id === archetype.id;
+        row.classList.toggle('is-selected', selected);
+        row.setAttribute('aria-selected', selected ? 'true' : 'false');
+      });
+      archetypeDetail.replaceChildren();
+      const heading = document.createElement('div');
+      heading.className = 'pulse-archetype-detail__heading';
+      const title = document.createElement('strong');
+      title.textContent = archetype.name;
+      const metrics = document.createElement('span');
+      metrics.textContent = `${archetype.count} accounts · ${compactMoney(archetype.arr)} ARR (${archetype.arr_share}%) · median health ${archetype.median_health}`;
+      heading.append(title, metrics);
+      const description = document.createElement('p');
+      description.textContent = archetype.description;
+
+      const bandBar = document.createElement('div');
+      bandBar.className = 'pulse-archetype-bands';
+      bandBar.setAttribute('aria-label', `Health mix: ${archetype.bands.Critical} Critical, ${archetype.bands.Watch} Watch, ${archetype.bands.Healthy} Healthy`);
+      ['Critical', 'Watch', 'Healthy'].forEach(band => {
+        const segment = document.createElement('span');
+        segment.className = `pulse-archetype-bands__${band.toLowerCase()}`;
+        segment.style.flexGrow = archetype.bands[band];
+        segment.title = `${band}: ${archetype.bands[band]} accounts`;
+        bandBar.appendChild(segment);
+      });
+
+      const accountList = document.createElement('div');
+      accountList.className = 'pulse-archetype-accounts';
+      archetype.accounts.forEach(account => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `pulse-archetype-account pulse-archetype-account--${account.band.toLowerCase()}`;
+        button.textContent = `${account.name} · ${account.health} · ${compactMoney(account.arr)}`;
+        button.title = `Open ${account.name} in the Account Signal Journey`;
+        button.addEventListener('click', () => {
+          const picker = document.getElementById('pulse-journey-account');
+          const journey = document.getElementById('pulse-chart-account-journey');
+          if (!picker || !journey) return;
+          picker.value = account.id;
+          picker.dispatchEvent(new Event('change', { bubbles: true }));
+          journey.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        accountList.appendChild(button);
+      });
+      archetypeDetail.append(heading, description, bandBar, accountList);
+    };
+
+    archetypeData.archetypes.forEach(archetype => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'pulse-archetype-row';
+      row.setAttribute('role', 'row');
+      row.setAttribute('aria-selected', 'false');
+      const identity = document.createElement('span');
+      identity.className = 'pulse-archetype-row__identity';
+      identity.setAttribute('role', 'rowheader');
+      const name = document.createElement('strong');
+      name.textContent = archetype.name;
+      const scale = document.createElement('small');
+      scale.textContent = `${archetype.count} accounts · ${archetype.arr_share}% ARR`;
+      identity.append(name, scale);
+      row.appendChild(identity);
+      archetype.profile.forEach(feature => {
+        const cell = document.createElement('span');
+        const strength = Math.min(Math.abs(feature.value) / 2, 1);
+        const direction = feature.value > 0.15 ? 'positive' : feature.value < -0.15 ? 'negative' : 'neutral';
+        cell.className = `pulse-archetype-cell pulse-archetype-cell--${direction}`;
+        cell.style.setProperty('--fingerprint-strength', strength.toFixed(2));
+        cell.textContent = `${feature.value > 0 ? '+' : ''}${feature.value.toFixed(1)}`;
+        cell.title = `${feature.label}: ${fingerprintDescription(feature.value)}`;
+        cell.setAttribute('role', 'cell');
+        cell.setAttribute('aria-label', `${feature.label}: ${fingerprintDescription(feature.value)}`);
+        row.appendChild(cell);
+      });
+      row.addEventListener('click', () => renderArchetypeDetail(archetype));
+      rowsById.set(archetype.id, row);
+      archetypeRoot.appendChild(row);
+    });
+
+    const legend = document.createElement('div');
+    legend.className = 'pulse-archetype-legend';
+    ['Weaker position', 'Portfolio norm', 'Stronger position'].forEach((label, index) => {
+      const item = document.createElement('span');
+      item.className = `pulse-archetype-legend__${['negative', 'neutral', 'positive'][index]}`;
+      item.textContent = label;
+      legend.appendChild(item);
+    });
+    archetypeRoot.appendChild(legend);
+    renderArchetypeDetail(archetypeData.archetypes[0]);
   }
 
   const accountJourneys = get('pulse-data-account-journeys');
@@ -709,6 +829,51 @@ document.addEventListener('DOMContentLoaded', function () {
         scales: {
           x: { stacked: true, ticks: { maxTicksLimit: 12, font: { size: 9 } }, grid: { display: false } },
           y: { stacked: true, ticks: { callback: compactMoney }, grid: { color: gridColor } },
+        },
+      },
+    });
+  }
+
+  const revenueBreadth = get('pulse-data-revenue-breadth');
+  const revenueBreadthCanvas = document.getElementById('pulse-chart-revenue-breadth');
+  if (revenueBreadth && revenueBreadthCanvas) {
+    new Chart(revenueBreadthCanvas, {
+      type: 'line',
+      data: {
+        labels: revenueBreadth.labels,
+        datasets: [
+          { label: 'Largest account', data: revenueBreadth.top1, borderColor: COLORS.amber, backgroundColor: COLORS.amber, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2.2, tension: 0.2 },
+          { label: 'Top 5 accounts', data: revenueBreadth.top5, borderColor: COLORS.blue, backgroundColor: COLORS.blue, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2.7, tension: 0.2 },
+          { label: 'Top 10 accounts', data: revenueBreadth.top10, borderColor: COLORS.ink, backgroundColor: COLORS.ink, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2.2, tension: 0.2 },
+        ],
+      },
+      options: {
+        ...baseOptions,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          ...baseOptions.plugins,
+          tooltip: {
+            callbacks: {
+              label: context => `${context.dataset.label}: ${context.raw}% of ARR`,
+              afterBody: items => {
+                const index = items[0].dataIndex;
+                return [
+                  `${revenueBreadth.active_accounts[index]} active accounts`,
+                  `${compactMoney(revenueBreadth.total_arr[index])} portfolio ARR`,
+                ];
+              },
+            },
+          },
+        },
+        scales: {
+          x: { ticks: { maxTicksLimit: 10, font: { size: 9 } }, grid: { display: false } },
+          y: {
+            min: 0,
+            max: 100,
+            title: { display: true, text: 'Share of portfolio ARR' },
+            ticks: { callback: value => value + '%' },
+            grid: { color: gridColor },
+          },
         },
       },
     });

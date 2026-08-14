@@ -9,7 +9,7 @@
     "score_end": 2024,
     "minimum_observations": 5,
     "minimum_latest_year": 2020,
-    "inclusion_rule": "Complete coverage on every Giga v1 input, then the top 48 economies under equal-weight Power Now.",
+    "inclusion_rule": "Complete coverage on every scored input (Compatriot Estimation Method values count as coverage where explicitly flagged), then the top 48 economies under equal-weight Power Now.",
     "models": {
       "power": {
         "label": "Global Power Rankings",
@@ -401,20 +401,244 @@
         "aggregation": "latest",
         "transform": "log1p",
         "source": "Harvard Growth Lab Atlas"
+      },
+      "labor_force": {
+        "id": "SL.TLF.TOTL.IN",
+        "label": "Labor force, total",
+        "unit": "people",
+        "aggregation": "latest",
+        "transform": "log10",
+        "source": "World Development Indicators"
+      },
+      "tertiary_enrollment": {
+        "id": "SE.TER.ENRR",
+        "label": "School enrollment, tertiary",
+        "unit": "% gross",
+        "aggregation": "average",
+        "source": "World Development Indicators",
+        "approximable": true
+      },
+      "elec_consumption_pc": {
+        "id": "EG.USE.ELEC.KH.PC",
+        "label": "Electric power consumption per capita",
+        "unit": "kWh per capita",
+        "aggregation": "latest",
+        "source": "World Development Indicators"
+      },
+      "elec_access": {
+        "id": "EG.ELC.ACCS.ZS",
+        "label": "Access to electricity",
+        "unit": "% of population",
+        "aggregation": "latest",
+        "source": "World Development Indicators"
+      },
+      "energy_use_pcap": {
+        "id": "EG.USE.PCAP.KG.OE",
+        "label": "Energy use per capita",
+        "unit": "kg of oil equivalent per capita",
+        "aggregation": "latest",
+        "source": "World Development Indicators"
+      },
+      "lpi_overall": {
+        "id": "LP.LPI.OVRL.XQ",
+        "label": "Logistics Performance Index: overall",
+        "unit": "index (1-5)",
+        "aggregation": "latest",
+        "source": "World Development Indicators",
+        "ignore_recency": true
+      },
+      "lpi_infrastructure": {
+        "id": "LP.LPI.INFR.XQ",
+        "label": "Logistics Performance Index: infrastructure",
+        "unit": "index (1-5)",
+        "aggregation": "latest",
+        "source": "World Development Indicators",
+        "ignore_recency": true
+      },
+      "lpi_intl_shipments": {
+        "id": "LP.LPI.ITRN.XQ",
+        "label": "Logistics Performance Index: international shipments",
+        "unit": "index (1-5)",
+        "aggregation": "latest",
+        "source": "World Development Indicators",
+        "ignore_recency": true
+      },
+      "credit_private_gdp": {
+        "id": "FS.AST.PRVT.GD.ZS",
+        "label": "Domestic credit to private sector",
+        "unit": "% of GDP",
+        "aggregation": "average",
+        "source": "World Development Indicators",
+        "bis_supplement": true
+      },
+      "market_cap_gdp": {
+        "id": "CM.MKT.LCAP.GD.ZS",
+        "label": "Market capitalization of listed domestic companies",
+        "unit": "% of GDP",
+        "aggregation": "average",
+        "source": "World Development Indicators",
+        "approximable": true
+      },
+      "stocks_traded_gdp": {
+        "id": "CM.MKT.TRAD.GD.ZS",
+        "label": "Stocks traded, total value",
+        "unit": "% of GDP",
+        "aggregation": "average",
+        "source": "World Development Indicators",
+        "approximable": true
+      },
+      "fdi_outflows_gdp": {
+        "id": "BM.KLT.DINV.WD.GD.ZS",
+        "label": "Foreign direct investment, net outflows",
+        "unit": "% of GDP",
+        "aggregation": "average",
+        "source": "World Development Indicators"
+      },
+      "fdi_outflows_usd": {
+        "id": "BM.KLT.DINV.CD.WD",
+        "label": "Foreign direct investment, net outflows",
+        "unit": "current US$",
+        "aggregation": "average",
+        "source": "World Development Indicators"
+      },
+      "primary_income_receipts": {
+        "id": "BX.GSR.FCTY.CD",
+        "label": "Primary income receipts from abroad",
+        "unit": "current US$",
+        "aggregation": "average",
+        "transform": "log10",
+        "source": "World Development Indicators"
+      },
+      "hightech_exports": {
+        "id": "TX.VAL.TECH.MF.ZS",
+        "label": "High-technology exports",
+        "unit": "% of manufactured exports",
+        "aggregation": "latest",
+        "source": "World Development Indicators",
+        "approximable": true
+      },
+      "patent_apps_resident": {
+        "id": "IP.PAT.RESD",
+        "label": "Patent applications, residents",
+        "unit": "applications",
+        "aggregation": "latest",
+        "transform": "log1p",
+        "source": "World Development Indicators"
+      },
+      "ip_royalty_receipts": {
+        "id": "BX.GSR.ROYL.CD",
+        "label": "Charges for the use of intellectual property, receipts",
+        "unit": "current US$",
+        "aggregation": "latest",
+        "transform": "log1p",
+        "source": "World Development Indicators",
+        "approximable": true
+      },
+      "wgi_rule_of_law": {
+        "id": "GOV_WGI_RL.EST",
+        "label": "Rule of law",
+        "unit": "estimate",
+        "aggregation": "average",
+        "source": "Worldwide Governance Indicators"
+      },
+      "wgi_control_corruption": {
+        "id": "GOV_WGI_CC.EST",
+        "label": "Control of corruption",
+        "unit": "estimate",
+        "aggregation": "average",
+        "source": "Worldwide Governance Indicators"
+      },
+      "wgi_political_stability": {
+        "id": "GOV_WGI_PV.EST",
+        "label": "Political stability and absence of violence",
+        "unit": "estimate",
+        "aggregation": "average",
+        "source": "Worldwide Governance Indicators"
+      },
+      "rd_expenditure_gdp": {
+        "id": "GB.XPD.RSDV.GD.ZS",
+        "label": "Research and development expenditure",
+        "unit": "% of GDP",
+        "aggregation": "average",
+        "source": "World Development Indicators",
+        "uis_supplement": "EXPGDP.TOT",
+        "approximable": true
+      },
+      "researchers_per_million": {
+        "id": "SP.POP.SCIE.RD.P6",
+        "label": "Researchers in R&D",
+        "unit": "per million people",
+        "aggregation": "latest",
+        "source": "World Development Indicators",
+        "approximable": true
+      },
+      "journal_articles": {
+        "id": "IP.JRN.ARTC.SC",
+        "label": "Scientific and technical journal articles",
+        "unit": "articles",
+        "aggregation": "latest",
+        "transform": "log1p",
+        "source": "World Development Indicators"
+      },
+      "renewable_energy_share": {
+        "id": "EG.FEC.RNEW.ZS",
+        "label": "Renewable energy consumption",
+        "unit": "% of total final energy consumption",
+        "aggregation": "average",
+        "source": "World Development Indicators"
+      },
+      "renew_electricity_output": {
+        "id": "EG.ELC.RNEW.ZS",
+        "label": "Renewable electricity output",
+        "unit": "% of total electricity output",
+        "aggregation": "average",
+        "source": "World Development Indicators"
+      },
+      "energy_intensity": {
+        "id": "EG.EGY.PRIM.PP.KD",
+        "label": "Energy intensity of GDP",
+        "unit": "MJ per $2017 PPP GDP",
+        "aggregation": "average",
+        "direction": -1,
+        "source": "World Development Indicators"
+      },
+      "military_expenditure_gdp": {
+        "id": "MS.MIL.XPND.GD.ZS",
+        "label": "Military expenditure",
+        "unit": "% of GDP",
+        "aggregation": "average",
+        "source": "World Development Indicators"
+      },
+      "armed_forces_personnel": {
+        "id": "MS.MIL.TOTL.P1",
+        "label": "Armed forces personnel, total",
+        "unit": "people",
+        "aggregation": "latest",
+        "transform": "log10",
+        "source": "World Development Indicators"
+      },
+      "arms_export_tiv": {
+        "label": "Arms exports (trend-indicator value)",
+        "unit": "SIPRI TIV, millions",
+        "aggregation": "latest",
+        "source": "SIPRI Arms Transfers Database"
       }
     },
     "sources": [
       {
         "name": "World Development Indicators",
-        "url": "https://databank.worldbank.org/source/world-development-indicators"
+        "url": "https://databank.worldbank.org/source/world-development-indicators",
+        "data_as_of": "2026-07-13"
       },
       {
         "name": "Worldwide Governance Indicators",
-        "url": "https://www.worldbank.org/en/publication/worldwide-governance-indicators"
+        "url": "https://www.worldbank.org/en/publication/worldwide-governance-indicators",
+        "data_as_of": "2026-07-13"
       },
       {
         "name": "Harvard Growth Lab Atlas of Economic Complexity",
-        "url": "https://atlas.hks.harvard.edu/data-downloads/"
+        "url": "https://atlas.hks.harvard.edu/data-downloads/",
+        "data_as_of": "2024"
       }
     ]
   },

@@ -199,6 +199,52 @@ class HealthModelTests(TestCase):
     def test_retention_horizon_is_labelled_as_untrained(self):
         self.assertIn("not a trained probability", HEALTH_MODELS["retention_horizon"]["interpretation"])
 
+    def test_retention_horizon_falls_back_to_signal_compass_without_timeline(self):
+        account = _account(overdue_flag=True, seat_utilisation_pct=55)
+        compass = score_portfolio([account], TODAY, model="signal_compass")[0]
+        horizon = score_portfolio([account], TODAY, model="retention_horizon")[0]
+        self.assertEqual(horizon["score"], compass["score"])
+        self.assertEqual(horizon["trajectory_adjustment"], 0)
+
+    def test_retention_horizon_adjusts_signal_compass_for_direction(self):
+        common = {
+            "eligible": True,
+            "confidence": 100,
+            "strength_factor": 1,
+            "window_label": "12-month linear trajectory",
+        }
+        declining = _account(
+            overdue_flag=True,
+            trajectory_evidence={
+                **common,
+                "trends": {
+                    "arr": {"annual_change": -20},
+                    "utilisation": {"annual_change": -15},
+                    "active_users": {"annual_change": -13},
+                    "tickets": {"annual_change": 6},
+                },
+            },
+        )
+        accelerating = _account(
+            overdue_flag=True,
+            trajectory_evidence={
+                **common,
+                "trends": {
+                    "arr": {"annual_change": 20},
+                    "utilisation": {"annual_change": 14},
+                    "active_users": {"annual_change": 12},
+                    "tickets": {"annual_change": -2},
+                },
+            },
+        )
+        compass = score_portfolio([declining], TODAY, model="signal_compass")[0]
+        declining_result = score_portfolio([declining], TODAY, model="retention_horizon")[0]
+        accelerating_result = score_portfolio([accelerating], TODAY, model="retention_horizon")[0]
+        self.assertLess(declining_result["score"], compass["score"])
+        self.assertGreater(accelerating_result["score"], compass["score"])
+        self.assertGreaterEqual(declining_result["trajectory_adjustment"], -20)
+        self.assertLessEqual(accelerating_result["trajectory_adjustment"], 8)
+
 
 class ParseSnapshotTests(TestCase):
     HEADER = (
@@ -275,6 +321,17 @@ class TimelineMetricTests(TestCase):
         self.assertEqual(metrics.arr_change_dollars(rows), 60_000)
         self.assertEqual(metrics.arr_trend(rows), 60.0)
 
+    def test_linear_trajectory_is_annualised_and_evidence_gated(self):
+        rows = _timeline_rows(
+            arrs=[100_000 + i * 2_000 for i in range(13)],
+            utils=[60 + i for i in range(13)],
+        )
+        evidence = metrics.trajectory_evidence(rows)
+        self.assertTrue(evidence["eligible"])
+        self.assertEqual(evidence["confidence"], 100)
+        self.assertAlmostEqual(evidence["trends"]["utilisation"]["annual_change"], 12)
+        self.assertGreater(evidence["trends"]["arr"]["annual_change"], 20)
+
     def test_usage_decline_with_steady_arr_is_hidden_renewal_risk(self):
         rows = _timeline_rows(
             arrs=[100_000] * 13,
@@ -331,6 +388,17 @@ class TimelineMetricTests(TestCase):
         self.assertEqual(movement["contraction"], -20_000)
         self.assertEqual(movement["churn"], -50_000)
         self.assertEqual(movement["net"], -10_000)
+
+    def test_revenue_concentration_re_ranks_accounts_each_month(self):
+        timeline = {
+            "A": _timeline_rows("A", arrs=[100_000, 50_000]),
+            "B": _timeline_rows("B", arrs=[50_000, 150_000]),
+        }
+        series = metrics.revenue_concentration_series(timeline)
+        self.assertEqual(series[0]["top1_share"], 66.7)
+        self.assertEqual(series[1]["top1_share"], 75.0)
+        self.assertEqual(series[1]["top5_share"], 100.0)
+        self.assertEqual(series[1]["active_accounts"], 2)
 
     def test_timeline_overrides_snapshot_arr(self):
         account = _account(current_arr=999_999)
@@ -408,9 +476,11 @@ class DashboardContextTests(TestCase):
             "chart_health_distribution",
             "chart_qbr_coverage",
             "priority_accounts",
+            "chart_account_archetypes",
             "chart_arr_trend",
             "chart_health_trend",
             "chart_arr_movement",
+            "chart_revenue_breadth",
             "chart_arr_by_group",
         ):
             self.assertIn(key, context)
@@ -484,6 +554,15 @@ class DashboardContextTests(TestCase):
         }))
         self.assertTrue(all("window_label" in row for row in rows))
         self.assertTrue(context["chart_account_journeys"])
+        archetypes = context["chart_account_archetypes"]
+        self.assertTrue(archetypes["available"])
+        self.assertGreaterEqual(archetypes["cluster_count"], 3)
+        self.assertLessEqual(archetypes["cluster_count"], 5)
+        self.assertIn("ARR", archetypes["excluded_fields"])
+        self.assertEqual(
+            sum(row["count"] for row in archetypes["archetypes"]),
+            archetypes["eligible_count"],
+        )
         early_accelerators = {
             account["account_name"] for account in context["accelerating_accounts"]
             if not account["trend_evidence"]["eligible"]
@@ -550,6 +629,7 @@ class DashboardViewTests(TestCase):
             "pulse-chart-account-journey",
             "pulse-chart-portfolio-trend",
             "pulse-chart-arr-movement",
+            "pulse-chart-revenue-breadth",
             "pulse-chart-arr-group",
         ):
             self.assertContains(response, chart_id)
@@ -557,8 +637,8 @@ class DashboardViewTests(TestCase):
         self.assertNotContains(response, "ARR bridge")
         self.assertNotContains(response, "NRR / GRR")
         self.assertNotContains(response, "Part I")
-        self.assertContains(response, "one portfolio, three decisions")
-        self.assertContains(response, "Explain scoring metric")
+        self.assertContains(response, "one portfolio, three directions")
+        self.assertContains(response, "Scoring method")
         self.assertContains(response, "Fixed, hand-calculable thresholds")
         self.assertEqual(
             response.content.decode().count('class="pulse-model-picker__descriptor"'),
@@ -569,6 +649,18 @@ class DashboardViewTests(TestCase):
         self.assertContains(response, "The Value Ladder")
         self.assertContains(response, "The Revenue Skyline")
         self.assertContains(response, "The Intervention Queue")
+        self.assertContains(response, "The Account Archetype Fingerprint")
+        self.assertContains(response, 'id="pulse-archetype-fingerprint"', html=False)
+        self.assertContains(response, "Revenue Breadth")
+        self.assertContains(
+            response,
+            '<details class="pulse-signal-callout pulse-signal-callout--attention">',
+            html=False,
+        )
+        html = response.content.decode()
+        self.assertLess(html.index("The Early-Warning Map"), html.index("The Account Signal Journey"))
+        self.assertLess(html.index("The Account Signal Journey"), html.index("The Account Archetype Fingerprint"))
+        self.assertLess(html.index("The Account Archetype Fingerprint"), html.index("<h2>Revenue Story</h2>"))
         self.assertContains(response, "The Portfolio Current")
         self.assertContains(response, "pulse-priority-card")
         self.assertEqual(
@@ -595,8 +687,8 @@ class DashboardViewTests(TestCase):
         self.assertContains(response, '<option value="plain_pulse" selected>', html=False)
         self.assertContains(response, "Adds or removes fixed points")
         self.assertContains(response, 'data-sample-mode="true"', html=False)
-        self.assertContains(response, "Explain scoring metric")
-        self.assertContains(response, "Open the complete method")
+        self.assertContains(response, "Scoring method")
+        self.assertContains(response, "Fixed, hand-calculable thresholds")
         self.assertNotContains(response, "pulse-model-card")
 
     def test_invalid_health_model_falls_back_to_plain_pulse(self):

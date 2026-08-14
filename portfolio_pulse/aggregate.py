@@ -1,5 +1,6 @@
 """Build every Portfolio Pulse payload from scored accounts and ARR history."""
 from . import metrics
+from .archetypes import build_account_archetypes
 from .scoring import BANDS, portfolio_health
 
 BAND_LABELS = [label for _, label in BANDS]
@@ -98,9 +99,13 @@ def build_dashboard_context(scored_accounts, today, timeline_by_account=None):
             "chart_account_journeys": _account_signal_journeys(
                 active_accounts, timeline_by_account,
             ),
+            "chart_account_archetypes": build_account_archetypes(
+                active_accounts, timeline_by_account,
+            ),
             "chart_arr_trend": _arr_trend(timeline_by_account),
             "chart_health_trend": _health_trend(timeline_by_account),
             "chart_arr_movement": _arr_movement(timeline_by_account),
+            "chart_revenue_breadth": _revenue_breadth(timeline_by_account),
             "chart_arr_by_group": metrics.revenue_by_group(
                 scored_accounts, timeline_by_account,
             ),
@@ -514,4 +519,16 @@ def _arr_movement(timeline_by_account):
         "contraction": [point["contraction"] for point in series],
         "churn": [point["churn"] for point in series],
         "net": [point["net"] for point in series],
+    }
+
+
+def _revenue_breadth(timeline_by_account):
+    series = metrics.revenue_concentration_series(timeline_by_account)
+    return {
+        "labels": [point["month"].strftime("%b %Y") for point in series],
+        "top1": [point["top1_share"] for point in series],
+        "top5": [point["top5_share"] for point in series],
+        "top10": [point["top10_share"] for point in series],
+        "active_accounts": [point["active_accounts"] for point in series],
+        "total_arr": [point["total_arr"] for point in series],
     }

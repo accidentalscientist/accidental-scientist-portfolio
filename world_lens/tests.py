@@ -1,9 +1,10 @@
 import json
+from unittest import SkipTest
 
 from django.test import SimpleTestCase
 from django.urls import reverse
 
-from .views import DATA_PATH
+from .views import DATA_PATH, DATA_PATH_V2
 
 
 class WorldLedgerDashboardTests(SimpleTestCase):
@@ -53,3 +54,52 @@ class WorldLedgerDashboardTests(SimpleTestCase):
         response = self.client.get('/world-lens/')
 
         self.assertRedirects(response, reverse('world_lens:dashboard'), status_code=301)
+
+
+class WorldLedgerGigaV2Tests(SimpleTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        if not DATA_PATH_V2.is_file():
+            raise SkipTest('Giga Dataset v2 has not been generated yet.')
+        cls.payload = json.loads(DATA_PATH_V2.read_text(encoding='utf-8'))
+
+    def test_dashboard_embeds_the_v2_dataset_and_switcher(self):
+        response = self.client.get(reverse('world_lens:dashboard'))
+
+        self.assertContains(response, 'world-lens-data-v2')
+        self.assertContains(response, 'Giga v2')
+
+    def test_giga_v2_expands_to_ten_pillars_per_model(self):
+        self.assertEqual(self.payload['meta']['dataset'], 'Giga Dataset version 2.0')
+        self.assertEqual(self.payload['meta']['cohort_count'], 60)
+        self.assertEqual(len(self.payload['countries']), 60)
+        self.assertEqual(len(self.payload['meta']['models']['power']['components']), 10)
+        self.assertEqual(len(self.payload['meta']['models']['potential']['components']), 10)
+        for pillar_key in self.payload['meta']['models']['power']['components'] + self.payload['meta']['models']['potential']['components']:
+            self.assertEqual(len(self.payload['meta']['pillars'][pillar_key]['inputs']), 3)
+
+    def test_china_and_india_remain_in_the_v2_cohort(self):
+        iso3_codes = {country['iso3'] for country in self.payload['countries']}
+
+        self.assertIn('CHN', iso3_codes)
+        self.assertIn('IND', iso3_codes)
+
+    def test_military_panel_is_present_and_unscored(self):
+        for country in self.payload['countries']:
+            self.assertIn('military', country)
+            self.assertNotIn('military', country['models'])
+
+    def test_sipri_is_declared_as_a_source(self):
+        source_names = {source['name'] for source in self.payload['meta']['sources']}
+
+        self.assertIn('SIPRI Arms Transfers Database', source_names)
+
+    def test_approximated_values_are_explicitly_flagged(self):
+        for country in self.payload['countries']:
+            for model in country['models'].values():
+                for component in model['components'].values():
+                    for item in component['inputs'].values():
+                        if item.get('approximated'):
+                            self.assertIn('approximation_basis', item)
+                            self.assertGreater(len(item['approximation_basis']), 0)

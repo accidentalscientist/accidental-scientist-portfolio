@@ -76,13 +76,11 @@
   {% if has_data %}
     <details class="pulse-thesis">
       <summary>
-        <span>
-          <span class="pulse-thesis__eyebrow">Project thesis &middot; one portfolio, three decisions</span>
-          <strong class="pulse-thesis__statement">See the shape of the book, decide where to intervene, then understand how the result was made.</strong>
-        </span>
+        <span class="pulse-thesis__eyebrow">Project thesis &middot; one portfolio, three directions</span>
         <span class="pulse-thesis__action">Read the thesis</span>
       </summary>
       <div class="pulse-thesis__summary">
+        <p class="pulse-thesis__statement">See the shape of the book, decide where to intervene, then understand how the result was made.</p>
         <p class="pulse-thesis__body">
           Portfolio Pulse gives leaders and customer-success teams one shared account of recurring-revenue health.
           It begins with a belief: customer condition matters most when it is connected to value, contract timing,
@@ -109,16 +107,11 @@
 
     <details class="pulse-explainer pulse-explainer--primary">
       <summary>
-        <span class="pulse-explainer__label">Explain scoring metric</span>
+        <span class="pulse-explainer__label">Scoring method</span>
         <strong>{{ selected_health_model.name }}</strong>
-        <span class="pulse-explainer__action">Open the complete method</span>
+        <span class="pulse-explainer__action">{{ selected_health_model.method_summary }}</span>
       </summary>
       <div class="pulse-explainer__body">
-        <div class="pulse-model-progression" aria-label="Health model progression">
-          <div class="{% if selected_health_model.id == 'plain_pulse' %}is-selected{% endif %}"><strong>1 &middot; Plain Pulse</strong><span>Fixed, hand-calculable thresholds</span></div>
-          <div class="{% if selected_health_model.id == 'signal_compass' %}is-selected{% endif %}"><strong>2 &middot; Signal Compass</strong><span>Gradual penalties plus business context</span></div>
-          <div class="{% if selected_health_model.id == 'retention_horizon' %}is-selected{% endif %}"><strong>3 &middot; Retention Horizon</strong><span>Weighted evidence through a logistic curve</span></div>
-        </div>
         <p>
           Every model produces one account-health index from 0 to 100: <strong>Critical is 50 or below</strong>,
           <strong>Watch is above 50 through 75</strong>, and <strong>Healthy is above 75</strong>. The portfolio
@@ -156,26 +149,27 @@
             transparent expert assumptions rather than learned effects.
           </p>
         {% else %}
-          <h3>Retention Horizon &middot; a logistic-shaped experimental index</h3>
-          <p><code>Health = 100 ÷ (1 + e<sup>−z</sup>)</code></p>
+          <h3>Retention Horizon &middot; current condition plus direction</h3>
+          <p><code>Health = clip(Signal Compass + bounded trajectory adjustment, 0, 100)</code></p>
           <p>
-            The linear value <code>z</code> starts at 0.40. Longevity contributes up to +1.10; QBR recency
-            ranges from +0.70 to −0.70; utilisation from −0.80 to +0.80; active-user rate from −0.70 to
-            +0.70; contract commitment and renewal runway each add or remove up to roughly 0.55 and 0.45.
-            Overdue payment contributes −1.20, while support demand and ARR decline contribute up to −0.45
-            and −0.55. The logistic curve then converts that total into a bounded 0–100 index.
+            Retention Horizon begins with the complete Signal Compass score. It then fits account-level linear
+            trends to the latest twelve months of ARR, seat utilisation, active-user rate, and tickets. Sustained
+            adoption decline can remove up to 8 points, ARR decline up to 6, rising support pressure up to 3,
+            and commercial-adoption divergence up to 4. Confirmed ARR and adoption acceleration can add up to
+            4 points; ARR growth by itself adds nothing.
           </p>
           <p>
-            Here <code>z</code> means the logistic model&rsquo;s linear predictor; it is <strong>not</strong> a
-            statistical z-score. The coefficients have not been fitted to churn outcomes, so this is not a
-            renewal probability or trained logistic regression. Its value is showing how a richer weighted
-            model behaves while remaining inspectable.
+            The full historical adjustment requires a twelve-month span, at least ten observations, and at
+            least two usable trend series. Shorter histories are capped at half strength. Without a Timeline,
+            the result deliberately equals Signal Compass. The total adjustment is bounded between minus 20
+            and plus 8 points, so trajectory can refine current evidence without overwhelming it. This is a
+            linear-trajectory health index, not a fitted churn probability.
           </p>
         {% endif %}
         <div class="pulse-method-notes">
           <p><strong>Missing QBR:</strong> when no QBR is recorded, its effective age becomes customer tenure and data completeness falls. Other missing signals are generally neutral rather than silently imputed.</p>
           <p><strong>What this changes:</strong> portfolio health, health bands, health-led colours, Sector Weather, and Intervention Queue priority. Historical ARR movement and the Early-Warning Map remain model-independent.</p>
-          <p><strong>ML boundary:</strong> a random forest needs labelled renewal, churn, or contraction outcomes. Clustering can reveal peer archetypes, but clusters do not inherently mean Healthy or Critical. Portfolio Pulse will keep those methods separate until they can add evidence without manufacturing certainty.</p>
+          <p><strong>Model boundary:</strong> account archetypes use separate unsupervised clustering to explain behavioural peers. Health and ARR never form the clusters, and an archetype is never treated as Healthy or Critical. A trained churn probability still requires genuine labelled outcomes.</p>
         </div>
       </div>
     </details>
@@ -343,7 +337,7 @@
           </article>
           <article class="pulse-chart-card">
             <h3 class="pulse-subhead">The Early-Warning Map</h3>
-            <p class="pulse-chart-intro">This view uses the optional monthly Timeline, not just the current Snapshot. It compares smoothed ARR growth with the change in seat-utilisation percentage points. Bubble size is current ARR; red marks material attention signals, green marks acceleration, and blue is the standard portfolio.</p>
+            <p class="pulse-chart-intro">This view uses the optional monthly Timeline, not just the current Snapshot. It compares smoothed ARR growth with the change in seat utilisation. Bubble size is current ARR; red marks material attention signals, green marks acceleration, and blue is the standard portfolio.</p>
             <div class="pulse-map-toolbar" aria-label="Early-Warning Map scale">
               <span>Scale</span>
               <button type="button" class="pulse-group-toggle__btn is-active" data-map-scale="detail">Portfolio detail</button>
@@ -351,16 +345,16 @@
             </div>
             <div class="pulse-canvas pulse-canvas--tall"><canvas id="pulse-chart-divergence"></canvas></div>
             {% if attention_accounts %}
-              <div class="pulse-signal-callout pulse-signal-callout--attention">
-                <strong>Needs attention</strong>
+              <details class="pulse-signal-callout pulse-signal-callout--attention">
+                <summary><strong>Needs attention</strong><span>{{ attention_accounts|length }} accounts</span></summary>
                 <ul>{% for account in attention_accounts %}<li>{{ account.account_name }} <span>{{ account.attention_reason }}</span></li>{% endfor %}</ul>
-              </div>
+              </details>
             {% endif %}
             {% if accelerating_accounts %}
-              <div class="pulse-signal-callout pulse-signal-callout--acceleration">
-                <strong>Acceleration to understand</strong>
+              <details class="pulse-signal-callout pulse-signal-callout--acceleration">
+                <summary><strong>Acceleration to understand</strong><span>{{ accelerating_accounts|length }} accounts</span></summary>
                 <ul>{% for account in accelerating_accounts %}<li>{{ account.account_name }} <span>{{ account.attention_reason }}</span></li>{% endfor %}</ul>
-              </div>
+              </details>
             {% endif %}
             <details class="pulse-map-method">
               <summary>How eligibility, stability, materiality, and validation work</summary>
@@ -383,6 +377,30 @@
             <p class="pulse-journey-evidence" id="pulse-journey-evidence" aria-live="polite"></p>
             <div class="pulse-canvas pulse-canvas--tall"><canvas id="pulse-chart-account-journey"></canvas></div>
           </article>
+          <article class="pulse-chart-card pulse-chart-card--wide">
+            <h3 class="pulse-subhead">The Account Archetype Fingerprint</h3>
+            <p class="pulse-chart-intro">Behaviourally similar accounts are clustered using adoption level, adoption momentum, ARR momentum, support position, and engagement position. Health, health band, ARR, account identity, owner, segment, and industry do not form the clusters; they are added afterward so each behavioural type can be read in commercial context.</p>
+            {% if chart_account_archetypes.available %}
+              <div class="pulse-archetype-summary">
+                <strong>{{ chart_account_archetypes.cluster_count }} behavioural archetypes</strong>
+                <span>{{ chart_account_archetypes.eligible_count }} eligible accounts</span>
+                <span>Separation {{ chart_account_archetypes.silhouette }}</span>
+              </div>
+              <div id="pulse-archetype-fingerprint" class="pulse-archetype-fingerprint" aria-label="Account archetype fingerprint"></div>
+              <div id="pulse-archetype-detail" class="pulse-archetype-detail" aria-live="polite"></div>
+              <details class="pulse-map-method">
+                <summary>How the archetypes are formed and interpreted</summary>
+                <div class="pulse-map-method__grid">
+                  <p><strong>Formation</strong><span>Deterministic k-means groups robust-scaled behavioural evidence. The model evaluates three to five groups, requires at least two accounts per group, and retains the clearest separation without using health or account size.</span></p>
+                  <p><strong>Fingerprint</strong><span>Each cell shows an archetype relative to the portfolio median. Green is a stronger position, red is weaker, and near-white is close to the portfolio norm.</span></p>
+                  <p><strong>Materiality</strong><span>ARR and ARR share are reported after clustering. They show how commercially important an archetype is without allowing large accounts to define the behavioural pattern.</span></p>
+                  <p><strong>Boundary</strong><span>Archetypes explain different forms of behaviour. They do not modify health, predict churn, or imply that every account in a group needs the same action.</span></p>
+                </div>
+              </details>
+            {% else %}
+              <p class="pulse-archetype-unavailable">{{ chart_account_archetypes.reason }}</p>
+            {% endif %}
+          </article>
         {% endif %}
       </div>
     </section>
@@ -392,7 +410,7 @@
         <header class="pulse-product__header">
           <h2>Revenue Story</h2>
           <p class="pulse-product__thesis">A movement matters only when the business can explain where it came from.</p>
-          <p>These views separate the portfolio&rsquo;s direction, underlying customer signals, monthly causes, and the groups that produced the outcome.</p>
+          <p>These views separate the portfolio&rsquo;s direction, monthly causes, concentration through time, and the groups that produced the outcome.</p>
         </header>
 
         <div class="pulse-chart-grid">
@@ -405,6 +423,11 @@
             <h3 class="pulse-subhead">The Revenue Current</h3>
             <p class="pulse-chart-intro">Each month is decomposed into new ARR, expansion, contraction, churn, and the resulting net movement. Repeated negative bars reveal a structural leak, while isolated churn events should be read against the size of expansion around them.</p>
             <div class="pulse-canvas pulse-canvas--tall"><canvas id="pulse-chart-arr-movement"></canvas></div>
+          </article>
+          <article class="pulse-chart-card pulse-chart-card--wide">
+            <h3 class="pulse-subhead">Revenue Breadth</h3>
+            <p class="pulse-chart-intro">The largest one, five, and ten accounts are re-ranked each month and shown as a share of portfolio ARR. Rising lines mean the book is becoming more concentrated; falling lines mean growth is broadening across more customers.</p>
+            <div class="pulse-canvas pulse-canvas--tall"><canvas id="pulse-chart-revenue-breadth"></canvas></div>
           </article>
           <article class="pulse-chart-card pulse-chart-card--wide">
             <h3 class="pulse-subhead">The Growth Engines</h3>
@@ -430,14 +453,16 @@
       {{ chart_growers_decliners|json_script:"pulse-data-growers" }}
       {{ chart_usage_arr_divergence|json_script:"pulse-data-divergence" }}
       {{ chart_account_journeys|json_script:"pulse-data-account-journeys" }}
+      {{ chart_account_archetypes|json_script:"pulse-data-account-archetypes" }}
       {{ chart_arr_trend|json_script:"pulse-data-arr-trend" }}
       {{ chart_health_trend|json_script:"pulse-data-health-trend" }}
       {{ chart_arr_movement|json_script:"pulse-data-arr-movement" }}
+      {{ chart_revenue_breadth|json_script:"pulse-data-revenue-breadth" }}
       {{ chart_arr_by_group|json_script:"pulse-data-arr-group" }}
     {% endif %}
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-    <script src="{% static 'portfolio_pulse/js/pulse_charts.js' %}?v=8"></script>
+    <script src="{% static 'portfolio_pulse/js/pulse_charts.js' %}?v=11"></script>
   {% endif %}
   {{ health_model_options|json_script:"pulse-health-model-options" }}
   <script src="{% static 'portfolio_pulse/js/health_model_selector.js' %}?v=1"></script>

@@ -56,6 +56,7 @@ def enrich_snapshot_metrics(account):
     enriched["historic_value"] = historic_value(account)
     enriched.setdefault("arr_trend_pct", None)
     enriched.setdefault("arr_change_dollars", None)
+    enriched.setdefault("trajectory_evidence", None)
     return enriched
 
 
@@ -94,6 +95,105 @@ def usage_trend(rows, months=12):
 
 def _month_span(start, end):
     return (end.year - start.year) * 12 + end.month - start.month
+
+
+def _linear_trend(rows, field, *, percentage_of_level=False):
+    """Fit a simple monthly OLS trend using only observed values.
+
+    The result is annualised so different evidence windows remain comparable.
+    ARR is expressed as an annual percentage of its median positive level;
+    percentage and count fields are expressed in their native units per year.
+    """
+    points = []
+    origin = rows[0]["month"] if rows else None
+    for row in rows:
+        value = row.get(field)
+        if value is None:
+            continue
+        points.append((_month_span(origin, row["month"]), float(value)))
+    if len(points) < 2:
+        return None
+
+    mean_x = sum(point[0] for point in points) / len(points)
+    mean_y = sum(point[1] for point in points) / len(points)
+    denominator = sum((point[0] - mean_x) ** 2 for point in points)
+    if denominator <= 0:
+        return None
+    slope = sum(
+        (point[0] - mean_x) * (point[1] - mean_y)
+        for point in points
+    ) / denominator
+    fitted = [mean_y + slope * (point[0] - mean_x) for point in points]
+    total_variation = sum((point[1] - mean_y) ** 2 for point in points)
+    residual_variation = sum(
+        (point[1] - estimate) ** 2
+        for point, estimate in zip(points, fitted)
+    )
+    r_squared = (
+        max(0.0, 1 - residual_variation / total_variation)
+        if total_variation > 0 else 1.0
+    )
+    annual_change = slope * 12
+    if percentage_of_level:
+        positive = [point[1] for point in points if point[1] > 0]
+        level = median(positive) if positive else 0
+        annual_change = annual_change / level * 100 if level else 0.0
+    return {
+        "annual_change": round(annual_change, 2),
+        "r_squared": round(r_squared, 3),
+        "observations": len(points),
+    }
+
+
+def trajectory_evidence(rows, months=12):
+    """Return bounded-model inputs from account-level linear trajectories.
+
+    This is evidence for Retention Horizon and archetyping, not an outcome
+    prediction. Full-strength evidence requires a twelve-month span and at
+    least ten monthly observations. Shorter histories remain usable at a
+    deliberately reduced strength.
+    """
+    comparison_rows = rows[-min(len(rows), months + 1):]
+    if len(comparison_rows) < 2:
+        return None
+
+    span_months = _month_span(
+        comparison_rows[0]["month"], comparison_rows[-1]["month"],
+    )
+    trends = {
+        "arr": _linear_trend(comparison_rows, "arr", percentage_of_level=True),
+        "utilisation": _linear_trend(comparison_rows, "seat_utilisation_pct"),
+        "active_users": _linear_trend(comparison_rows, "active_user_pct"),
+        "tickets": _linear_trend(comparison_rows, "tickets_opened"),
+    }
+    available = [trend for trend in trends.values() if trend]
+    coverage = sum(
+        trend["observations"] / len(comparison_rows)
+        for trend in available
+    ) / len(trends)
+    history_factor = min(span_months / 12, 1.0)
+    confidence = round(100 * (0.6 * history_factor + 0.4 * coverage), 1)
+    eligible = bool(
+        span_months >= 12
+        and len(comparison_rows) >= 10
+        and len(available) >= 2
+    )
+    strength_factor = 1.0 if eligible else min(0.5, confidence / 100)
+
+    return {
+        "trends": trends,
+        "observation_count": len(comparison_rows),
+        "span_months": span_months,
+        "eligible": eligible,
+        "confidence": confidence,
+        "strength_factor": round(strength_factor, 3),
+        "window_label": (
+            "12-month linear trajectory"
+            if eligible
+            else f"provisional trajectory: {span_months} months / {len(comparison_rows)} observations"
+        ),
+        "method": "Ordinary least-squares trend over the latest 12 months",
+    }
 
 
 def trend_evidence(rows, months=12):
@@ -233,6 +333,7 @@ def apply_timeline_overrides(accounts, timeline_by_account):
         updated["entry_arr"] = round(rows[0]["arr"], 2)
         updated["arr_trend_pct"] = arr_trend(rows)
         updated["arr_change_dollars"] = arr_change_dollars(rows)
+        updated["trajectory_evidence"] = trajectory_evidence(rows)
         # Keep legacy fields populated for backward-compatible code paths.
         updated["avg_monthly_revenue_6mo"] = round(
             sum(row["arr"] for row in rows[-6:]) / len(rows[-6:]) / 12, 2,
@@ -266,6 +367,35 @@ def portfolio_arr_series(timeline_by_account):
         {"month": month, "arr": round(totals[month], 2)}
         for month in months
     ]
+
+
+def revenue_concentration_series(timeline_by_account):
+    """Track how much monthly ARR is held by the largest accounts.
+
+    Accounts are re-ranked independently each month. This measures portfolio
+    breadth without looking ahead to today's largest customers.
+    """
+    by_month = {month: [] for month in _months(timeline_by_account)}
+    for rows in timeline_by_account.values():
+        for row in rows:
+            if row["arr"] > 0:
+                by_month[row["month"]].append(row["arr"])
+
+    series = []
+    for month, values in by_month.items():
+        ranked = sorted(values, reverse=True)
+        total = sum(ranked)
+        if not total:
+            continue
+        series.append({
+            "month": month,
+            "top1_share": round(sum(ranked[:1]) / total * 100, 1),
+            "top5_share": round(sum(ranked[:5]) / total * 100, 1),
+            "top10_share": round(sum(ranked[:10]) / total * 100, 1),
+            "active_accounts": len(ranked),
+            "total_arr": round(total, 2),
+        })
+    return series
 
 
 def health_trend_series(timeline_by_account):

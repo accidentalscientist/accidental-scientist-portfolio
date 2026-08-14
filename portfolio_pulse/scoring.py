@@ -4,7 +4,6 @@ There is one concept only: health. Low health means high risk. Every input
 comes from the Snapshot or Timeline CSV and every deduction is explainable.
 """
 from datetime import date
-from math import exp
 
 BANDS = [(50, "Critical"), (75, "Watch"), (100, "Healthy")]
 
@@ -13,6 +12,7 @@ HEALTH_MODELS = {
     "plain_pulse": {
         "name": "Plain Pulse",
         "kind": "Auditable baseline",
+        "method_summary": "Fixed, hand-calculable thresholds",
         "short_explainer": (
             "Adds or removes fixed points for QBRs, payment, usage, contract length, "
             "renewal timing, and longevity."
@@ -22,6 +22,7 @@ HEALTH_MODELS = {
     "signal_compass": {
         "name": "Signal Compass",
         "kind": "Gradual contextual rules",
+        "method_summary": "Gradual penalties plus business context",
         "short_explainer": (
             "Starts at 100, then adjusts for engagement, payment, usage, contract length, "
             "renewal timing, longevity, and ARR decline."
@@ -30,14 +31,15 @@ HEALTH_MODELS = {
     },
     "retention_horizon": {
         "name": "Retention Horizon",
-        "kind": "Experimental logistic index",
+        "kind": "Trajectory-enhanced health",
+        "method_summary": "Signal Compass plus bounded linear trajectories",
         "short_explainer": (
-            "Weights the available signals, combines their contributions, then uses a "
-            "logistic curve to produce a stable 0 to 100 index."
+            "Starts with Signal Compass, then adjusts it for sustained ARR, adoption, "
+            "and support direction observed in the monthly Timeline."
         ),
         "interpretation": (
-            "An experimental weighted index, not a trained probability, because the CSV has no "
-            "historical churn labels."
+            "A trajectory-enhanced health index, not a trained probability. Without a Timeline "
+            "it deliberately falls back to Signal Compass."
         ),
     },
 }
@@ -379,78 +381,99 @@ def score_plain_pulse_account(account, today=None):
 
 
 def score_retention_horizon_account(account, today=None):
-    """A fixed logistic-style model using current CSV features without outcome training."""
+    """Enhance Signal Compass with bounded, account-level linear trajectories."""
     base = score_account(account, today)
+    evidence = account.get("trajectory_evidence") or {}
+    trends = evidence.get("trends") or {}
+    strength = evidence.get("strength_factor", 0.0)
     contributions = []
 
-    def add(signal, value):
-        if value:
-            contributions.append({"signal": signal, "value": round(value, 3)})
+    def annual(name):
+        trend = trends.get(name)
+        return trend.get("annual_change") if trend else None
 
-    tenure_days = base.get("tenure_days")
-    if tenure_days is not None:
-        add("Customer longevity", 1.10 * _clamp(tenure_days / TENURE_FIVE_YEAR_DAYS, 0, 1))
-
-    days_since_qbr = base.get("days_since_qbr")
-    if days_since_qbr is not None:
-        qbr_signal = 1 - 2 * _clamp(days_since_qbr / 365, 0, 1)
-        add("QBR recency", 0.70 * qbr_signal)
-
-    utilisation = account.get("seat_utilisation_pct")
-    if utilisation is not None:
-        add("Seat utilisation", 0.80 * _clamp((utilisation - 50) / 50, -1, 1))
-
-    active_user = account.get("active_user_pct")
-    if active_user is not None:
-        add("Active-user rate", 0.70 * _clamp((active_user - 40) / 40, -1, 1))
-
-    term = account.get("term_length_months")
-    if term is not None:
-        add("Contract commitment", 0.55 * _clamp((term - 24) / 12, -1, 1))
-
-    days_to_renewal = base.get("days_to_renewal")
-    if days_to_renewal is not None:
-        runway_signal = 2 * _clamp(days_to_renewal / 1095, 0, 1) - 1
-        add("Renewal runway", 0.45 * runway_signal)
-
-    if account.get("overdue_flag"):
-        add("Payment overdue", -1.20)
-
-    tickets = account.get("tickets_12mo")
-    thresholds = SEGMENT_THRESHOLDS.get(
-        account.get("segment"), SEGMENT_THRESHOLDS[DEFAULT_SEGMENT],
+    arr_direction = annual("arr")
+    adoption_directions = [
+        value for value in (annual("utilisation"), annual("active_users"))
+        if value is not None
+    ]
+    adoption_direction = (
+        sum(adoption_directions) / len(adoption_directions)
+        if adoption_directions else None
     )
-    if tickets is not None:
-        ticket_risk = _clamp(
-            (tickets - thresholds["tickets_clean"])
-            / max(1, thresholds["tickets_bad"] - thresholds["tickets_clean"]),
-            0,
-            1,
-        )
-        add("High support demand", -0.45 * ticket_risk)
+    ticket_direction = annual("tickets")
 
-    arr_trend = account.get("arr_trend_pct")
-    if arr_trend is not None and arr_trend < 0:
-        add("ARR decline", -0.55 * _clamp(abs(arr_trend) / 30, 0, 1))
+    if adoption_direction is not None and adoption_direction < 0:
+        contributions.append({
+            "signal": "Falling adoption trajectory",
+            "value": -8 * _clamp(abs(adoption_direction) / 20, 0, 1),
+        })
+    if arr_direction is not None and arr_direction < 0:
+        contributions.append({
+            "signal": "Declining ARR trajectory",
+            "value": -6 * _clamp(abs(arr_direction) / 25, 0, 1),
+        })
+    if ticket_direction is not None and ticket_direction > 0:
+        contributions.append({
+            "signal": "Rising support pressure",
+            "value": -3 * _clamp(ticket_direction / 12, 0, 1),
+        })
+    if (
+        arr_direction is not None and adoption_direction is not None
+        and arr_direction >= -2 and adoption_direction <= -8
+    ):
+        contributions.append({
+            "signal": "ARR and adoption divergence",
+            "value": -4 * _clamp(abs(adoption_direction) / 20, 0, 1),
+        })
+    elif (
+        arr_direction is not None and adoption_direction is not None
+        and arr_direction >= 10 and adoption_direction <= 2
+    ):
+        contributions.append({
+            "signal": "Expansion without adoption momentum",
+            "value": -3 * _clamp(arr_direction / 25, 0, 1),
+        })
+    if (
+        arr_direction is not None and adoption_direction is not None
+        and arr_direction >= 10 and adoption_direction >= 8
+    ):
+        contributions.append({
+            "signal": "Confirmed ARR and adoption acceleration",
+            "value": 4 * min(
+                _clamp(arr_direction / 25, 0, 1),
+                _clamp(adoption_direction / 20, 0, 1),
+            ),
+        })
 
-    linear_score = 0.40 + sum(item["value"] for item in contributions)
-    score = 100 / (1 + exp(-linear_score))
-    drivers = [
-        {"signal": item["signal"], "penalty": round(abs(item["value"]) * 10, 1)}
+    for contribution in contributions:
+        contribution["value"] = round(contribution["value"] * strength, 1)
+    raw_adjustment = sum(item["value"] for item in contributions)
+    bounded_adjustment = _clamp(raw_adjustment, -20, 8)
+    if raw_adjustment and bounded_adjustment != raw_adjustment:
+        scale = bounded_adjustment / raw_adjustment
+        for contribution in contributions:
+            contribution["value"] = round(contribution["value"] * scale, 1)
+
+    drivers = list(base.get("health_drivers", [])) + [
+        {"signal": item["signal"], "penalty": abs(item["value"])}
         for item in contributions if item["value"] < 0
     ]
-    strengths = [
-        {"signal": item["signal"], "points": round(item["value"] * 10, 1)}
+    strengths = list(base.get("health_strengths", [])) + [
+        {"signal": item["signal"], "points": item["value"]}
         for item in contributions if item["value"] > 0
     ]
     return _model_result(
         base,
         "retention_horizon",
-        score,
+        base["score"] + bounded_adjustment,
         drivers,
         strengths,
-        linear_score=round(linear_score, 3),
-        model_contributions=contributions,
+        signal_compass_score=base["score"],
+        trajectory_adjustment=round(bounded_adjustment, 1),
+        trajectory_confidence=evidence.get("confidence", 0.0),
+        trajectory_window=evidence.get("window_label", "No Timeline; Signal Compass fallback"),
+        trajectory_contributions=contributions,
     )
 
 

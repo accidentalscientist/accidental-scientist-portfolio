@@ -5,25 +5,53 @@
   var dataNode = document.getElementById('world-lens-data');
   if (!root || !dataNode) return;
 
-  var payload = JSON.parse(dataNode.textContent);
-  var countries = payload.countries;
-  var byCode = Object.fromEntries(countries.map(function (country) { return [country.iso3, country]; }));
-  var models = payload.meta.models;
-  var pillars = payload.meta.pillars;
-  var indicators = payload.meta.indicators;
-  var activeModel = 'power';
-  var selections = ['USA', 'CHN', 'IND'].filter(function (code) { return byCode[code]; });
-  var weights = {};
-  Object.keys(models).forEach(function (model) {
-    weights[model] = Object.fromEntries(models[model].components.map(function (key) { return [key, 1]; }));
-  });
+  var datasets = { v1: JSON.parse(dataNode.textContent) };
+  var dataNodeV2 = document.getElementById('world-lens-data-v2');
+  if (dataNodeV2) datasets.v2 = JSON.parse(dataNodeV2.textContent);
+  var activeDataset = 'v1';
 
-  var palette = ['#b54a2c', '#2f6f69', '#6b5b8e', '#b38a32', '#3f6c9b', '#8b5267', '#527442'];
+  var payload, countries, byCode, models, pillars, indicators, weights;
+  var activeModel = 'power';
+  var selections = ['USA', 'CHN', 'IND'];
+
+  var palette = ['#b54a2c', '#2f6f69', '#6b5b8e', '#b38a32', '#3f6c9b', '#8b5267', '#527442', '#4a7d3c', '#a35b8e', '#5b7a9b'];
   var regionPalette = ['#b54a2c', '#2f6f69', '#6b5b8e', '#b38a32', '#3f6c9b', '#8b5267'];
-  var regions = Array.from(new Set(countries.map(function (country) { return country.region; }))).sort();
-  var regionColour = Object.fromEntries(regions.map(function (region, index) {
-    return [region, regionPalette[index % regionPalette.length]];
-  }));
+  var regionColour = {};
+
+  function loadDataset(version) {
+    activeDataset = version;
+    payload = datasets[version];
+    countries = payload.countries;
+    byCode = Object.fromEntries(countries.map(function (country) { return [country.iso3, country]; }));
+    models = payload.meta.models;
+    pillars = payload.meta.pillars;
+    indicators = payload.meta.indicators;
+    selections = selections.filter(function (code) { return byCode[code]; });
+    if (!selections.length) selections = countries.slice(0, 1).map(function (c) { return c.iso3; });
+    weights = {};
+    Object.keys(models).forEach(function (model) {
+      weights[model] = Object.fromEntries(models[model].components.map(function (key) { return [key, 1]; }));
+    });
+    var regions = Array.from(new Set(countries.map(function (country) { return country.region; }))).sort();
+    regionColour = Object.fromEntries(regions.map(function (region, index) {
+      return [region, regionPalette[index % regionPalette.length]];
+    }));
+    picker.innerHTML = '';
+    countries.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (country) {
+      var option = document.createElement('option');
+      option.value = country.iso3;
+      option.textContent = country.name + ' · ' + country.region;
+      picker.appendChild(option);
+    });
+    var editionLabel = root.querySelector('[data-dataset-label]');
+    var editionCount = root.querySelector('[data-dataset-count]');
+    if (editionLabel) editionLabel.textContent = payload.meta.dataset;
+    if (editionCount) editionCount.textContent = payload.meta.cohort_count + ' complete-data economies';
+    var weightsCohortCount = root.querySelector('[data-weights-cohort-count]');
+    if (weightsCohortCount) weightsCohortCount.textContent = payload.meta.cohort_count;
+    var militarySection = root.querySelector('[data-military-section]');
+    if (militarySection) militarySection.hidden = !countries.some(function (c) { return c.military; });
+  }
 
   var picker = root.querySelector('#world-lens-country');
   var addButton = root.querySelector('[data-country-add]');
@@ -42,12 +70,31 @@
   var surpriseSvg = root.querySelector('[data-surprise-chart]');
   var tradeSvg = root.querySelector('[data-trade-chart]');
   var bridgeSvg = root.querySelector('[data-bridge-chart]');
+  var explainerGrid = root.querySelector('[data-explainer-grid]');
+  var militarySvg = root.querySelector('[data-military-chart]');
+  var militaryInfoToggle = root.querySelector('[data-military-info]');
+  var militaryCaveat = root.querySelector('[data-military-caveat]');
 
-  countries.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (country) {
-    var option = document.createElement('option');
-    option.value = country.iso3;
-    option.textContent = country.name + ' · ' + country.region;
-    picker.appendChild(option);
+  if (militaryInfoToggle && militaryCaveat) {
+    militaryInfoToggle.addEventListener('click', function () {
+      var expanded = militaryInfoToggle.getAttribute('aria-expanded') === 'true';
+      militaryInfoToggle.setAttribute('aria-expanded', String(!expanded));
+      militaryCaveat.hidden = expanded;
+      militaryInfoToggle.innerHTML = 'Read as scale, not strength<span aria-hidden="true"> ' + (expanded ? '+' : '−') + '</span>';
+    });
+  }
+
+  root.querySelectorAll('[data-dataset]').forEach(function (button) {
+    if (!datasets[button.dataset.dataset]) { button.hidden = true; return; }
+    button.addEventListener('click', function () {
+      if (button.dataset.dataset === activeDataset) return;
+      loadDataset(button.dataset.dataset);
+      root.querySelectorAll('[data-dataset]').forEach(function (other) {
+        other.setAttribute('aria-pressed', String(other === button));
+      });
+      buildWeights();
+      render();
+    });
   });
 
   root.querySelectorAll('[data-model]').forEach(function (button) {
@@ -137,7 +184,55 @@
     renderLegend();
     renderEvidence();
     renderCharts();
+    renderDataExplainer();
     updateAddButton();
+  }
+
+  function renderDataExplainer() {
+    if (!explainerGrid) return;
+    var groups = [
+      {modelKey: 'power', title: models.power.short_label},
+      {modelKey: 'potential', title: models.potential.short_label},
+    ];
+    explainerGrid.innerHTML = groups.map(function (group) {
+      var cards = components(group.modelKey).map(function (key) {
+        var pillar = pillars[key];
+        var inputLabels = pillar.inputs.map(function (inputKey) { return indicators[inputKey].label; }).join(' · ');
+        return '<div class="world-lens__explainer-card"><h4>' + escapeHtml(pillar.label) + '</h4><p>' +
+          escapeHtml(pillar.description) + '</p><small>' + escapeHtml(inputLabels) + '</small></div>';
+      }).join('');
+      return '<div class="world-lens__explainer-group"><h3>' + escapeHtml(group.title) + '</h3>' +
+        '<div class="world-lens__explainer-cards">' + cards + '</div></div>';
+    }).join('');
+  }
+
+  function drawMilitaryChart() {
+    if (!militarySvg) return;
+    var rows = selections.map(function (code) { return byCode[code]; })
+      .filter(function (c) { return c.military && c.military.military_expenditure_gdp; });
+    if (!rows.length) { resetSvg(militarySvg, chartWidth(militarySvg, 700), 4); return; }
+    var width = chartWidth(militarySvg, 700), mobile = width < 620;
+    var left = mobile ? 88 : 150, right = mobile ? 130 : 220, rowH = mobile ? 46 : 40;
+    var height = 30 + rows.length * rowH;
+    resetSvg(militarySvg, width, height);
+    var plotLeft = left, plotRight = width - right;
+    var maxSpend = Math.max.apply(null, rows.map(function (c) { return c.military.military_expenditure_gdp.raw; }).concat([1]));
+    [0, 0.5, 1].forEach(function (fraction) {
+      var x = plotLeft + fraction * (plotRight - plotLeft);
+      appendText(militarySvg, x, 12, (fraction * maxSpend).toFixed(1) + '%', 'world-lens__tick', fraction === 0 ? 'start' : (fraction === 1 ? 'end' : 'middle'));
+    });
+    rows.forEach(function (country, index) {
+      var y = 26 + index * rowH, m = country.military;
+      var barWidth = (m.military_expenditure_gdp.raw / maxSpend) * (plotRight - plotLeft);
+      appendText(militarySvg, 0, y + 10, mobile ? country.iso3 : country.name, 'world-lens__chart-label');
+      var parts = [m.military_expenditure_gdp.raw.toFixed(2) + '% GDP'];
+      if (m.armed_forces_personnel) parts.push(new Intl.NumberFormat('en', {notation: 'compact', maximumFractionDigits: 1}).format(m.armed_forces_personnel.raw) + ' personnel');
+      if (m.arms_export_tiv) parts.push(new Intl.NumberFormat('en', {notation: 'compact', maximumFractionDigits: 1}).format(m.arms_export_tiv.raw) + ' TIV exports');
+      var rect = svgEl('rect', {x: plotLeft, y: y, width: Math.max(1, barWidth), height: 16, fill: '#b54a2c', 'class': 'world-lens__segment', tabindex: 0});
+      rect.setAttribute('aria-label', country.name + ': ' + parts.join(', '));
+      militarySvg.appendChild(rect);
+      appendText(militarySvg, plotLeft + barWidth + 8, y + 12, parts.join(' · '), 'world-lens__tiny');
+    });
   }
 
   function renderChips() {
@@ -180,6 +275,7 @@
     drawSurpriseChart();
     drawTradeChart();
     drawBridgeChart();
+    drawMilitaryChart();
   }
 
   function drawLeaderboard() {
@@ -329,20 +425,20 @@
     }).sort(function (a, b) { return b.delta - a.delta; });
     var shown = rows.slice(0, 5).concat(rows.slice(-5));
     shown.sort(function (a, b) { return b.delta - a.delta; });
-    var width = chartWidth(surpriseSvg, 430), rowH = 22, height = 42 + shown.length * rowH, left = width < 480 ? 55 : 100, right = 28;
+    var width = chartWidth(surpriseSvg, 430), rowH = 48, height = 56 + shown.length * rowH, left = width < 480 ? 72 : 118, right = 40;
     resetSvg(surpriseSvg, width, height);
     var maxAbs = Math.max.apply(null, shown.map(function (row) { return Math.abs(row.delta); }).concat([1]));
     var zero = (left + width - right) / 2, half = (width - right - left) / 2;
-    appendText(surpriseSvg, left, 10, 'UNDERPERFORMS GDP RANK', 'world-lens__micro');
-    appendText(surpriseSvg, width - right, 10, 'OUTPERFORMS GDP RANK', 'world-lens__micro', 'end');
-    surpriseSvg.appendChild(svgEl('line', {x1: zero, x2: zero, y1: 17, y2: height - 10, 'class': 'world-lens__zero'}));
+    appendText(surpriseSvg, left, 16, 'UNDERPERFORMS GDP RANK', 'world-lens__micro');
+    appendText(surpriseSvg, width - right, 16, 'OUTPERFORMS GDP RANK', 'world-lens__micro', 'end');
+    surpriseSvg.appendChild(svgEl('line', {x1: zero, x2: zero, y1: 26, y2: height - 14, 'class': 'world-lens__zero'}));
     shown.forEach(function (row, index) {
-      var y = 30 + index * rowH, end = zero + row.delta / maxAbs * half;
+      var y = 34 + index * rowH + rowH / 2, end = zero + row.delta / maxAbs * half;
       var selected = selections.indexOf(row.country.iso3) !== -1;
-      surpriseSvg.appendChild(svgEl('line', {x1: zero, x2: end, y1: y, y2: y, stroke: row.delta >= 0 ? '#2f6f69' : '#b54a2c', 'stroke-width': selected ? 6 : 3, opacity: selected ? 1 : 0.72}));
-      surpriseSvg.appendChild(svgEl('circle', {cx: end, cy: y, r: selected ? 4 : 3, fill: row.delta >= 0 ? '#2f6f69' : '#b54a2c'}));
-      appendText(surpriseSvg, 0, y + 4, width < 480 ? row.country.iso3 : row.country.name, selected ? 'world-lens__tiny is-strong' : 'world-lens__tiny');
-      appendText(surpriseSvg, end + (row.delta >= 0 ? 6 : -6), y + 4, (row.delta > 0 ? '+' : '') + row.delta, 'world-lens__tiny', row.delta >= 0 ? 'start' : 'end');
+      surpriseSvg.appendChild(svgEl('line', {x1: zero, x2: end, y1: y, y2: y, stroke: row.delta >= 0 ? '#2f6f69' : '#b54a2c', 'stroke-width': selected ? 8 : 5, opacity: selected ? 1 : 0.75}));
+      surpriseSvg.appendChild(svgEl('circle', {cx: end, cy: y, r: selected ? 6 : 5, fill: row.delta >= 0 ? '#2f6f69' : '#b54a2c'}));
+      appendText(surpriseSvg, 0, y + 4, width < 480 ? row.country.iso3 : row.country.name, selected ? 'world-lens__chart-label' : 'world-lens__tiny');
+      appendText(surpriseSvg, end + (row.delta >= 0 ? 10 : -10), y + 4, (row.delta > 0 ? '+' : '') + row.delta, 'world-lens__tiny', row.delta >= 0 ? 'start' : 'end');
     });
   }
 
@@ -377,36 +473,34 @@
 
   function drawBridgeChart() {
     var potentialState = ranking('potential'), powerState = ranking('power');
-    var width = chartWidth(bridgeSvg, 700), mobile = width < 620, rowH = mobile ? 78 : 60;
-    var height = 58 + selections.length * rowH;
+    var width = chartWidth(bridgeSvg, 700), mobile = width < 620, panelH = mobile ? 108 : 92;
+    var height = 26 + selections.length * panelH;
     resetSvg(bridgeSvg, width, height);
-    var cols = mobile ? [12, width * 0.34, width * 0.61, width - 42] : [16, width * 0.36, width * 0.62, width - 72];
+    var cols = mobile ? [12, width * 0.36, width * 0.63, width - 46] : [18, width * 0.38, width * 0.64, width - 78];
     ['ECONOMY', 'PRESENT ASSETS', 'CONVERSION SYSTEMS', 'RANKING OUTCOME'].forEach(function (label, index) {
-      appendText(bridgeSvg, cols[index], 18, label, 'world-lens__tick', index ? 'middle' : 'start');
+      appendText(bridgeSvg, cols[index], 14, label, 'world-lens__tick', index ? 'middle' : 'start');
     });
     selections.forEach(function (code, rowIndex) {
-      var country = byCode[code], y = 48 + rowIndex * rowH;
+      var country = byCode[code], top = 22 + rowIndex * panelH, y = top + (panelH - 14) / 2;
       var groups = {assets: [], conversion: []};
       components('potential').forEach(function (key) {
         groups[pillars[key].bridge_group].push(country.models.potential.components[key].z);
       });
       var asset = mean(groups.assets), conversion = mean(groups.conversion);
       var result = score(country, 'potential');
-      bridgeSvg.appendChild(svgEl('rect', {x: 0, y: y - 25, width: width, height: rowH - 8, 'class': 'world-lens__bridge-row'}));
-      appendText(bridgeSvg, cols[0], y, mobile ? code : country.name, 'world-lens__chart-label');
-      appendText(bridgeSvg, cols[0], y + 15, country.region, 'world-lens__micro');
+      bridgeSvg.appendChild(svgEl('rect', {x: 0, y: top, width: width, height: panelH - 10, 'class': 'world-lens__bridge-row'}));
+      appendText(bridgeSvg, cols[0], y - 6, mobile ? country.iso3 : country.name, 'world-lens__chart-label');
+      appendText(bridgeSvg, cols[0], y + 12, country.region, 'world-lens__micro');
       var nodes = [asset, conversion, result];
       for (var i = 0; i < nodes.length - 1; i += 1) {
-        bridgeSvg.appendChild(svgEl('line', {x1: cols[i + 1], x2: cols[i + 2], y1: y, y2: y, stroke: '#aaa39a', 'stroke-width': 2}));
+        bridgeSvg.appendChild(svgEl('line', {x1: cols[i + 1], x2: cols[i + 2], y1: y, y2: y, stroke: '#aaa39a', 'stroke-width': 2.5}));
       }
       nodes.forEach(function (value, index) {
-        var radius = 8 + Math.min(10, Math.abs(value) * 5);
-        bridgeSvg.appendChild(svgEl('circle', {cx: cols[index + 1], cy: y, r: radius, fill: value >= 0 ? '#2f6f69' : '#b54a2c', opacity: 0.82}));
-        appendText(bridgeSvg, cols[index + 1], y + 4, signed(value), 'world-lens__node-text', 'middle');
+        var radius = 15 + Math.min(11, Math.abs(value) * 6);
+        bridgeSvg.appendChild(svgEl('circle', {cx: cols[index + 1], cy: y, r: radius, fill: value >= 0 ? '#2f6f69' : '#b54a2c', opacity: 0.85}));
+        appendText(bridgeSvg, cols[index + 1], y + 4, signed(value), 'world-lens__node-text world-lens__node-text--lg', 'middle');
       });
-      appendText(bridgeSvg, cols[1], y + 27, 'asset z-score', 'world-lens__micro', 'middle');
-      appendText(bridgeSvg, cols[2], y + 27, 'conversion z-score', 'world-lens__micro', 'middle');
-      appendText(bridgeSvg, cols[3], y + 27, 'Potential #' + potentialState.ranks[code] + ' · Now #' + powerState.ranks[code], 'world-lens__tiny is-strong', 'middle');
+      appendText(bridgeSvg, cols[3], y + 30, 'Potential #' + potentialState.ranks[code] + ' · Now #' + powerState.ranks[code], 'world-lens__tiny is-strong', 'middle');
     });
   }
 
@@ -428,7 +522,11 @@
         html += '<tr><th scope="row">' + escapeHtml(indicators[key].label) + '<small>' + escapeHtml(indicators[key].source) + '</small></th>';
         selected.forEach(function (country) {
           var item = country.models[activeModel].components[pillarKey].inputs[key];
-          html += '<td>' + formatNumber(item.raw, key) + '<small>' + formatPeriod(item) + ' · z ' + signed(item.z) + '</small></td>';
+          var approxTag = item.approximated ? '<span class="world-lens__approx-tag" title="Regional estimate: ' +
+            escapeHtml((item.approximation_basis || []).join(', ')) + '">~ approximated</span>' : '';
+          html += '<td class="' + (item.approximated ? 'is-approximated' : '') + '">' +
+            (item.approximated ? '~' : '') + formatNumber(item.raw, key) + '<small>' + formatPeriod(item) +
+            ' · z ' + signed(item.z) + '</small>' + approxTag + '</td>';
         });
         html += '</tr>';
       });
@@ -445,6 +543,7 @@
   function hideTooltip() { tooltip.hidden = true; }
 
   function formatPeriod(item) {
+    if (item.approximated) return 'regional estimate';
     if (item.year) return String(item.year);
     return item.start_year + '–' + item.end_year + ' · ' + item.observations + ' obs.';
   }
@@ -488,6 +587,7 @@
     return function () { clearTimeout(timeout); timeout = setTimeout(callback, delay); };
   }
 
+  loadDataset(datasets.v2 ? 'v2' : 'v1');
   buildWeights();
   render();
 }());

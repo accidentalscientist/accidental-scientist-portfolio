@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}World Ledger: economic power and potential rankings{% endblock %}
-{% block meta_description %}Test competing theories of economic power across 48 complete-data economies and inspect every contribution, observation and trade relationship.{% endblock %}
+{% block meta_description %}Test competing theories of economic power across complete-data economies and inspect every contribution, observation and trade relationship.{% endblock %}
 
 {% block content %}
 <article class="world-lens" data-world-lens>
@@ -13,34 +13,34 @@
       Where does economic power sit now, and where do present conditions suggest it could emerge next?
       Change the theory, watch the order move, and inspect the evidence beneath every rank.
     </p>
-    <div class="world-lens__edition" aria-label="Dataset edition">
-      <span>{{ dataset_version }}</span><span>{{ cohort_count }} complete-data economies</span><span>Observed data only</span>
-    </div>
   </header>
 
-  <aside class="world-lens__thesis" aria-labelledby="world-ledger-thesis">
-    <p class="world-lens__eyebrow">Project thesis</p>
-    <h2 id="world-ledger-thesis">Power depends on what counts.</h2>
-    <div>
-      <p>
+  <details class="world-lens__thesis">
+    <summary>
+      <span class="world-lens__thesis-eyebrow">Project thesis · power is a choice of weights</span>
+      <span class="world-lens__thesis-action">Read the thesis</span>
+    </summary>
+    <div class="world-lens__thesis-summary">
+      <p class="world-lens__thesis-statement">Power depends on what counts.</p>
+      <p class="world-lens__thesis-body">
         World Ledger is a comparative strategy map of economic power. Its central claim is that no
         ranking of power is neutral: changing the importance assigned to markets, industry, trade,
         finance, population, institutions, demographics or resources produces a different ordering of
         the world. That exposes the theory of power embedded in the result.
       </p>
-      <p>
+      <p class="world-lens__thesis-body">
         <em>Power Now</em> shows where economic power sits today. It measures observable weight across
         domestic markets, productive capacity, trade reach, financial buffers and population, revealing
         both the scale of an economy and the structures through which that scale can be mobilised.
       </p>
-      <p>
+      <p class="world-lens__thesis-body">
         <em>Power Potential</em> shows where the conditions for greater economic power already exist. It
         measures observed momentum, reinvestment, demographic runway, conversion capacity, productive
         depth, macroeconomic resilience and resource optionality, revealing economies with the capacity
         to strengthen their position and those whose present power rests on weaker foundations.
       </p>
     </div>
-  </aside>
+  </details>
 
   <section class="world-lens__model-select" aria-labelledby="world-ledger-model-title">
     <div>
@@ -48,11 +48,39 @@
       <h2 id="world-ledger-model-title">Two rankings, one evidence base</h2>
       <p data-model-question></p>
     </div>
-    <div class="world-lens__model-buttons" role="group" aria-label="Ranking model">
-      <button type="button" data-model="power" aria-pressed="true">Power Now</button>
-      <button type="button" data-model="potential" aria-pressed="false">Power Potential</button>
+    <div>
+      {% if dashboard_data_v2 %}
+      <div class="world-lens__dataset-switch" role="group" aria-label="Dataset version">
+        <button type="button" data-dataset="v1" aria-pressed="false">Giga v1 · strict 48</button>
+        <button type="button" data-dataset="v2" aria-pressed="true">Giga v2 · expanded</button>
+      </div>
+      {% endif %}
+      <div class="world-lens__model-buttons" role="group" aria-label="Ranking model">
+        <button type="button" data-model="power" aria-pressed="true">Power Now</button>
+        <button type="button" data-model="potential" aria-pressed="false">Power Potential</button>
+      </div>
     </div>
   </section>
+
+  <details class="world-lens__explainer">
+    <summary>
+      <span class="world-lens__explainer-label">Data explainer</span>
+      <strong>What a Giga Dataset is</strong>
+      <span class="world-lens__explainer-action" data-explainer-action>What each pillar measures</span>
+    </summary>
+    <div class="world-lens__explainer-body">
+      <p>
+        A Giga Dataset is one versioned, reviewed build of World Ledger's evidence base: a fixed cohort of
+        economies with complete coverage across every scored input, standardised and scored the same way
+        for everyone in it. <strong>Giga v1</strong> is the original, strict edition — five pillars per
+        model, a 48-economy cohort, zero imputation. <strong>Giga v2</strong> expands to ten pillars per
+        model and a 60-economy cohort, and where a handful of real, direct reports were genuinely
+        unavailable after an active search for alternative sources, a labelled estimate fills the gap
+        rather than dropping the economy — every such value is visibly tagged in the Evidence Ledger below.
+      </p>
+      <div class="world-lens__explainer-grid" data-explainer-grid></div>
+    </div>
+  </details>
 
   <section class="world-lens__controls" aria-labelledby="world-lens-controls-title">
     <div>
@@ -67,7 +95,7 @@
     </div>
     <fieldset class="world-lens__weights">
       <legend>Author the theory of power</legend>
-      <p>Zero removes a pillar. Two doubles its importance. Rankings recalculate across all 48 economies.</p>
+      <p>Zero removes a pillar. Two doubles its importance. Rankings recalculate across all <span data-weights-cohort-count>48</span> economies.</p>
       <div data-weight-controls></div>
       <button type="button" class="world-lens__reset" data-reset-weights>Reset equal weights</button>
     </fieldset>
@@ -121,6 +149,21 @@
       <p>Present assets and conversion systems receive separate scores before meeting the resulting Power Potential and Power Now ranks.</p>
       <div class="world-lens__mini-chart"><svg data-bridge-chart role="img" aria-label="Potential assets, conversion capacity and resulting position"></svg></div>
     </article>
+    <article class="world-lens__story world-lens__story--wide" data-military-section hidden>
+      <div class="world-lens__visual-heading world-lens__visual-heading--compact">
+        <div>
+          <p class="world-lens__eyebrow">07 · Military resourcing · Giga v2, unscored</p>
+          <h2>What does it cost to project force?</h2>
+        </div>
+        <button type="button" class="world-lens__info-toggle" data-military-info aria-expanded="false" aria-controls="world-lens-military-caveat">Read as scale, not strength<span aria-hidden="true"> +</span></button>
+      </div>
+      <p id="world-lens-military-caveat" class="world-lens__caveat" data-military-caveat hidden>
+        This measures declared expenditure, force size and demonstrated arms-export capacity — not
+        equipment inventories, base locations, alliance-backed deterrence, nuclear status or combat
+        effectiveness. Not scored, not weighted, excluded from Power Now and Power Potential.
+      </p>
+      <div class="world-lens__mini-chart"><svg data-military-chart role="img" aria-label="Military expenditure, personnel and arms exports for selected economies"></svg></div>
+    </article>
   </section>
 
   <section class="world-lens__evidence" aria-labelledby="world-lens-evidence-title">
@@ -165,6 +208,7 @@
 </article>
 
 {{ dashboard_data|json_script:"world-lens-data" }}
+{% if dashboard_data_v2 %}{{ dashboard_data_v2|json_script:"world-lens-data-v2" }}{% endif %}
 {% endblock %}
 
 {% block extra_js %}<script src="{% static 'world_lens/js/world_lens.js' %}"></script>{% endblock %}
