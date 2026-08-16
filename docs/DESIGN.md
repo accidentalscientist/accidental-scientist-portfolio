@@ -9,14 +9,14 @@ Together with `docs/DEPLOYMENT.md`, it forms the complete documentation system. 
 | Field | Current value |
 |---|---|
 | Document owner | Thibault Aymonier-Newman |
-| Last reviewed | 11 August 2026 |
+| Last reviewed | 16 August 2026 |
 | Next monthly review | 7 September 2026 |
 | Repository | `accidentalscientist2025` |
-| Current code version | `2.8.1` candidate |
-| Next candidate release | `2.8.1`, weekly-cadence and bounded-memory operational correction |
-| Production version | `v2.8.0` at `0833774`, manually verified 11 August 2026; first automatic weekly run pending |
-| Current branch at review | `main` at `0833774`, with the `2.8.1` correction in local review |
+| Current code version | `2.8.3` |
+| Production version | `v2.8.3`, confirmed live 16 August 2026 by fetching `https://accidentalscientist.net/` and reading the on-page version marker |
+| Current branch at review | `main` at `6426fd8`, matching production |
 | Operational source of truth | `docs/DEPLOYMENT.md` |
+| Release history source of truth | `docs/RELEASE_NOTES.md` — the complete dated release-by-release record, back to the earliest recoverable commit |
 
 The document is reviewed after every release and during the monthly roadmap and parking-lot review. A material change to product purpose, analysis, architecture, data boundaries, visual design, roadmap status, or operating responsibility must update the relevant section here in the same change.
 
@@ -200,22 +200,29 @@ For every release:
 2. Update affected project current-state and evolution sections in Part 2.
 3. Move delivered roadmap items out of Part 3 and record them in the relevant project evolution table.
 4. Add one release-ledger row below with the exact Git tag and commit.
-5. Tag the release `vMAJOR.MINOR.PATCH` and deploy that identified artifact.
-6. Complete the post-deployment checks in `docs/DEPLOYMENT.md` and mark the release verified.
+5. Add the release to `docs/RELEASE_NOTES.md`: version, date, theme, and a plain description of what changed and how, written the same day the version is chosen, not reconstructed later.
+6. Tag the release `vMAJOR.MINOR.PATCH` and deploy that identified artifact.
+7. Complete the post-deployment checks in `docs/DEPLOYMENT.md`, confirm the deployed on-page version marker matches, and mark the release verified in both this ledger and `docs/RELEASE_NOTES.md`.
 
 Project dataset, registry, schema, and calculation versions remain separate from the site release. For example, a ChargeTrace registry revision can be published in a routine data operation without pretending the entire website has become a new software release.
 
 ### Release ledger
 
+Full per-release detail, including the entire pre-`2.6.0` history reconstructed from git back to the project's first commit, lives in `docs/RELEASE_NOTES.md`. This table is a summary only.
+
 | Version | Released | Scope | Projects affected | Git reference | Production verification |
 |---|---|---|---|---|---|
-| `2.6.0` | 25 Jun 2026 | Visual identity overhaul, StillPoint, and NEM reframing | Site shell, NEM, StillPoint | Historical tag or commit not recorded here | Historical release |
-| `2.7.0` | 26 Jun 2026 | Production trust, metadata, indexing, and discoverability | Site-wide | Historical tag or commit not recorded here | Historical release |
-| `2.7.1` to `2.7.3` | 27 Jun 2026 | Navigation, footer, split CSS, and visible versioning | Site-wide | Historical tag or commit not recorded here | Historical release |
-| `2.8.0` | 11 Aug 2026 | Unified NEM suite, ChargeTrace and FlowTrace, expanded Price Predictor, portfolio hierarchy, direct AEMO ingestion, and shared automation | Site-wide, especially NEM projects | `v2.8.0` / `0833774` | Manual deployment, routes, migrations, source loads and unified refresh verified; first timer-triggered run pending |
-| Unreleased candidate `2.8.1` | Not deployed | Weekly NEM cadence, honest public freshness copy, recent issue-time weather fill, and bounded-memory battery catch-up | NEM Dashboard suite | Local work after `0833774` | Targeted checks pending |
+| `2.6.0` | 25 Jun 2026 | Visual identity overhaul, StillPoint, and NEM reframing | Site shell, NEM, StillPoint | `8c975e0` | Historical release |
+| `2.7.0` | 26 Jun 2026 | Production trust, metadata, indexing, and discoverability | Site-wide | `24125a9` | Historical release |
+| `2.7.1` to `2.7.3` | 27 Jun 2026 | Navigation, footer, split CSS, and visible versioning | Site-wide | `b4aea51`, `f1e84a4`, `d58ed1c` | Historical release |
+| `2.8.0` | 11 Aug 2026 | Unified NEM suite, ChargeTrace and FlowTrace, expanded Price Predictor, portfolio hierarchy, direct AEMO ingestion, and shared automation. Also folds in six weeks of unreleased work shipped between `2.7.3` and this release without a version bump: Life Compass, Portfolio Pulse, the Price Predictor Lab MVP, and the StillPoint/Portfolio Pulse redesigns — see `docs/RELEASE_NOTES.md` Section B | Site-wide, especially NEM projects | `v2.8.0` / `0833774` | Manual deployment, routes, migrations, source loads and unified refresh verified; first timer-triggered run pending |
+| `2.8.1` | 11 Aug 2026 | Weekly NEM cadence, bounded-memory battery catch-up, NEM Dashboard graphics changes | NEM Dashboard suite | `v2.8.1` (tag on `7cd7204`; bump commit `7c3e093`) | Superseded by `2.8.3`, confirmed live 16 Aug 2026 |
+| `2.8.2` | 13 Aug 2026 | Life Compass and StillPoint visual redesigns | Life Compass, StillPoint | `v2.8.2` / `b67fe0b` | Superseded by `2.8.3`, confirmed live 16 Aug 2026 |
+| `2.8.3` | 14 Aug 2026 | Portfolio Pulse (Account Archetype Fingerprint, Revenue Breadth) and World Ledger Giga Dataset v2.0 | Portfolio Pulse, World Ledger | `v2.8.3` (tag on `39f2fd4`; bump commit `6426fd8`) | **Confirmed live** 16 Aug 2026 — `https://accidentalscientist.net/` renders the `v2.8.3` on-page marker |
 
-Starting with the next release, the Git reference must be exact and optional release evidence may include before-and-after screenshots in `docs/images/releases/<version>/`. Git tags preserve the working implementation; screenshots preserve the visible iteration.
+Starting with the `2.8.x` releases, the Git reference is exact and optional release evidence may include before-and-after screenshots in `docs/images/releases/<version>/`. Git tags preserve the working implementation; screenshots preserve the visible iteration.
+
+Part 2 of this document still labels a large amount of work `Candidate 2.8.0` / `Candidate 2.8.1` from when it was written ahead of those releases shipping. Those labels are now historical (the work has shipped) and will be normalized to their real release numbers in a future roadmap review; until then, treat the ledger above and `docs/RELEASE_NOTES.md` as authoritative over any "Candidate" label in Part 2.
 
 ### Dated site evolution
 
@@ -240,6 +247,9 @@ Dates below are based on repository history unless explicitly identified as cont
 | 4 Aug 2026 | StillPoint visual redesign and Portfolio Pulse scoring-system redesign | Added the current three-model health architecture and refined product presentation |
 | 10 Aug 2026 | ChargeTrace built, expanded, and documented as an independent NEM battery research product | Added weekly AEMO ingestion, 17-asset coverage, opportunity benchmarking, fleet context, market-structure analysis, and a first-principles strategy guide |
 | 11 Aug 2026 | NEM products unified and weekly data operations implemented | Renamed the parent NEM Dashboard, nested price, battery and gas views, added direct fuel-SCADA ingestion, and created one Monday 09:00 server workflow |
+| 11 Aug 2026 | v2.8.1: refresh cadence changed to weekly and made memory-safe; NEM Dashboard graphics revised | Matched the owner's actual decision cadence and kept the refresh reliable on a constrained production host |
+| 12 to 13 Aug 2026 | v2.8.2: Life Compass visual redesign following its first design review; StillPoint timer visual redesign and additional bowl-strike recordings | Iterated the two most visually distinct products after their initial ship |
+| 14 Aug 2026 | v2.8.3: Portfolio Pulse Retention Horizon rebuilt with trajectory modelling and Account Archetype Fingerprint added; World Ledger Giga Dataset v2.0 shipped (10 pillars per model, 60-economy cohort, Compatriot Estimation Method, military-resourcing panel) | Deepened the two most analytically ambitious products without weakening either's existing data-honesty guarantees |
 
 ## 1.8 Article history
 

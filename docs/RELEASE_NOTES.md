@@ -1,0 +1,205 @@
+# Accidental Scientist: Release Notes
+
+Release notes are the lab notebook for a product that keeps changing shape: a dated record of what the system actually does at each point in time and, more importantly, *how* it does it. A theme by itself ("visual redesign," "new scoring model") tells a reader nothing they couldn't guess from the homepage. The mechanism — the formula, the function, the exact number that moved and why — is the only part worth writing down, because it's the only part that proves the work happened and shows how it was reasoned through. That's the standard every entry below is held to.
+
+`MAJOR.MINOR.PATCH`: **Major** — entire-site redesign or incompatible architecture change. **Minor** — a new project or a substantial user-facing capability. **Patch** — a visual, copy, bug, or operational fix. Every deployed change gets a version; the tag is always identical to the version number.
+
+## Release themes at a glance
+
+| Version | Theme | Date |
+|---|---|---|
+| 2.8.3 | Portfolio Pulse gains account trend modelling and behavioural archetypes; World Ledger doubles its pillar count | 14 Aug 2026 |
+| 2.8.2 | StillPoint's interval bells become randomized; Life Compass gets its first post-launch design pass | 13 Aug 2026 |
+| 2.8.1 | The automated NEM refresh becomes weekly and memory-bounded | 11 Aug 2026 |
+| 2.8.0 | FlowTrace and ChargeTrace launch inside one unified, automatically refreshed NEM suite | 11 Aug 2026 |
+| 2.7.15 | NEM Price Predictor Lab MVP ships; Life Compass and World Ledger get visual passes | 6 Aug 2026 |
+| 2.7.14 | StillPoint fully redesigned visually; Portfolio Pulse gains three selectable scoring models | 4 Aug 2026 |
+| 2.7.13 | Portfolio Pulse rebuilt around three decision views and ARR-only language | 30 Jul 2026 |
+| 2.7.12 | StillPoint's background-tab completion bug fixed; renamed to StillPoint | 30 Jul 2026 |
+| 2.7.11 | Life Compass execution page overhauled: ledger toggle, kanban aging, X Calendar, Pomodoro | 30 Jul 2026 |
+| 2.7.10 | Article image crop bug fixed | 17 Jul 2026 |
+| 2.7.9 | Life Compass gets its parchment/brass visual identity; dependency cleanup; contact form silent-failure fixed | 14 Jul 2026 |
+| 2.7.8 | Life Compass execution workflow: earned calendar marks, project-derived daily tasks | 13 Jul 2026 |
+| 2.7.7 | Life Compass goes private: session auth, per-user sync | 8 Jul 2026 |
+| 2.7.6 | Life Compass and Portfolio Pulse added as new projects | 7 Jul 2026 |
+| 2.7.5 | Public category taxonomy settled on Commercial Intelligence | 28–30 Jun 2026 |
+| 2.7.4 | Tagline, admin, and typewriter copy refinements | 27 Jun 2026 |
+| 2.7.3 | The running site version becomes publicly visible | 27 Jun 2026 |
+| 2.7.2 | CSS split into source partials, bundled by django-compressor for production | 27 Jun 2026 |
+| 2.7.1 | Footer, decorative identity, and mobile navigation polished | 27 Jun 2026 |
+| 2.7.0 | Contact reliability, production security headers, and search metadata added | 26 Jun 2026 |
+| 2.6.0 | StillPoint launches; NEM Dashboard reframed around an honest 7-day window | 25 Jun 2026 |
+| 2.0.0 | The Austro-Indo-French visual identity replaces the original Bootstrap-default look | 24 Jun 2026 |
+| 1.4.2 | Stray Windows-only dependency removed | 6 Aug 2025 |
+| 1.4.1 | Unused image asset removed | 6 Aug 2025 |
+| 1.4.0 | First NEM dashboard ships: a basic Chart.js bar chart | 4 Aug 2025 |
+| 1.3.1 | Blog image and dark-mode display fixes | 28 Jul 2025 |
+| 1.3.0 | Markdown rendering and multi-image articles added | 26 Jul 2025 |
+| 1.2.1 | Broken LinkedIn link fixed | 11 Jun 2025 |
+| 1.2.0 | First blog/site presentation overhaul; card-style post list | 10 Jun 2025 |
+| 1.1.3 | Wagtail dependency removed; Willow downgraded | 2 May 2025 |
+| 1.1.2 | README project overview written | 24 Apr 2025 |
+| 1.1.1 | Settings moved to environment variables; seed data added | 17 Apr 2025 |
+| 1.1.0 | Blog, projects, contact form, and dark mode added | 16 Apr 2025 |
+| 1.0.0 | Initial Django scaffold | 11 Apr 2025 |
+
+---
+
+## 2.8.3 — Portfolio Pulse trends and archetypes; World Ledger Giga v2.0 — 14 August 2026
+
+- **Retention Horizon gains trend modelling.** Each account now gets an ordinary-least-squares trend line fitted across up to its last 13 monthly data points (adoption, ARR, and ticket volume). The trend produces a small, individually capped point adjustment on top of the existing Signal Compass score — a declining adoption trend can cost at most 8 points, a declining ARR trend at most 6 — and the whole adjustment is scaled down for short histories, so a two-month-old account can't generate a confident-looking trend from noise.
+- **Account Archetype Fingerprint.** New deterministic k-means clustering groups accounts into 3–5 behavioural archetypes using five normalized signals: adoption level, adoption momentum, ARR momentum, support position, and engagement position. Health score and account identity are deliberately excluded from the fit, so a cluster reflects behaviour rather than restating the score that's already computed elsewhere. Each cluster is matched to a plain-English label ("Silent Erosion," "Established Compounders") by comparing its shape against a small set of declared signatures.
+- **Revenue Breadth.** Every month is re-ranked independently, and the chart tracks what share of total ARR the top 1, 5, and 10 accounts hold — turning concentration risk into a visible trend rather than a single day's snapshot.
+- **World Ledger — Giga Dataset v2.0.** Power Now grew from 5 to 10 pillars, Power Potential from 7 to 10 (new pillars: Energy, Logistics, Finance, Global leverage, Technology for Power Now; Institutions, Innovation investment, Energy transition for Power Potential). Because the extra pillars pushed a handful of previously-qualifying economies below the cutoff, the comparison cohort widened from 48 to 60 to keep rankings meaningful. A new estimation method fills remaining gaps: check the country's own historical value for that indicator, then build a peer group of same-region economies ranked by GDP-per-capita closeness (at least 3 real peers required or the estimate is skipped), then either project the country's own trend forward using the peer group's trajectory or fall back to the peer average. Every estimated figure is flagged and excluded from the mean/standard-deviation calculation used to score everyone else, so one country's estimate can never move another country's rank.
+- **Military-resourcing panel added**, deliberately unscored: spend and personnel from public World Bank data, arms-export value pulled live from SIPRI's backend API, shown only as context for selected countries, never folded into a ranking.
+
+## 2.8.2 — StillPoint's bells go random; Life Compass' first design review — 13 August 2026
+
+- **Randomized interval bells.** The original bowl recording became the dedicated start/end chime, and three new bowl-strike recordings were added for the two-minute interval marks. At each mark, JavaScript picks one of the three at random (`Math.floor(Math.random() * buffers.length)` against pre-decoded Web Audio buffers) and plays it at a lower gain (0.5 peak) than the start/end chime (0.9 peak) so the two are audibly distinct. Repeats are allowed on purpose — a strict rotation would be predictable within three bells, and the point was variation, not coverage. If the recordings haven't finished decoding when a mark fires, playback falls back to a synthesized tone rather than staying silent.
+- **Dial-style duration selector.** The five duration presets moved from separate circular buttons to calibration marks on the timer ring's own lower arc, each number paired with a radial line that highlights together with it — the control now reads as part of the instrument rather than a row of buttons bolted onto it.
+- **Life Compass execution layout regroup.** The "This Week's Focus" strip split into two explicit columns (weekly-focus items vs. North Star, previously inline with the others); Daily Tasks and the Done Ledger were pulled into one shared visual cluster instead of stacking independently; and read-only display text was added next to the editable fields, so viewing a task no longer requires opening its input box.
+- **New hero imagery**: four illustrations added (bireme journey, landfall, night-sky, star-compass motif) following the product's first post-launch design review.
+
+## 2.8.1 — the NEM refresh becomes reliable on a 1 GB server — 11 August 2026
+
+- **The bug:** AEMO's nested dispatch archives expand sharply once parsed in Python, and the battery-data refresh downloaded and parsed an entire requested date range in one pass. A multi-day catch-up run could exceed the production droplet's 1 GB of RAM and fail partway through.
+- **The fix:** the refresh was restructured into a strict per-day loop — download, parse, validate, and save one operating day, explicitly delete the parsed object and call `gc.collect()`, then move to the next day. A single-day update and a thirty-day repair now carry the identical, bounded memory footprint.
+- **Cadence change:** the systemd timer moved from daily 09:00 to Monday-only 09:00 Sydney time, matching how often the numbers are actually reviewed and cutting unnecessary daily load on the server.
+- **Forecast completeness fix:** recent *archived* weather forecasts are now ingested alongside observed and forward weather. Reanalysis data lags several days behind real time, so without the archived-forecast fill, a Monday run couldn't assemble every leakage-safe input the price model needs and would silently publish a truncated forecast horizon.
+
+## 2.8.0 — FlowTrace and ChargeTrace launch inside a unified NEM suite — 11 August 2026
+
+- **FlowTrace (Gas Monitor) shipped.** Turns AEMO Gas Bulletin Board facilities, pipelines, effective-dated capacities, flows, storage, and adequacy forecasts into one physical-system view. Capacity comparisons use the rating that was actually *in force* on the day being shown, not today's rating, so a historical flow is never judged against a capacity upgrade that hadn't happened yet.
+- **ChargeTrace shipped.** Processes five-minute AEMO energy and FCAS dispatch for a declared battery asset registry into storage behaviour, cycle counts, an estimated observable market value, fleet-level comparison, and an opportunity-capture benchmark against a perfect-hindsight baseline. The product deliberately avoids the word "profit" anywhere in its language, because contracts, fees, losses, and private bids aren't observable in the public dispatch data it's built from.
+- **NEM navigation unified.** Fuel mix, the Price Predictor Lab, ChargeTrace, and FlowTrace were brought under one shared `/nem/` route prefix; every old top-level route became a permanent redirect instead of a dead link.
+- **One orchestration command** now refreshes fuel, price, battery, and gas data on the same schedule, replacing four independently-triggered refresh jobs.
+- `docs/DESIGN.md` and `docs/DEPLOYMENT.md` created as the site's master design and deployment references.
+- This is the release where `SITE_VERSION` finally moved off `2.7.3` — the fifteen versions below cover the six weeks of work that shipped in the meantime without a version number attached to any of it at the time.
+
+## 2.7.15 — Price Predictor Lab ships — 6 August 2026
+
+A new project: leakage-safe weekly NEM price forecasting built around a six-model ladder, from a no-fit "same as last week" baseline up to a neural network, where each model has to beat the one before it to justify the extra complexity it costs. Life Compass and the project that became World Ledger both received visual redesign passes the same day.
+
+## 2.7.14 — StillPoint redesigned; Portfolio Pulse gets three scoring models — 4 August 2026
+
+StillPoint's interface fully redesigned visually. Portfolio Pulse introduced three selectable health-scoring models of increasing complexity: **Plain Pulse** (a hand-calculable deduction/addition formula), **Signal Compass** (adds segment-aware continuous penalties and context multipliers), and **Retention Horizon** (later extended with trend modelling in 2.8.3) — letting a reader score the same book of customers with a transparent simple rule and a more sophisticated one, side by side.
+
+## 2.7.13 — Portfolio Pulse redesigned around three decision views — 30 July 2026
+
+The original graph-accumulation MVP replaced with three purpose-built views — Portfolio Outlook, Customer Action Centre, Revenue Story — and the product standardized on ARR as its single revenue language, dropping the NRR/GRR/MRR mix the MVP had used.
+
+## 2.7.12 — StillPoint reliability fix and rename — 30 July 2026
+
+Fixed Master mode silently failing to complete a session when the browser tab was backgrounded: animation-frame-based timing doesn't run in a background tab, so completion now uses a real wall-clock end time with a `visibilitychange` listener as a backstop, independent of tab visibility. Added feature-detected Wake Lock (with reacquisition if released), local session history, and an inline meditation guide — then, the same day, simplified much of what had just shipped: configurable interval bells became automatic every two minutes with no settings panel, numeric streak/minute stats became three simple recent-day indicator dots, and the product was renamed from "Meditation Timer" to **StillPoint**.
+
+## 2.7.11 — Life Compass execution overhaul — 30 July 2026
+
+A Projects/Daily-Tasks ledger toggle, kanban card aging with an archive, a redesigned X Calendar, and a Pomodoro focus overlay all landed in one pass. The browser's native `confirm()` prompt was replaced with a styled in-app dialog, and undoing a completed daily task now cascades to reopen its parent project if that's what the task belonged to.
+
+## 2.7.10 — article image crop fix — 17 July 2026
+
+Article images had a fixed 440px crop that was cutting off chart titles, axes, and legends — exactly the part of an image an article about data is most likely to need. Removed in favor of natural aspect ratio.
+
+## 2.7.9 — Life Compass visual identity, dependency cleanup, silent contact-form bug — 14 July 2026
+
+Life Compass adopted its parchment/brass/cartouche visual language with a compass-rose brand mark and self-hosted Playfair Display. Separately, `requirements.txt` was trimmed from 69 packages to 15 by tracing the actual import graph and removing an orphaned Wagtail stack and a leftover Jupyter/nbconvert stack that nothing in the codebase still used. Separately again: the contact form was found reporting success while silently sending nothing, because an unset `CONTACT_EMAIL` environment variable produced an empty recipient list, and Django's `EmailMessage.send()` returns `0` rather than raising an exception on an empty list. Fixed by treating a zero-send result and a missing recipient as explicit, surfaced failures rather than a quiet no-op.
+
+## 2.7.8 — Life Compass execution workflow, phases 1–3 — 13 July 2026
+
+Daily tasks changed from freeform text entries to selections pulled directly from a project's open subtasks. Calendar completion marks became earned automatically from real task completion instead of manually toggled by the user. Duplicate "complete" controls removed, and a defensive dedup guard added to the Done Ledger after it was found capable of double-counting the same completion.
+
+## 2.7.7 — Life Compass goes private — 8 July 2026
+
+Session-based authentication added, backed by one JSON document per user synced to the browser's `localStorage`. Fixed a 404 on the public demo's strategy data and a header-overlap layout bug; login/logout moved into a dedicated Settings panel.
+
+## 2.7.6 — Life Compass and Portfolio Pulse added — 7 July 2026
+
+Two new projects added in one sitting, both filed under a new Commercial Intelligence category; homepage tool rotation added so the front page doesn't statically favor one product over the others.
+
+## 2.7.5 — category taxonomy settled — 28–30 June 2026
+
+Public categories cycled from an initial four-way split (including a short-lived "Society & Policy") to the taxonomy still in use today: **Energy Systems · Data Stories · Human Performance · Commercial Intelligence**. About-page and Contact/Projects positioning copy revised to match.
+
+## 2.7.4 — tagline, admin, and copy refinements — 27 June 2026
+
+Tagline reworked around four interest areas with title-case headings; project categories made visible, editable, and filterable in Django admin; homepage typewriter topics aligned to the new taxonomy; duplicate footer links removed.
+
+## 2.7.3 — the site version becomes publicly visible — 27 June 2026
+
+The `SITE_VERSION` constant — the same one every version number in this document traces back to — started rendering on the live site. Obsolete root-level deployment and planning documents removed from the public repository.
+
+## 2.7.2 — CSS split into source partials — 27 June 2026
+
+One monolithic stylesheet split into tokens, base, and per-area partials (home, blog, about, NEM, projects, StillPoint, marginalia) — same visual cascade, organized source. `django-compressor` added so production still serves one cached, minified stylesheet while development serves the readable partials directly; a custom filter preserves relative asset URLs (like the fleur-de-lys mask image) through the bundling step. Private redesign reports and security-audit material stopped being tracked in the public repository.
+
+## 2.7.1 — footer and mobile nav polish — 27 June 2026
+
+Footer quick links and a tagline added. The fleur-de-lys motif enlarged and given a theme-aware terracotta color mask to match the kolam motif used elsewhere. Fixed the mobile hamburger and theme toggle drifting into the expanded menu by anchoring both to the top row.
+
+## 2.7.0 — contact reliability, production security, search metadata — 26 June 2026
+
+Contact delivery rebuilt around `EmailMessage` with a proper Reply-To header, a honeypot field, rate limiting, and failures that surface instead of failing silently. Production security hardened with environment-gated SSL redirect, HSTS, and standard security headers. `sitemap.xml`, `robots.txt`, per-page titles and descriptions, canonical/viewport metadata, WebSite/Person/Article JSON-LD, and Open Graph tags added. NEM CSV imports gained validation and import summaries; guided-audio uploads restricted to validated MP3 files. A 16-test regression suite added, and two dangerous legacy management commands removed from a production-reachable state. This is the commit where `SITE_VERSION` first existed in code.
+
+## 2.6.0 — StillPoint launches; the NEM dashboard's core bug gets fixed — 25 June 2026
+
+- **StillPoint added** as the site's first meditation-timer product.
+- **The exact bug introduced back in 1.4.0 gets fixed.** The original NEM dashboard query — `FuelGenerationData.objects.all().values('fuel_type').annotate(total_gen=Sum('supply_mw'))` — summed *every row the database had ever stored* with no date filter at all, defaulting to NSW. A year later, that headline number was replaced with an explicitly dated 7-day generation window plus a separate 3-month renewables-vs-fossil trend, with AEST time handling and AM/PM CSV parsing fixed alongside it.
+- Marginalia added site-wide: a terracotta brick ribbon, a line-drawing watermark, footer symbols, a randomly positioned favicon page mark.
+- Blog changed to a randomly-selected featured introduction with a restyled pager and larger thumbnails; About rewritten with numbered interest blocks.
+- (The version number jumps straight from `2.0.0` to `2.6.0` here — the author's own label, one day after the redesign below, covering a new project and a dashboard reframe that would ordinarily have earned several separate minor releases.)
+
+## 2.0.0 — the Austro-Indo-French redesign — 24 June 2026
+
+The single commit that changed the site's look more than any other. Before: Bootstrap's stock defaults — primary blue `#0d6efd`, off-white `#f8f9fa`, dark-grey-on-charcoal dark mode `#212529` — the same palette every unstyled Bootstrap site ships with. After: warm linen `#f4f0e6`, forest ink `#1a2e1a`, forest green `#2d6a2d`, terracotta `#b84a1a`, with a parallel dark theme (deep forest night `#141910`, warm cream `#f0ede0`), Playfair Display serif headings, and CSS custom properties throughout so both themes stay driven by one token set. The stylesheet grew roughly fivefold in this one commit. Blog redesigned, an about page added, a typewriter text effect introduced on the homepage, footer rebuilt, article layout reworked. The article-package publishing pipeline (source Markdown + metadata + figures, imported by slug) set up, with the first batch of articles published through it.
+
+*Nine and a half months separate this release from the one before it (`1.4.2`, 6 August 2025) — no commits exist in that window. Whatever happened to the site between those two dates, if anything, left no trace in git history.*
+
+## 1.4.0 – 1.4.2 — the first NEM dashboard — 4–6 August 2025
+
+The site's first interactive data product: a Chart.js bar chart, one canvas element, colored by a hardcoded list of ten fuel types with an emoji icon apiece (⬛ black coal, 💨 wind, 🔆 solar, and so on). The view queried the whole `FuelGenerationData` table with no date bound whatsoever and defaulted to NSW — the bug that stood for almost a year until `2.6.0` fixed it. The shipped commit still contained an earlier, abandoned attempt at the same dashboard alongside the working one (`old_views.py`, `old_chart_code.js`), and the working version's own JavaScript was left with debug `console.log` calls and emoji warning markers in production. Two small follow-ups closed out the version: an unnecessary image removed, and a stray Windows-only `pywin` entry cleaned out of `requirements.txt` (it had no purpose on the Linux production host it was never going to run on).
+
+## 1.3.0 – 1.3.1 — articles get real formatting — 26–28 July 2025
+
+Markdown rendering added for article bodies; support added for multiple images per article. Follow-up fixes: images not displaying correctly on some blog posts, dark-mode bugs. A background-toggle option was tried and deliberately not shipped.
+
+## 1.2.0 – 1.2.1 — first presentation overhaul — 10–11 June 2025
+
+Site structure and look-and-feel revamped; blog view changed to a card-style layout. Groundwork laid for importing notebooks from a local machine into published content. Follow-up: a broken LinkedIn link fixed.
+
+## 1.1.1 – 1.1.3 — making the app deployable — 17 April – 2 May 2025
+
+A `seed_data` command added so a fresh install could be populated with sample projects and posts. `SECRET_KEY`, `DEBUG`, and `ALLOWED_HOSTS` moved out of hardcoded settings into environment variables, with a follow-up fix to the `SECRET_KEY` assignment itself; static/media settings reorganized and `STATIC_ROOT` corrected for production. Wagtail — installed at project start and never actually used — removed from `requirements.txt`; Willow downgraded to 1.5.0.
+
+## 1.1.0 — from a static page to an application — 16 April 2025
+
+Blog and project Django models, migrations, and templates added. A working contact form added, with its own success page. Full dark mode added, including icon treatment.
+
+## 1.0.0 — the fresh start the current codebase is built on — 11 April 2025
+
+Django scaffolded from scratch, after an earlier attempt was deliberately wiped ("start fresh, let's build it for real now"). The entire homepage template at this point was:
+
+```html
+<h1>Welcome to the Portfolio</h1>
+<p>This is the beginning of something great.</p>
+```
+
+No CSS, no models, no routes beyond the one page. Django installed (Wagtail was installed here too, then removed in `1.1.3`); `requirements.txt` and `.gitignore` created. Nothing before this commit exists in the repository.
+
+---
+
+## How game studios and business software track this, and which one this project should follow
+
+Two established traditions exist for writing down "what changed," and they optimize for opposite readers.
+
+**Live-service game patch notes** — Age of Empires II: Definitive Edition is a good example — are written for players who will test the exact numbers against their own experience within the hour. A civilization bonus that moves from +2 to +3 villager HP is stated as exactly that, because an audience of thousands who play the matchup daily will notice a vague "improved balance" as evasive, or worse, as something being hidden. Alongside the numeric changelog sits a separate "designer notes" voice explaining *why* — what data showed a unit was underused, what the intended new role is — commentary and numbers side by side, neither one replacing the other. The audience is expert, skeptical, and numerous enough that imprecision gets caught immediately, so precision is what earns trust.
+
+**Business and enterprise software** release notes are written for the opposite reader: someone who is often non-technical, reading to answer "does this affect me" rather than "how does it work," and who vastly outnumbers anyone capable of evaluating an implementation detail. So they compress — "improved dashboard performance" stands in for whatever engineering actually happened — and semantic versioning communicates compatibility risk more than content. The real engineering detail, if it's written down at all, lives in a separate internal changelog nobody outside the team reads, because customer-facing and engineering-facing are treated as two different documents for two different audiences.
+
+This project doesn't have that audience split, which is the whole reason the AoE2 model fits it better than the enterprise one. There's no customer base deciding whether to upgrade; the reader is either the author months from now, or someone evaluating whether the engineering claimed here actually happened and was reasoned through — closer to the expert, skeptical AoE2 player than to an enterprise admin skimming for a compatibility warning. Hiding the mechanism behind "improved reliability," the way business software does for a mass non-technical audience, would defeat the one thing this document is for.
+
+Concretely, going forward:
+
+1. **Write the entry at release time, from the diff, not months later from a commit message.** The gap between `2.7.3` and `2.8.0` — six weeks, four new projects, no version number attached to any of it at the time — is what specificity loss actually looks like in this project's own history. It was recoverable this time because the file diffs still existed; it won't always be.
+2. **Assign a version to every deployed change immediately**, the AoE2/business-software discipline both share even where they differ on tone. `docs/DESIGN.md`'s release checklist now includes writing the release-notes entry as its own step; a git hook that refuses a commit changing `SITE_VERSION` without a matching `docs/RELEASE_NOTES.md` change would make that structurally hard to skip rather than a habit that can lapse.
+3. **State the number, not the adjective.** "Sums the entire table with no date filter" is worth more than "was inaccurate." "Gain 0.5 vs. 0.9" is worth more than "quieter." A reader who wants adjectives can get those from the site itself.
+4. **Keep the reasoning attached to the number**, the way a designer note sits next to a balance change. The k-means fit for Portfolio Pulse excludes health score from its inputs for a specific reason — so the clustering reflects behaviour instead of restating a number computed elsewhere — and that reason is exactly the part a portfolio needs to demonstrate, not the clustering algorithm's name by itself.
