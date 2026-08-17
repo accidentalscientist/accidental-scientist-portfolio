@@ -1,0 +1,14 @@
+ config/context_processors.py                       |   4 [32m+[m[31m-[m
+ config/settings.py                                 |  25 [32m++[m[31m--[m
+ docs/DEPLOYMENT.md                                 |   2 [32m+[m[31m-[m
+ docs/DESIGN.md                                     |  23 [32m+[m[31m--[m
+ docs/RELEASE_NOTES.md                              |   7 [32m+[m
+ life_compass/tests.py                              |  53 [32m+++[m[31m----[m
+ portfolio/email_service.py                         |  67 [32m+++++++++[m
+ portfolio/templates/portfolio/contact.html         |   6 [32m+[m[31m-[m
+ portfolio/templates/portfolio/contact_success.html |  48 [32m++++[m[31m---[m
+ portfolio/tests.py                                 |  99 [32m+++++++++++[m[31m--[m
+ portfolio/urls.py                                  |   1 [32m+[m
+ portfolio/views.py                                 |  55 [32m++++[m[31m----[m
+ static/css/about.css                               | 157 [32m+++++++++++++++++++++[m
+ 13 files changed, 417 insertions(+), 130 deletions(-)
