@@ -58,12 +58,8 @@
 
     {% if messages %}
       {% for message in messages %}
-        <div class="alert alert-success mb-4" role="alert">{{ message }}</div>
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags|default:'info' }}{% endif %} mb-4" role="alert">{{ message }}</div>
       {% endfor %}
-    {% endif %}
-
-    {% if redirect %}
-      <script>setTimeout(function(){ window.location.href="{% url 'home' %}"; }, 6000);</script>
     {% endif %}
 
     <form method="post" class="about-form">

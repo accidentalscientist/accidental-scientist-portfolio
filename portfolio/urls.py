@@ -8,6 +8,7 @@ urlpatterns = [
     path('projects/<slug:slug>/', views.project_detail, name='project_detail'),
     path('blog/', views.blog_list, name='blog'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
+    path('about/message-sent/', views.contact_success, name='contact_success'),
     path('about/', views.contact_view, name='about'),
     # Keep the old /contact/ working; send it to the canonical /about/.
     path('contact/', RedirectView.as_view(pattern_name='about', permanent=True), name='contact'),

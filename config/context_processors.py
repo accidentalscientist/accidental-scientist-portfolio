@@ -2,7 +2,7 @@ from django.conf import settings
 from django.utils.timezone import now
 
 # Single source of truth for the site release version rendered site-wide.
-SITE_VERSION = "2.8.3"
+SITE_VERSION = "2.8.4"
 
 
 def inject_now(request):
@@ -14,7 +14,7 @@ def global_site_info(request):
         'now': now(),
         'site_name': "Accidental Scientist",
         'site_tagline': "Energy Systems · Data Stories · Human Performance · Commercial Intelligence",
-        'contact_email': "contact@accidentalscientist.net",
+        'contact_email': "hello@accidentalscientist.net",
         'github_url': "https://github.com/accidentalscientist",
         'debug_mode': settings.DEBUG,
         'site_version': SITE_VERSION,

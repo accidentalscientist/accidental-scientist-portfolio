@@ -8,6 +8,7 @@ Release notes are the lab notebook for a product that keeps changing shape: a da
 
 | Version | Theme | Date |
 |---|---|---|
+| 2.8.4 | Contact delivery moves to HTTPS and gains an intentional portal-themed confirmation page | 17 Aug 2026 |
 | 2.8.3 | Portfolio Pulse gains account trend modelling and behavioural archetypes; World Ledger doubles its pillar count | 14 Aug 2026 |
 | 2.8.2 | StillPoint's interval bells become randomized; Life Compass gets its first post-launch design pass | 13 Aug 2026 |
 | 2.8.1 | The automated NEM refresh becomes weekly and memory-bounded | 11 Aug 2026 |
@@ -44,6 +45,12 @@ Release notes are the lab notebook for a product that keeps changing shape: a da
 | 1.0.0 | Initial Django scaffold | 11 Apr 2025 |
 
 ---
+
+## 2.8.4 — contact/views.py: Resend API delivery, message-sent page — 17 August 2026
+
+- Gmail SMTP succeeded in local development but contact submissions from the DigitalOcean Droplet waited for a connection that could never complete because the platform blocks outbound SMTP ports. Delivery now uses a restricted Resend API key over HTTPS with a verified `hello@accidentalscientist.net` sender, the visitor's address as Reply-To, a ten-second timeout, and a stable idempotency key per saved contact.
+- A valid submission is written to the `Contact` table before its notification is attempted. If Resend is unavailable, the message therefore remains recoverable and the form shows a real failure instead of claiming success or discarding the content.
+- Successful submissions redirect to a stable `/about/message-sent/` page. Its portal animation honours reduced-motion preferences, responds cleanly on mobile and in dark mode, and offers exactly two next actions: the primary green **Explore Infinite Energies** route into the NEM Dashboard, or **Return to Dimension C-137** back to About.
 
 ## 2.8.3 — Portfolio Pulse trends and archetypes; World Ledger Giga v2.0 — 14 August 2026
 

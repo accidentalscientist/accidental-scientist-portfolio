@@ -9,12 +9,12 @@ Together with `docs/DEPLOYMENT.md`, it forms the complete documentation system. 
 | Field | Current value |
 |---|---|
 | Document owner | Thibault Aymonier-Newman |
-| Last reviewed | 16 August 2026 |
+| Last reviewed | 17 August 2026 |
 | Next monthly review | 7 September 2026 |
 | Repository | `accidentalscientist2025` |
-| Current code version | `2.8.3` |
+| Current code version | `2.8.4` |
 | Production version | `v2.8.3`, confirmed live 16 August 2026 by fetching `https://accidentalscientist.net/` and reading the on-page version marker |
-| Current branch at review | `main` at `6426fd8`, matching production |
+| Current branch at review | `main`, preparing tagged release `v2.8.4` |
 | Operational source of truth | `docs/DEPLOYMENT.md` |
 | Release history source of truth | `docs/RELEASE_NOTES.md` — the complete dated release-by-release record, back to the earliest recoverable commit |
 
@@ -219,6 +219,7 @@ Full per-release detail, including the entire pre-`2.6.0` history reconstructed 
 | `2.8.1` | 11 Aug 2026 | Weekly NEM cadence, bounded-memory battery catch-up, NEM Dashboard graphics changes | NEM Dashboard suite | `v2.8.1` (tag on `7cd7204`; bump commit `7c3e093`) | Superseded by `2.8.3`, confirmed live 16 Aug 2026 |
 | `2.8.2` | 13 Aug 2026 | Life Compass and StillPoint visual redesigns | Life Compass, StillPoint | `v2.8.2` / `b67fe0b` | Superseded by `2.8.3`, confirmed live 16 Aug 2026 |
 | `2.8.3` | 14 Aug 2026 | Portfolio Pulse (Account Archetype Fingerprint, Revenue Breadth) and World Ledger Giga Dataset v2.0 | Portfolio Pulse, World Ledger | `v2.8.3` (tag on `39f2fd4`; bump commit `6426fd8`) | **Confirmed live** 16 Aug 2026 — `https://accidentalscientist.net/` renders the `v2.8.3` on-page marker |
+| `2.8.4` | 17 Aug 2026 | Reliable HTTPS contact delivery and themed confirmation experience | Portfolio | `v2.8.4` | Pending production deployment and live delivery verification |
 
 Starting with the `2.8.x` releases, the Git reference is exact and optional release evidence may include before-and-after screenshots in `docs/images/releases/<version>/`. Git tags preserve the working implementation; screenshots preserve the visible iteration.
 
@@ -308,11 +309,11 @@ Every project record uses the same core structure: Purpose, Project thesis, Orig
 |---|---|
 | Status | Mature portfolio shell |
 | Introduced | April 2025 |
-| Last materially changed | 14 July 2026, unreleased after `2.7.3` |
-| Public routes | `/`, `/projects/`, `/blog/`, `/about/` |
+| Last materially changed | 17 August 2026, release `2.8.4` |
+| Public routes | `/`, `/projects/`, `/blog/`, `/about/`, `/about/message-sent/` |
 | Application | `portfolio` |
 | Data operation | Article import, project records, contact configuration, and media; see `docs/DEPLOYMENT.md` |
-| Roadmap references | `SITE-S01` to `SITE-S03`, `SITE-P01`, `SITE-P02` |
+| Roadmap references | `SITE-S01`, `SITE-S03`, `SITE-P01`, `SITE-P02` |
 
 ### Purpose
 
@@ -350,21 +351,22 @@ The category system is shared between writing and projects: Energy Systems, Data
 | `2.6.0` to `2.7.3` | 24 to 27 Jun 2026 | External article-package importer, editorial redesign, category and footer refinement | Separate research source from publishable output and create a coherent visual identity |
 | Candidate `2.8.0` | 7 Jul 2026 | Commercial Intelligence category and rotating project exposure | Give Portfolio Pulse and Life Compass an explicit portfolio home |
 | Candidate `2.8.0` | 14 Jul 2026 | Contact delivery made fail-loud | Stop successful-looking submissions from disappearing when configuration is missing |
+| `2.8.4` | 17 Aug 2026 | Contact delivery moved from SMTP to Resend's HTTPS API; branded success page added | Work within DigitalOcean's network policy, retain every valid submission before notification, and give the sender an intentional next step |
 
 ### Contact and operational boundary
 
-Two different contact defects were fixed. An earlier `send_mail(reply_to=...)` call used an unsupported argument and raised. The later defect was subtler: an unset `CONTACT_EMAIL` produced an empty recipient list, and `EmailMessage.send()` returned zero without raising, so the site showed success while sending nothing. The view now validates configuration and treats zero sends as failure.
+Three contact defects have been addressed. An earlier `send_mail(reply_to=...)` call used an unsupported argument and raised. A later unset `CONTACT_EMAIL` produced an empty recipient list, while `EmailMessage.send()` returned zero without raising, so the site showed success while sending nothing. Finally, Gmail SMTP worked locally but timed out from the DigitalOcean Droplet because outbound SMTP ports are blocked. Release `2.8.4` sends through Resend's HTTPS API instead, stores each valid `Contact` before requesting delivery, and preserves that database record if notification fails.
 
-The receiving address and optional branded sender alias are deployment configuration, not product code. `DEFAULT_FROM_EMAIL` should remain unset unless the branded address has been verified with the email provider. Domain forwarding is parked until the user chooses a provider. Private recipient addresses must never appear in public templates or this document.
+The public `hello@accidentalscientist.net` identity is verified for sending through Resend and forwards through ImprovMX to the private mailbox. `RESEND_API_KEY`, `CONTACT_EMAIL`, and `DEFAULT_FROM_EMAIL` remain deployment configuration, never product code. The form sets Reply-To to the visitor's supplied address, while private recipient addresses must never appear in public templates or documentation.
 
 ### Roadmap summary
 
-The next site-shell work is operational trust and maintainability: dependency and security review, production contact verification, static-asset cache busting, continuous integration, and a cross-site accessibility pass. The authoritative items and their status live in Part 3.
+The next site-shell work is operational trust and maintainability: dependency and security review, static-asset cache busting, continuous integration, and a cross-site accessibility pass. The authoritative items and their status live in Part 3.
 
 ### Known boundaries
 
 - The project catalogue mixes database records with code-defined routed products. A presentation layer keeps the NEM Dashboard first, nests its specialist views, and ranks every other project by hidden update metadata. Production database rows are renamed by migration rather than by an undocumented admin edit.
-- Contact delivery still depends on correct production environment configuration.
+- Contact delivery depends on the Resend HTTPS API, verified-domain DNS, ImprovMX forwarding, and correct production environment configuration; the database remains a recovery trail if notification fails.
 - Article package source remains a separate repository and must be available for editorial updates.
 
 ## 2.2 NEM Dashboard
@@ -1672,7 +1674,6 @@ A target may be a release or operating event rather than a calendar date.
 | ID | Project | Intended outcome | Target | Dependencies | Acceptance criteria |
 |---|---|---|---|---|---|
 | `SITE-S01` | Site-wide | Upgrade vulnerable or stale dependencies one at a time and review production security | Candidate release `2.8.0` | Full test suite and lockout-safe server procedure | Tests and `check --deploy` pass; authentication, forms, uploads, articles, audio, and analytical pages are smoke-tested |
-| `SITE-S02` | Portfolio | Verify production contact delivery without exposing the recipient | Before the next production release | Valid mail-provider and recipient configuration | A real message is delivered, zero-send is treated as failure, and no private address appears client-side |
 | `SITE-S03` | Site-wide | Prevent returning browsers from retaining stale static assets | Candidate release `2.8.0` | Storage choice and production `collectstatic` check | Content-hashed assets or an explicitly versioned interim strategy is active and verified |
 | `NEMF-S01` | NEM Dashboard | Correct aggregated fuel units and misleading payload names | Next release affecting the fuel view | Regression tests for totals and labels | Seven-day energy is labelled MWh and MW is used only for instantaneous quantities |
 | `NEM-S01` | NEM Dashboard suite | Observe the first automatic Monday 09:00 refresh | First production operating event after `v2.8.1` | Database backup, source access, ML requirements, systemd installation, logs, source caches, and bounded-memory catch-up | One automatic run updates all four views, all forecast runs hold 336 intervals, public currency matches stored data, and failures are visible in the journal |

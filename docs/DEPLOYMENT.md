@@ -125,7 +125,7 @@ DEBUG=False
 STATIC_ROOT=/var/www/accidental-site/staticfiles
 ```
 
-Article imports may override `ELITE_ARTICLES_DIR`. Contact delivery requires `CONTACT_EMAIL`; `DEFAULT_FROM_EMAIL` should be set only to a provider-verified sender.
+Article imports may override `ELITE_ARTICLES_DIR`. Contact delivery uses the Resend HTTPS API and requires `RESEND_API_KEY`, `CONTACT_EMAIL`, and `DEFAULT_FROM_EMAIL`; the API key should have sending-only access restricted to `accidentalscientist.net`, and the sender must belong to that verified domain. `RESEND_TIMEOUT_SECONDS` defaults to 10 seconds. The private mailbox stays in the forwarding provider rather than the application environment.
 
 The production Droplet has 1 GB RAM and a persistent 2 GB `/swapfile` entry in `/etc/fstab`. Verify `swapon --show` and `free -h` after provisioning or recovery. Swap is only an emergency buffer: ChargeTrace deliberately processes catch-up ranges one operating day at a time, and heavy forecast work is performed sequentially rather than relying on swap as normal working memory.
 

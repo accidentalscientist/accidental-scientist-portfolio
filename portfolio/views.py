@@ -6,9 +6,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
-from .models import Project, BlogPost
+from .models import Project, BlogPost, Contact
 from .forms import ContactForm
-from django.core.mail import EmailMessage
+from .email_service import ContactDeliveryError, send_contact_notification
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.conf import settings
@@ -287,8 +287,7 @@ def contact_view(request):
             # Honeypot: a bot filled the hidden field, pretend success, send nothing.
             if form.cleaned_data.get('website'):
                 logger.info("Contact honeypot triggered from %s", _client_ip(request))
-                messages.success(request, "Thanks for your message. I'll get back to you soon!")
-                return render(request, 'portfolio/contact.html', {'form': ContactForm(), 'redirect': True})
+                return redirect('contact_success')
 
             # Light per-IP rate limit (invisible unless someone is abusing the form).
             ip = _client_ip(request)
@@ -299,41 +298,37 @@ def contact_view(request):
                 return render(request, 'portfolio/contact.html', {'form': form})
             cache.set(throttle_key, attempts + 1, CONTACT_WINDOW_SECONDS)
 
-            name = form.cleaned_data['name']
-            email = form.cleaned_data['email']
-            message = form.cleaned_data['message']
-            full_message = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
+            contact = Contact.objects.create(
+                name=form.cleaned_data['name'],
+                email=form.cleaned_data['email'],
+                message=form.cleaned_data['message'],
+            )
 
-            sent = 0
             try:
-                if not settings.CONTACT_EMAIL:
-                    raise ValueError("CONTACT_EMAIL is not configured, nowhere to deliver this message.")
-                sent = EmailMessage(
-                    subject=f"Contact form: {name}",
-                    body=full_message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    to=[settings.CONTACT_EMAIL],
-                    reply_to=[email],
-                ).send(fail_silently=False)
-            except Exception:
-                sent = 0
-                logger.exception("Contact form email failed to send")
-
-            if not sent:
-                # EmailMessage.send() returns 0 (no exception) when it has no valid
-                # recipients: that used to look identical to success from here.
-                if not settings.CONTACT_EMAIL:
-                    logger.error("Contact form submission dropped: CONTACT_EMAIL is not set.")
+                delivery_id = send_contact_notification(contact)
+                logger.info(
+                    "Contact form message %s accepted by Resend as %s",
+                    contact.pk,
+                    delivery_id,
+                )
+            except ContactDeliveryError:
+                logger.exception(
+                    "Contact form message %s was saved but its notification failed",
+                    contact.pk,
+                )
                 messages.error(
                     request,
                     "Sorry, something went wrong sending your message. "
-                    "Please email me directly at contact@accidentalscientist.net.",
+                    "Please email me directly at hello@accidentalscientist.net.",
                 )
                 return render(request, 'portfolio/contact.html', {'form': form})
 
-            messages.success(request, "Thanks for your message. I'll get back to you soon!")
-            return render(request, 'portfolio/contact.html', {'form': ContactForm(), 'redirect': True})
+            return redirect('contact_success')
     else:
         form = ContactForm()
 
     return render(request, 'portfolio/contact.html', {'form': form})
+
+
+def contact_success(request):
+    return render(request, 'portfolio/contact_success.html')
