@@ -216,11 +216,11 @@ Full per-release detail, including the entire pre-`2.6.0` history reconstructed 
 | `2.7.0` | 26 Jun 2026 | Production trust, metadata, indexing, and discoverability | Site-wide | `24125a9` | Historical release |
 | `2.7.1` to `2.7.3` | 27 Jun 2026 | Navigation, footer, split CSS, and visible versioning | Site-wide | `b4aea51`, `f1e84a4`, `d58ed1c` | Historical release |
 | `2.8.0` | 11 Aug 2026 | Unified NEM suite, ChargeTrace and FlowTrace, expanded Price Predictor, portfolio hierarchy, direct AEMO ingestion, and shared automation. Also folds in six weeks of unreleased work shipped between `2.7.3` and this release without a version bump: Life Compass, Portfolio Pulse, the Price Predictor Lab MVP, and the StillPoint/Portfolio Pulse redesigns — see `docs/RELEASE_NOTES.md` Section B | Site-wide, especially NEM projects | `v2.8.0` / `0833774` | Manual deployment, routes, migrations, source loads and unified refresh verified; first timer-triggered run pending |
-| `2.8.1` | 11 Aug 2026 | Weekly NEM cadence, bounded-memory battery catch-up, NEM Dashboard graphics changes | NEM Dashboard suite | `v2.8.1` (tag on `7cd7204`; bump commit `7c3e093`) | Superseded by `2.8.3`, confirmed live 16 Aug 2026 |
+| `2.8.1` | 11 Aug 2026 | Weekly NEM cadence, bounded-memory battery catch-up, NEM Dashboard graphics changes | NEM Dashboard suite | `v2.8.1` / `7cd7204` | Superseded by `2.8.3`, confirmed live 16 Aug 2026 |
 | `2.8.2` | 13 Aug 2026 | Life Compass and StillPoint visual redesigns | Life Compass, StillPoint | `v2.8.2` / `b67fe0b` | Superseded by `2.8.3`, confirmed live 16 Aug 2026 |
-| `2.8.3` | 14 Aug 2026 | Portfolio Pulse (Account Archetype Fingerprint, Revenue Breadth) and World Ledger Giga Dataset v2.0 | Portfolio Pulse, World Ledger | `v2.8.3` (tag on `39f2fd4`; bump commit `6426fd8`) | **Confirmed live** 16 Aug 2026 — `https://accidentalscientist.net/` renders the `v2.8.3` on-page marker |
+| `2.8.3` | 14 Aug 2026 | Portfolio Pulse (Account Archetype Fingerprint, Revenue Breadth) and World Ledger Giga Dataset v2.0 | Portfolio Pulse, World Ledger | `v2.8.3` / `39f2fd4`; production also included untagged follow-up `6426fd8` | **Confirmed live** 16 Aug 2026 through the on-page marker; historical tag-to-production mismatch retained explicitly |
 | `2.8.4` | 17 Aug 2026 | Reliable HTTPS contact delivery and themed confirmation experience | Portfolio | `v2.8.4` / `0bd2892` | **Confirmed live** 17 Aug 2026 — all public route checks passed and a live contact submission reached the destination mailbox |
-| `2.8.5` | Pending | Validated Ctrl + Shift + Enter contact-form submission | Portfolio | `v2.8.5` | Pending production deployment and live shortcut verification |
+| `2.8.5` | Pending | Validated Ctrl + Shift + Enter contact-form submission | Portfolio | `main` / `5798122`; not yet tagged | Local checks complete; pending exact tag, production deployment, and live shortcut verification |
 
 Starting with the `2.8.x` releases, the Git reference is exact and optional release evidence may include before-and-after screenshots in `docs/images/releases/<version>/`. Git tags preserve the working implementation; screenshots preserve the visible iteration.
 
@@ -252,6 +252,7 @@ Dates below are based on repository history unless explicitly identified as cont
 | 11 Aug 2026 | v2.8.1: refresh cadence changed to weekly and made memory-safe; NEM Dashboard graphics revised | Matched the owner's actual decision cadence and kept the refresh reliable on a constrained production host |
 | 12 to 13 Aug 2026 | v2.8.2: Life Compass visual redesign following its first design review; StillPoint timer visual redesign and additional bowl-strike recordings | Iterated the two most visually distinct products after their initial ship |
 | 14 Aug 2026 | v2.8.3: Portfolio Pulse Retention Horizon rebuilt with trajectory modelling and Account Archetype Fingerprint added; World Ledger Giga Dataset v2.0 shipped (10 pillars per model, 60-economy cohort, Compatriot Estimation Method, military-resourcing panel) | Deepened the two most analytically ambitious products without weakening either's existing data-honesty guarantees |
+| 17 Aug 2026 | v2.8.4: branded ImprovMX forwarding, verified-domain Resend delivery, durable contact storage, and a themed success page | Restored reliable contact delivery on a host where SMTP is blocked while keeping the private mailbox out of application configuration |
 
 ## 1.8 Article history
 
@@ -296,7 +297,7 @@ Process preferences:
 - Preserve unrelated working-tree changes.
 - Before changing an app, identify its real source of truth. Life Compass source is not the compiled Django asset directory.
 
-As of 4 August 2026, local `main` matches `origin/main` at `50f6c94`; production deployment of later local changes has not been asserted by this document. The earlier 14 July handoff warning about possibly unpushed commits is historical rather than a current repository mismatch.
+As of 17 August 2026, local `main` and `origin/main` resolve to the committed `2.8.5` candidate at `5798122`, while production release `v2.8.4` remains at `0bd2892`. No `v2.8.5` tag or production deployment is claimed yet.
 
 ---
 
@@ -310,7 +311,7 @@ Every project record uses the same core structure: Purpose, Project thesis, Orig
 |---|---|
 | Status | Mature portfolio shell |
 | Introduced | April 2025 |
-| Last materially changed | 17 August 2026, release `2.8.4` |
+| Last materially changed | 17 August 2026, pending release `2.8.5` |
 | Public routes | `/`, `/projects/`, `/blog/`, `/about/`, `/about/message-sent/` |
 | Application | `portfolio` |
 | Data operation | Article import, project records, contact configuration, and media; see `docs/DEPLOYMENT.md` |
@@ -352,14 +353,14 @@ The category system is shared between writing and projects: Energy Systems, Data
 | `2.6.0` to `2.7.3` | 24 to 27 Jun 2026 | External article-package importer, editorial redesign, category and footer refinement | Separate research source from publishable output and create a coherent visual identity |
 | Candidate `2.8.0` | 7 Jul 2026 | Commercial Intelligence category and rotating project exposure | Give Portfolio Pulse and Life Compass an explicit portfolio home |
 | Candidate `2.8.0` | 14 Jul 2026 | Contact delivery made fail-loud | Stop successful-looking submissions from disappearing when configuration is missing |
-| `2.8.4` | 17 Aug 2026 | Contact delivery moved from SMTP to Resend's HTTPS API; branded success page added | Work within DigitalOcean's network policy, retain every valid submission before notification, and give the sender an intentional next step |
+| `2.8.4` | 17 Aug 2026 | Root MX stayed on ImprovMX for branded inbound forwarding; verified-domain website notifications moved from SMTP to Resend's HTTPS API; durable storage and a branded success page were added | Work within DigitalOcean's network policy, keep the private mailbox outside application configuration, retain every valid submission before notification, and give the sender an intentional next step |
 | `2.8.5` | Pending | Ctrl + Shift + Enter submits a valid contact form through the same path as the button | Add a fast keyboard workflow without bypassing validation or risking duplicate posts |
 
 ### Contact and operational boundary
 
 Three contact defects have been addressed. An earlier `send_mail(reply_to=...)` call used an unsupported argument and raised. A later unset `CONTACT_EMAIL` produced an empty recipient list, while `EmailMessage.send()` returned zero without raising, so the site showed success while sending nothing. Finally, Gmail SMTP worked locally but timed out from the DigitalOcean Droplet because outbound SMTP ports are blocked. Release `2.8.4` sends through Resend's HTTPS API instead, stores each valid `Contact` before requesting delivery, and preserves that database record if notification fails.
 
-The public `hello@accidentalscientist.net` identity is verified for sending through Resend and forwards through ImprovMX to the private mailbox. `RESEND_API_KEY`, `CONTACT_EMAIL`, and `DEFAULT_FROM_EMAIL` remain deployment configuration, never product code. The form sets Reply-To to the visitor's supplied address, while private recipient addresses must never appear in public templates or documentation. Release `2.8.5` adds Ctrl + Shift + Enter as a keyboard submission path; it calls the form's native validity checks before `requestSubmit()`, while the existing server validation remains authoritative.
+The public `hello@accidentalscientist.net` identity is verified for website-generated sending through Resend and forwards through ImprovMX to the private mailbox. Root-domain MX records stay on ImprovMX for incoming mail; Resend receiving remains disabled, and its DKIM plus `send`-subdomain SPF/feedback records authenticate only the outbound application path. `RESEND_API_KEY`, `CONTACT_EMAIL`, and `DEFAULT_FROM_EMAIL` remain deployment configuration, never product code, and obsolete Gmail SMTP settings are absent. The form sets Reply-To to the visitor's supplied address, while private recipient addresses must never appear in public templates or documentation. General-purpose Gmail **Send mail as** is outside this application boundary. Release `2.8.5` adds Ctrl + Shift + Enter as a keyboard submission path; it calls the form's native validity checks before `requestSubmit()`, while the existing server validation remains authoritative.
 
 ### Roadmap summary
 
@@ -1725,7 +1726,6 @@ The parking lot contains worthwhile concepts that are not authorised roadmap dir
 | `PARK-003` | Separate gas line in the NEM trend | NEM Dashboard | May clarify fossil composition | Could weaken the central renewable-versus-fossil comparison | A tested visual adds insight without clutter | 10 Aug 2026 |
 | `PARK-004` | Self-host main-site CDN dependencies | Site-wide | Reduces third-party requests and supply-chain exposure | Bundle ownership and benefit are not established | Bundle strategy agreed for Bootstrap, Chart.js, and fonts | 10 Aug 2026 |
 | `PARK-005` | Main-site frontend build tooling | Site-wide | Could improve source maps and asset versioning | Current split CSS and compressor remain adequate | A measured pain point beyond scheduled cache busting | 10 Aug 2026 |
-| `PARK-006` | Branded email alias | Portfolio | Adds professional polish | Depends on domain routing and provider verification | Forwarding configured and alias verified | 10 Aug 2026 |
 | `PARK-007` | Portfolio Pulse CRM integration | Portfolio Pulse | Could turn a demonstration into an operating product | Privacy, authentication, ownership, and the CRM use case are undefined | One specific integration with an approved data and retention model | 10 Aug 2026 |
 | `PARK-008` | Saved Portfolio Pulse customer history | Portfolio Pulse | Enables longitudinal analysis | Conflicts with the current stateless privacy boundary | Explicit demand plus secure storage, retention, export, and deletion design | 10 Aug 2026 |
 
@@ -1753,6 +1753,7 @@ A parked item moves into the roadmap only when:
 
 | Date | Item | Decision | Destination or reason |
 |---|---|---|---|
+| 17 Aug 2026 | `PARK-006` | Delivered | Release `2.8.4`: the public alias forwards through ImprovMX and website notifications send through Resend with verified-domain authentication |
 | 6 Aug 2026 | NEM Spot Price Forecast Lab | Promoted and delivered | Became the Price Predictor Lab in Part 2.3; later work is tracked by `NEMP-*` roadmap IDs |
 | 10 Aug 2026 | Automated NEM and energy-data ingestion | Split and promoted | Concrete Price Lab, Gas Monitor, and ChargeTrace activation work moved to `NEMP-S01`, `GAS-S01`, and `CT-S01`; operating commands moved to `docs/DEPLOYMENT.md` |
 | 10 Aug 2026 | Life Compass background redesign | Moved to roadmap idea | Tracked as `LC-I01` because the direction belongs but the visual technique remains unresolved |

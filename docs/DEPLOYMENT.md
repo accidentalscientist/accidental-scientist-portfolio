@@ -112,6 +112,13 @@ Then check in a real browser:
 - data currency and source dates are plausible on each analytical project; and
 - contact delivery works if mail configuration changed.
 
+For a contact or mail-routing release, verify both independent paths:
+
+1. Send a direct message from an unrelated external account to `hello@accidentalscientist.net`; it must arrive through ImprovMX forwarding.
+2. Submit the live website form with a valid name, external reply address, and recognizable test message; it must redirect to `/about/message-sent/`, reach the mailbox, show the website sender as `hello@accidentalscientist.net`, and preserve the visitor address as Reply-To.
+3. Confirm the corresponding `Contact` database record exists. If notification delivery fails, the record must remain and the form must show the failure rather than redirecting to success.
+4. Inspect the Gunicorn journal for a Resend acceptance identifier or a surfaced delivery error. Never paste the API key, private mailbox, or full environment file into verification evidence.
+
 After verification, update the release-ledger row in `docs/DESIGN.md` with the deployed date, exact tag and commit, and verification result.
 
 # 2. Production configuration
@@ -137,7 +144,30 @@ proxy_set_header X-Forwarded-Proto $scheme;
 
 Review `SECURE_SSL_REDIRECT`, HSTS, secure cookies, SSH policy, firewall, `fail2ban`, and admin protection through a lockout-safe procedure. Do not enable HSTS until HTTPS and proxy handling are verified.
 
-## 2.2 Persistence and backups
+## 2.2 Contact mail topology and recovery
+
+Contact mail has two deliberately separate provider paths. Resend is not the inbox provider and ImprovMX is not the website's sending API.
+
+| Concern | Provider and configuration | Required invariant |
+|---|---|---|
+| Direct incoming mail | Root-domain MX records point to `mx1.improvmx.com` at priority 10 and `mx2.improvmx.com` at priority 20; the `hello` alias forwards inside ImprovMX | Keep both root MX records. The private destination address exists only in ImprovMX. |
+| Website-generated mail | Django posts to Resend over HTTPS using `RESEND_API_KEY`, with `DEFAULT_FROM_EMAIL` set to the public alias | Resend domain status is verified and receiving remains disabled. The Droplet does not depend on outbound SMTP. |
+| Resend authentication | Provider-supplied DKIM TXT at `resend._domainkey`, plus SPF TXT and feedback MX scoped to the `send` subdomain | The `send`-subdomain MX is a return-path record; it must not replace the root ImprovMX MX records. Copy provider values exactly without recording them in this repository. |
+| Recipient and reply path | `CONTACT_EMAIL` is the public alias; Resend sets Reply-To to the visitor's validated email address | A website notification routes back through ImprovMX, while Reply targets the visitor. General-purpose Gmail **Send mail as** is a separate capability and is not implied by this configuration. |
+| DMARC and unrelated DNS | `_dmarc` and site-verification records remain independent of both providers | Do not remove unrelated TXT records while changing mail providers. Tighten DMARC only after authenticated mail has been monitored. |
+
+An ImprovMX account-transfer TXT record proves domain ownership only during the transfer. Once the destination account reports the domain active, that temporary record can be removed; it does not deliver mail. The two root MX records are the records that must remain for forwarding.
+
+Troubleshoot by separating the paths:
+
+- If direct mail to the alias fails, inspect the root MX records, ImprovMX domain status, alias spelling, and forwarding destination.
+- If the form saves a `Contact` but Resend rejects or times out, inspect the three application settings, verified-domain status, API-key scope, and Gunicorn logs.
+- If Resend accepts a message but it is absent from the inbox, inspect ImprovMX forwarding activity and the mailbox spam folder before changing application code.
+- If the public sender fails authentication, inspect DKIM and `send`-subdomain SPF/feedback records; do not point the root MX records at Resend as a repair.
+
+The production `.env` must be owned by `thibault` with mode `600`. Remove obsolete Gmail SMTP variables after Resend is working, revoke superseded app passwords or provider keys, and rotate any credential exposed in a terminal capture. A temporary environment backup also contains secrets: protect it with mode `600`, retain it only through the verified rollback window, then remove it. Never display or screenshot the complete file.
+
+## 2.3 Persistence and backups
 
 | Data | Location | Backup implication |
 |---|---|---|
