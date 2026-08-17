@@ -65,7 +65,13 @@ class PageSmokeTests(TestCase):
         self.assertEqual(self.client.get(reverse('blog')).status_code, 200)
 
     def test_about_ok(self):
-        self.assertEqual(self.client.get(reverse('about')).status_code, 200)
+        response = self.client.get(reverse('about'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-contact-form')
+        self.assertContains(response, 'aria-keyshortcuts="Control+Shift+Enter"')
+        self.assertContains(response, 'Ctrl + Shift + Enter')
+        self.assertContains(response, 'form.checkValidity()')
+        self.assertContains(response, 'form.requestSubmit(submitButton)')
 
     def test_contact_redirects_to_about(self):
         self.assertEqual(self.client.get(reverse('contact')).status_code, 301)

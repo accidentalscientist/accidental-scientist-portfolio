@@ -62,7 +62,7 @@
       {% endfor %}
     {% endif %}
 
-    <form method="post" class="about-form">
+    <form method="post" class="about-form" data-contact-form>
       {% csrf_token %}
       {% for field in form %}
         {% if field.name == 'website' %}
@@ -77,10 +77,59 @@
           </div>
         {% endif %}
       {% endfor %}
-      <button type="submit" class="btn btn-primary">Send message</button>
+      <div class="about-form__actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          aria-keyshortcuts="Control+Shift+Enter"
+          data-contact-submit
+        >Send message</button>
+        <span class="about-form__shortcut">Ctrl + Shift + Enter</span>
+      </div>
     </form>
   </section>
 
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var form = document.querySelector('[data-contact-form]');
+  var submitButton = form && form.querySelector('[data-contact-submit]');
+  if (!form || !submitButton) return;
+
+  form.addEventListener('keydown', function (event) {
+    var isSendShortcut = event.ctrlKey
+      && event.shiftKey
+      && !event.altKey
+      && !event.metaKey
+      && event.key === 'Enter';
+
+    if (!isSendShortcut || event.repeat) return;
+
+    event.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    form.requestSubmit(submitButton);
+  });
+
+  form.addEventListener('submit', function (event) {
+    if (form.dataset.submitting === 'true') {
+      event.preventDefault();
+      return;
+    }
+
+    if (form.checkValidity()) {
+      form.dataset.submitting = 'true';
+      submitButton.disabled = true;
+      submitButton.textContent = 'Sending…';
+    }
+  });
+})();
+</script>
 {% endblock %}

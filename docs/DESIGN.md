@@ -12,9 +12,9 @@ Together with `docs/DEPLOYMENT.md`, it forms the complete documentation system. 
 | Last reviewed | 17 August 2026 |
 | Next monthly review | 7 September 2026 |
 | Repository | `accidentalscientist2025` |
-| Current code version | `2.8.4` |
-| Production version | `v2.8.3`, confirmed live 16 August 2026 by fetching `https://accidentalscientist.net/` and reading the on-page version marker |
-| Current branch at review | `main`, preparing tagged release `v2.8.4` |
+| Current code version | `2.8.5` |
+| Production version | `v2.8.4`, confirmed live 17 August 2026 through route smoke tests, the public version marker, and a successful end-to-end contact delivery |
+| Current branch at review | `main`, preparing tagged release `v2.8.5` |
 | Operational source of truth | `docs/DEPLOYMENT.md` |
 | Release history source of truth | `docs/RELEASE_NOTES.md` — the complete dated release-by-release record, back to the earliest recoverable commit |
 
@@ -219,7 +219,8 @@ Full per-release detail, including the entire pre-`2.6.0` history reconstructed 
 | `2.8.1` | 11 Aug 2026 | Weekly NEM cadence, bounded-memory battery catch-up, NEM Dashboard graphics changes | NEM Dashboard suite | `v2.8.1` (tag on `7cd7204`; bump commit `7c3e093`) | Superseded by `2.8.3`, confirmed live 16 Aug 2026 |
 | `2.8.2` | 13 Aug 2026 | Life Compass and StillPoint visual redesigns | Life Compass, StillPoint | `v2.8.2` / `b67fe0b` | Superseded by `2.8.3`, confirmed live 16 Aug 2026 |
 | `2.8.3` | 14 Aug 2026 | Portfolio Pulse (Account Archetype Fingerprint, Revenue Breadth) and World Ledger Giga Dataset v2.0 | Portfolio Pulse, World Ledger | `v2.8.3` (tag on `39f2fd4`; bump commit `6426fd8`) | **Confirmed live** 16 Aug 2026 — `https://accidentalscientist.net/` renders the `v2.8.3` on-page marker |
-| `2.8.4` | 17 Aug 2026 | Reliable HTTPS contact delivery and themed confirmation experience | Portfolio | `v2.8.4` | Pending production deployment and live delivery verification |
+| `2.8.4` | 17 Aug 2026 | Reliable HTTPS contact delivery and themed confirmation experience | Portfolio | `v2.8.4` / `0bd2892` | **Confirmed live** 17 Aug 2026 — all public route checks passed and a live contact submission reached the destination mailbox |
+| `2.8.5` | Pending | Validated Ctrl + Shift + Enter contact-form submission | Portfolio | `v2.8.5` | Pending production deployment and live shortcut verification |
 
 Starting with the `2.8.x` releases, the Git reference is exact and optional release evidence may include before-and-after screenshots in `docs/images/releases/<version>/`. Git tags preserve the working implementation; screenshots preserve the visible iteration.
 
@@ -352,12 +353,13 @@ The category system is shared between writing and projects: Energy Systems, Data
 | Candidate `2.8.0` | 7 Jul 2026 | Commercial Intelligence category and rotating project exposure | Give Portfolio Pulse and Life Compass an explicit portfolio home |
 | Candidate `2.8.0` | 14 Jul 2026 | Contact delivery made fail-loud | Stop successful-looking submissions from disappearing when configuration is missing |
 | `2.8.4` | 17 Aug 2026 | Contact delivery moved from SMTP to Resend's HTTPS API; branded success page added | Work within DigitalOcean's network policy, retain every valid submission before notification, and give the sender an intentional next step |
+| `2.8.5` | Pending | Ctrl + Shift + Enter submits a valid contact form through the same path as the button | Add a fast keyboard workflow without bypassing validation or risking duplicate posts |
 
 ### Contact and operational boundary
 
 Three contact defects have been addressed. An earlier `send_mail(reply_to=...)` call used an unsupported argument and raised. A later unset `CONTACT_EMAIL` produced an empty recipient list, while `EmailMessage.send()` returned zero without raising, so the site showed success while sending nothing. Finally, Gmail SMTP worked locally but timed out from the DigitalOcean Droplet because outbound SMTP ports are blocked. Release `2.8.4` sends through Resend's HTTPS API instead, stores each valid `Contact` before requesting delivery, and preserves that database record if notification fails.
 
-The public `hello@accidentalscientist.net` identity is verified for sending through Resend and forwards through ImprovMX to the private mailbox. `RESEND_API_KEY`, `CONTACT_EMAIL`, and `DEFAULT_FROM_EMAIL` remain deployment configuration, never product code. The form sets Reply-To to the visitor's supplied address, while private recipient addresses must never appear in public templates or documentation.
+The public `hello@accidentalscientist.net` identity is verified for sending through Resend and forwards through ImprovMX to the private mailbox. `RESEND_API_KEY`, `CONTACT_EMAIL`, and `DEFAULT_FROM_EMAIL` remain deployment configuration, never product code. The form sets Reply-To to the visitor's supplied address, while private recipient addresses must never appear in public templates or documentation. Release `2.8.5` adds Ctrl + Shift + Enter as a keyboard submission path; it calls the form's native validity checks before `requestSubmit()`, while the existing server validation remains authoritative.
 
 ### Roadmap summary
 

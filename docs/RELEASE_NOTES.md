@@ -14,6 +14,7 @@ Every entry is ordered problem, then solution, then reason — stated in a claus
 
 | Version | Theme | Date |
 |---|---|---|
+| 2.8.5 | The contact form gains a validated keyboard-send shortcut | Unreleased |
 | 2.8.4 | Contact delivery moves to HTTPS and gains an intentional portal-themed confirmation page | 17 Aug 2026 |
 | 2.8.3 | Portfolio Pulse gains account trend modelling and behavioural archetypes; World Ledger doubles its pillar count | 14 Aug 2026 |
 | 2.8.2 | StillPoint's interval bells become randomized; Life Compass gets its first post-launch design pass | 13 Aug 2026 |
@@ -51,6 +52,12 @@ Every entry is ordered problem, then solution, then reason — stated in a claus
 | 1.0.0 | Initial Django scaffold | 11 Apr 2025 |
 
 ---
+
+## 2.8.5 — contact.html: validated keyboard submission — Unreleased
+
+- Contact messages previously required a pointer interaction with the submit button. Pressing **Ctrl + Shift + Enter** anywhere inside the form now requests submission through the browser's native form pipeline, so the same required-field and email-format checks run for the shortcut and the button.
+- An incomplete shortcut attempt calls `reportValidity()` and stays on the form, exposing the browser's validation prompt instead of posting partial content. A valid submission disables the button and changes its label to **Sending…**, preventing accidental duplicate posts while the request is in flight.
+- The shortcut is printed beside the submit button and declared through `aria-keyshortcuts="Control+Shift+Enter"`, making the alternative interaction visible to sighted users and available to assistive technology without changing the ordinary button workflow.
 
 ## 2.8.4 — contact/views.py: Resend API delivery, message-sent page — 17 August 2026
 
