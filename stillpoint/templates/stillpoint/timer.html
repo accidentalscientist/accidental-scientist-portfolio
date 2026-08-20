@@ -7,12 +7,6 @@
 {% block content %}
 <div class="stillpoint">
 
-  {% if request.user.is_authenticated %}
-    <a class="stillpoint__account" href="{% url 'life_compass:logout' %}" title="Log out">Log out</a>
-  {% else %}
-    <a class="stillpoint__account" href="{% url 'life_compass:login' %}?next={{ request.path }}" title="Log in to save your session history">Log in</a>
-  {% endif %}
-
   <header class="stillpoint__hero">
     <p class="journal-eyebrow">StillPoint</p>
     <h1>Quieten Your Mind.</h1>
@@ -22,7 +16,13 @@
         <p>Sit somewhere and take a very deep breathe. Close your eyes and feel every part of your body as it makes contact with the world.</p>
         <p>Focus on breathing, do not control it, just notice it. In. Out. When your mind wanders, and it will, repeatedly, that's not a failure. Just notice where it went and come back to the breath. That noticing and returning is the practice, not a distraction from it.</p>
         <p>There's no state to achieve. A session where your mind wandered forty times isn't worse than one where it wandered twice. Begin when ready, and let the bell tell you when to stop.</p>
-        {% if not request.user.is_authenticated %}
+        {% if request.user.is_authenticated %}
+          {# A real POST form, not a plain link — LogoutView only accepts POST. #}
+          <form method="post" action="{% url 'life_compass:logout' %}" class="stillpoint__guide-login">
+            {% csrf_token %}
+            <button type="submit" class="stillpoint__guide-login-btn">Log out</button>
+          </form>
+        {% else %}
           <p class="stillpoint__guide-login"><a href="{% url 'life_compass:login' %}?next={{ request.path }}">Log in</a> to keep a record of your sessions across devices.</p>
         {% endif %}
       </div>

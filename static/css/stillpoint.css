@@ -34,33 +34,6 @@
   margin-bottom: var(--sp-space-xs);
 }
 
-/* A quiet corner tab rather than a header line — barely there until
-   sought out, and hidden outright once a session starts (see
-   body.sp-focus below) so account state is never competing for attention
-   with the thing the page is actually for. Deliberately NOT position:fixed
-   — the site's own sticky navbar is z-index:1000 and sits at the same
-   top-right spot, so a fixed element there gets silently painted over
-   regardless of its own z-index/opacity. Normal flow, right-aligned
-   within the page's own centred column, sits safely below the navbar. */
-.stillpoint__account {
-  display: block;
-  text-align: right;
-  margin: 0 0 var(--sp-space-xs);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--text-secondary);
-  opacity: 0.6;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: opacity 0.3s ease;
-}
-
-.stillpoint__account:hover,
-.stillpoint__account:focus-visible {
-  opacity: 1;
-}
-
 .stillpoint__hero h1 {
   font-size: clamp(1.4rem, 3vw, 1.9rem);
   font-weight: 400;
@@ -157,6 +130,22 @@
 
 .stillpoint__guide-login a {
   color: var(--accent-color);
+}
+
+/* The logout control is a <form>/<button> (Django's LogoutView only
+   accepts POST), reset to read as the exact same plain-text link as the
+   login case right above it — no button chrome, same size and color. */
+.stillpoint__guide-login-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--accent-color);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* Mode toggle — plain text tabs, not a filled segmented control. Weight,
@@ -674,12 +663,6 @@ body.sp-focus .stillpoint__stats {
   opacity: 0.35;
   pointer-events: none;
   transition: filter 0.6s ease, opacity 0.6s ease;
-}
-
-body.sp-focus .stillpoint__account {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
 }
 
 /* The eyebrow is the one piece of "header" left unblurred during a
