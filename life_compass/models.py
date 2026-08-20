@@ -10,10 +10,10 @@ class Strategy(models.Model):
     `history` gives a full row-level changelog going forward.
     """
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='life_compass_strategy')
-    title = models.CharField(max_length=200, blank=True)
-    principle = models.CharField(max_length=300, blank=True)
-    north_star = models.CharField(max_length=300, blank=True)
-    current_season = models.CharField(max_length=300, blank=True)
+    title = models.TextField(blank=True)
+    principle = models.TextField(blank=True)
+    north_star = models.TextField(blank=True)
+    current_season = models.TextField(blank=True)
     career_compass = models.JSONField(default=dict, blank=True)
     season = models.JSONField(default=dict, blank=True)
     rules = models.JSONField(default=list, blank=True)
@@ -40,7 +40,7 @@ class KanbanCard(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='kanban_cards')
     client_id = models.CharField(max_length=64)
-    title = models.CharField(max_length=300, blank=True)
+    title = models.TextField(blank=True)
     date = models.CharField(max_length=32, blank=True)
     description = models.TextField(blank=True)
     priority = models.CharField(max_length=16, blank=True)
@@ -63,9 +63,9 @@ class KanbanCard(models.Model):
 class WeeklyFocus(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='weekly_focuses')
     week_key = models.CharField(max_length=16)
-    main = models.CharField(max_length=300, blank=True)
-    secondary = models.CharField(max_length=300, blank=True)
-    health = models.CharField(max_length=300, blank=True)
+    main = models.TextField(blank=True)
+    secondary = models.TextField(blank=True)
+    health = models.TextField(blank=True)
     history = HistoricalRecords()
 
     class Meta:
@@ -92,7 +92,7 @@ class DailyTask(models.Model):
     set for (user, date) on each push rather than diffing, so no history."""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='daily_tasks')
     date = models.DateField()
-    text = models.CharField(max_length=300, blank=True)
+    text = models.TextField(blank=True)
     done = models.BooleanField(default=False)
     project = models.ForeignKey(KanbanCard, on_delete=models.SET_NULL, null=True, blank=True, related_name='daily_task_refs')
     subtask_client_id = models.CharField(max_length=64, blank=True)
@@ -106,7 +106,7 @@ class DoneLedgerEntry(models.Model):
     pushing, so the sync view inserts anything not already present rather
     than replacing the set — the rows themselves are the history."""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='done_ledger_entries')
-    text = models.CharField(max_length=300)
+    text = models.TextField()
     source = models.CharField(max_length=100, blank=True)
     date = models.DateTimeField()
     project = models.ForeignKey(KanbanCard, on_delete=models.SET_NULL, null=True, blank=True, related_name='done_ledger_entries')

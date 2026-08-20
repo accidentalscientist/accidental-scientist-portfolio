@@ -168,7 +168,9 @@ def noop_reverse(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('life_compass', '0002_calendarmark_historicalcalendarmark_and_more'),
+        # Must run after 0005, not 0002 directly — 0005 widens the text
+        # columns this migration writes into (see 0005's own comment).
+        ('life_compass', '0005_alter_dailytask_text_alter_doneledgerentry_text_and_more'),
     ]
 
     operations = [
