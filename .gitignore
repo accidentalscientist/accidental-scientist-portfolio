@@ -40,3 +40,7 @@ price_lab_export/
 .battery_cache/
 .battery_spike/
 .nem_cache/
+
+# Owner-only reviews and clean-room public repository exports
+.private/
+.private_exports/

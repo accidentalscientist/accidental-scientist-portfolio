@@ -34,6 +34,30 @@
   margin-bottom: var(--sp-space-xs);
 }
 
+/* A quiet corner tab rather than a header line — barely there until
+   sought out, and hidden outright once a session starts (see
+   body.sp-focus below) so account state is never competing for attention
+   with the thing the page is actually for. */
+.stillpoint__account {
+  position: fixed;
+  top: var(--sp-space-md);
+  right: var(--sp-space-md);
+  z-index: 10;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.3s ease;
+}
+
+.stillpoint__account:hover,
+.stillpoint__account:focus-visible {
+  opacity: 1;
+}
+
 .stillpoint__hero h1 {
   font-size: clamp(1.4rem, 3vw, 1.9rem);
   font-weight: 400;
@@ -119,6 +143,17 @@
   font-size: 0.95rem;
   line-height: 1.7;
   margin: var(--sp-space-sm) 0 0;
+}
+
+.stillpoint__guide-login {
+  padding-top: var(--sp-space-sm);
+  margin-top: var(--sp-space-sm) !important;
+  border-top: 1px solid var(--border-color);
+  opacity: 0.75;
+}
+
+.stillpoint__guide-login a {
+  color: var(--accent-color);
 }
 
 /* Mode toggle — plain text tabs, not a filled segmented control. Weight,
@@ -558,8 +593,10 @@ body.is-armed .sp-ring__progress {
   stroke: var(--accent-warm);
 }
 
-/* Complete: no more 0:00 to stare at — "Complete" reads as a quiet
-   statement, with the pill (now "Begin") right underneath it, still inside
+/* Complete: no more 0:00 to stare at. Not a "congratulations" — a quiet,
+   settled statement ("Complete for today.") given real weight through
+   scale and a soft steady glow on the now-full ring, rather than through
+   exclamation. The pill (now "Begin") sits right underneath, still inside
    the circle, inviting another sit. */
 body.is-complete .stillpoint__time {
   display: none;
@@ -567,10 +604,45 @@ body.is-complete .stillpoint__time {
 
 body.is-complete .stillpoint__phase {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.35rem;
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
   letter-spacing: 0.01em;
   text-transform: none;
   color: var(--text-primary);
+  max-width: 300px;
+  animation: spCompleteReveal 1.1s ease both;
+}
+
+body.is-complete .sp-ring__progress {
+  opacity: 0.9;
+  transition: opacity 1s ease, stroke-dashoffset 1s ease;
+}
+
+/* Same radial-gradient glow technique as the breathing state above (proven
+   to render correctly), just steady rather than pulsing — a settled bloom
+   behind the completed ring instead of a hard drop-shadow. */
+body.is-complete .stillpoint__ring::before {
+  content: '';
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--accent-color) 45%, transparent) 0%,
+    color-mix(in srgb, var(--accent-color) 18%, transparent) 55%,
+    transparent 78%);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  animation: spCompleteGlow 1.4s ease forwards;
+}
+
+@keyframes spCompleteReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spCompleteGlow {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Focus: while a session is actually running, the ring grows to be the
@@ -599,6 +671,12 @@ body.sp-focus .stillpoint__stats {
   opacity: 0.35;
   pointer-events: none;
   transition: filter 0.6s ease, opacity 0.6s ease;
+}
+
+body.sp-focus .stillpoint__account {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
 }
 
 /* The eyebrow is the one piece of "header" left unblurred during a

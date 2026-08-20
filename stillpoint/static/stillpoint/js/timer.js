@@ -18,6 +18,14 @@ document.addEventListener('DOMContentLoaded', function () {
   const CIRC = 2 * Math.PI * R;
   progress.style.strokeDasharray = CIRC;
 
+  // Signed-in users are database-only, full stop — clear any local demo
+  // data left over from before they logged in (or from an earlier
+  // anonymous visit on this browser) so it can never resurface and be
+  // mistaken for real, synced history.
+  if (window.STILLPOINT_AUTHENTICATED) {
+    try { localStorage.removeItem('stillpoint.sessions'); } catch (e) { /* ignore */ }
+  }
+
   let mode = 'master';
   let durationSec = 15 * 60;
   let remaining = durationSec;
@@ -199,6 +207,26 @@ document.addEventListener('DOMContentLoaded', function () {
   // Best-effort: unsupported browsers just never acquire one, and the lock
   // is released automatically by the browser whenever the tab is hidden,
   // which the visibilitychange handler below re-acquires on return.
+  // ── Fullscreen: compels focus on desktop/web-app use, where a browser
+  // chrome full of tabs and bookmarks is one glance away from a session.
+  // Skipped on touch-primary, narrow-viewport devices — mobile fullscreen
+  // support is inconsistent (iOS Safari has none at all for non-video
+  // elements) and the OS chrome there is already minimal, so there's
+  // little to gain and a real risk of a jarring no-op or layout jump.
+  function isMobileLike() {
+    return window.matchMedia('(pointer: coarse)').matches && window.innerWidth < 768;
+  }
+  function enterFullscreenIfDesktop() {
+    if (isMobileLike() || document.fullscreenElement) return;
+    const request = document.documentElement.requestFullscreen;
+    if (request) request.call(document.documentElement).catch(() => {});
+  }
+  function exitFullscreenIfActive() {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+
   async function acquireWakeLock() {
     if (!('wakeLock' in navigator)) return;
     try {
@@ -211,7 +239,8 @@ document.addEventListener('DOMContentLoaded', function () {
     wakeLock = null;
   }
 
-  // ── Local session history (localStorage only, no account) ──
+  // ── Session history: localStorage always (anonymous demo fallback),
+  // plus the server when signed in, so sessions survive across devices. ──
   function isoDateFor(date) {
     return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
   }
@@ -221,10 +250,51 @@ document.addEventListener('DOMContentLoaded', function () {
       return Array.isArray(parsed) ? parsed : [];
     } catch (e) { return []; }
   }
-  function recordSession() {
-    const sessions = loadSessions();
-    sessions.push({ date: isoDateFor(new Date()) });
-    localStorage.setItem('stillpoint.sessions', JSON.stringify(sessions));
+  function currentGuidedSessionId() {
+    if (!select) return null;
+    const opt = select.options[select.selectedIndex];
+    return opt && opt.dataset.id ? opt.dataset.id : null;
+  }
+  let serverSessionDates = null;
+  function fetchServerSessions() {
+    if (!window.STILLPOINT_AUTHENTICATED || !window.STILLPOINT_SESSIONS_URL) return;
+    fetch(window.STILLPOINT_SESSIONS_URL, { credentials: 'same-origin' })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data || !Array.isArray(data.sessions)) return;
+        serverSessionDates = data.sessions.map(s => isoDateFor(new Date(s.completedAt)));
+        renderStats();
+      })
+      .catch(() => {});
+  }
+  function postSessionToServer(durationSeconds, sessionMode) {
+    if (!window.STILLPOINT_AUTHENTICATED || !window.STILLPOINT_SESSIONS_URL) return;
+    const body = {
+      completedAt: new Date().toISOString(),
+      durationSeconds: Math.round(durationSeconds),
+      mode: sessionMode
+    };
+    if (sessionMode === 'student') {
+      const guidedId = currentGuidedSessionId();
+      if (guidedId) body.guidedSessionId = guidedId;
+    }
+    fetch(window.STILLPOINT_SESSIONS_URL, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.STILLPOINT_CSRF_TOKEN },
+      keepalive: true,
+      body: JSON.stringify(body)
+    }).then(fetchServerSessions).catch(() => {});
+  }
+  function recordSession(durationSeconds, sessionMode) {
+    if (window.STILLPOINT_AUTHENTICATED) {
+      // Database-only for signed-in users — never touches localStorage.
+      postSessionToServer(durationSeconds, sessionMode);
+    } else {
+      const sessions = loadSessions();
+      sessions.push({ date: isoDateFor(new Date()) });
+      localStorage.setItem('stillpoint.sessions', JSON.stringify(sessions));
+    }
     renderStats();
   }
   // A quieter alternative to a numeric streak: the last two days trail to
@@ -233,10 +303,15 @@ document.addEventListener('DOMContentLoaded', function () {
   const RECENT_DAY_OFFSETS = [2, 1, 0]; // two days ago, yesterday, today (rightmost)
   function renderStats() {
     if (!statSessions) return;
-    const sessions = loadSessions();
-    statSessions.textContent = sessions.length;
+    // Signed-in: server data only, even mid-load (empty, not localStorage,
+    // while the fetch is in flight) — a logged-in user's stats must never
+    // be able to show local-only numbers.
+    const dates = window.STILLPOINT_AUTHENTICATED
+      ? (serverSessionDates || [])
+      : loadSessions().map(s => s.date);
+    statSessions.textContent = dates.length;
     if (!recentDaysEl) return;
-    const days = new Set(sessions.map(s => s.date));
+    const days = new Set(dates);
     const dayEls = recentDaysEl.querySelectorAll('.sp-day');
     dayEls.forEach((el, index) => {
       const offset = RECENT_DAY_OFFSETS[index];
@@ -246,6 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
       el.classList.toggle('is-today', offset === 0);
     });
   }
+  fetchServerSessions();
 
   // ── Rendering ──
   function fmt(sec) {
@@ -315,6 +391,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setPillLabel('End early');
     ring.setAttribute('aria-label', 'End meditation early');
     document.body.classList.add('sp-focus');
+    enterFullscreenIfDesktop();
     rafId = requestAnimationFrame(tick);
     scheduleCompletionCheck();
     scheduleIntervalBells();
@@ -328,14 +405,16 @@ document.addEventListener('DOMContentLoaded', function () {
     clearTimeout(completionTimer);
     clearIntervalBells();
     releaseWakeLock();
+    exitFullscreenIfActive();
     ring.classList.remove('is-breathing', 'is-armed');
     document.body.classList.remove('sp-focus', 'is-armed');
     document.body.classList.add('is-complete');
     chime();
-    setPhase('Complete');
+    setProgress(1);
+    setPhase('Complete for today.');
     setPillLabel('Begin');
     ring.setAttribute('aria-label', 'Begin a new session');
-    recordSession();
+    recordSession(durationSec, 'master');
   }
   function endMasterEarly() {
     cancelAnimationFrame(rafId);
@@ -356,6 +435,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setPillLabel('End early');
     ring.setAttribute('aria-label', 'End meditation early');
     document.body.classList.add('sp-focus');
+    enterFullscreenIfDesktop();
     acquireWakeLock();
   }
   function finishStudent() {
@@ -363,14 +443,16 @@ document.addEventListener('DOMContentLoaded', function () {
     armed = false;
     clearTimeout(armTimer);
     releaseWakeLock();
+    exitFullscreenIfActive();
     ring.classList.remove('is-breathing', 'is-armed');
     document.body.classList.remove('sp-focus', 'is-armed');
     document.body.classList.add('is-complete');
     chime();
-    setPhase('Complete');
+    setProgress(1);
+    setPhase('Complete for today.');
     setPillLabel('Begin');
     ring.setAttribute('aria-label', 'Begin a new session');
-    recordSession();
+    recordSession(audio && !isNaN(audio.duration) ? audio.duration : durationSec, 'student');
   }
   function endStudentEarly() {
     if (audio) { audio.pause(); audio.currentTime = 0; }
@@ -409,6 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
     armed = false;
     clearTimeout(armTimer);
     releaseWakeLock();
+    exitFullscreenIfActive();
     ring.classList.remove('is-breathing', 'is-armed');
     document.body.classList.remove('sp-focus', 'is-armed');
     setPhase('Ended early. The stillness will keep.');

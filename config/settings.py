@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     'markdownx',
     'compressor',
     'django.contrib.humanize',
+    'simple_history',
 
     # my apps
     'portfolio',
@@ -105,6 +106,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 # Django's own default (/accounts/profile/) doesn't exist on this site and
