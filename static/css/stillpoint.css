@@ -37,12 +37,15 @@
 /* A quiet corner tab rather than a header line — barely there until
    sought out, and hidden outright once a session starts (see
    body.sp-focus below) so account state is never competing for attention
-   with the thing the page is actually for. */
+   with the thing the page is actually for. Deliberately NOT position:fixed
+   — the site's own sticky navbar is z-index:1000 and sits at the same
+   top-right spot, so a fixed element there gets silently painted over
+   regardless of its own z-index/opacity. Normal flow, right-aligned
+   within the page's own centred column, sits safely below the navbar. */
 .stillpoint__account {
-  position: fixed;
-  top: var(--sp-space-md);
-  right: var(--sp-space-md);
-  z-index: 10;
+  display: block;
+  text-align: right;
+  margin: 0 0 var(--sp-space-xs);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.06em;
