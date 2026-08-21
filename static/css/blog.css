@@ -544,18 +544,13 @@
 }
 
 .featured-grid {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: stretch;
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
 }
 
-.featured-grid--single {
-  grid-template-columns: 1fr;
-}
-
 .featured-divider {
-  width: 1px;
+  height: 1px;
   background: var(--border-color);
 }
 
@@ -611,7 +606,5 @@
 
 @media (max-width: 720px) {
   .featured-single__card { padding: 1.5rem 1.5rem; }
-  .featured-grid          { grid-template-columns: 1fr; }
-  .featured-divider       { display: none; }
 }
 

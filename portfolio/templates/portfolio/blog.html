@@ -9,7 +9,7 @@
 <header class="journal-hero">
   <p class="journal-eyebrow">Field notes</p>
   <h1>Ideas, Evidence, and the Energy Transition.</h1>
-  <p>Writing from the intersection of data, systems, policy, and the occasional human experiment.</p>
+  <p>Wherever the numbers reveal something worth understanding, I write it down: energy systems, data stories, human performance, commercial intelligence, the world-moving systems I can't help but love, and the occasional human experiment besides.</p>
 </header>
 
 {# ── Category filter ──────────────────────────────────────────── #}
@@ -26,7 +26,7 @@
     <h2 id="featured-writing-title">Featured</h2>
   </div>
 
-  <div class="featured-grid{% if featured_posts|length == 1 %} featured-grid--single{% endif %}">
+  <div class="featured-grid">
     {% for post in featured_posts %}
     {% if not forloop.first %}<div class="featured-divider" aria-hidden="true"></div>{% endif %}
     <a class="featured-single__card" href="{% url 'blog_detail' slug=post.slug %}">
