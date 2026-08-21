@@ -4,6 +4,7 @@ from pathlib import Path
 from django.conf import settings
 from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
+from django.utils.dateparse import parse_date
 
 from portfolio.models import BlogImage, BlogPost
 
@@ -60,18 +61,29 @@ class Command(BaseCommand):
                 raise CommandError(f'{package.name} is missing: {", ".join(sorted(missing))}')
 
             sources = metadata.get('source_notebooks', [])
+            defaults = {
+                'title': metadata['title'],
+                'summary': metadata['summary'],
+                'key_takeaway': metadata['key_takeaway'],
+                'content': article_path.read_text(encoding='utf-8'),
+                'category': metadata['category'],
+                'status': status,
+                'is_featured': bool(metadata.get('featured', False)),
+                'external_url': sources[0] if sources else None,
+            }
+
+            date_str = metadata.get('date')
+            if date_str:
+                published_date = parse_date(date_str)
+                if published_date is None:
+                    raise CommandError(
+                        f'{package.name} has an invalid date: {date_str!r} (expected YYYY-MM-DD)'
+                    )
+                defaults['published'] = published_date
+
             post, created = BlogPost.objects.update_or_create(
                 slug=metadata['slug'],
-                defaults={
-                    'title': metadata['title'],
-                    'summary': metadata['summary'],
-                    'key_takeaway': metadata['key_takeaway'],
-                    'content': article_path.read_text(encoding='utf-8'),
-                    'category': metadata['category'],
-                    'status': status,
-                    'is_featured': bool(metadata.get('featured', False)),
-                    'external_url': sources[0] if sources else None,
-                },
+                defaults=defaults,
             )
 
             cover_image = metadata.get('cover_image')
