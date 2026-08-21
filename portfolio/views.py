@@ -263,9 +263,13 @@ def blog_detail(request, slug):
     for i, img in enumerate(post.images.all()):
         placeholder = f"[[image{i+1}]]"
         caption = escape(img.caption) if img.caption else ""
+        expand_label = f"Expand image: {caption}" if caption else "Expand article image"
         img_tag = (
-            f'<figure><img src="{img.image.url}" alt="{caption}" '
-            f'style="max-width:100%;border-radius:8px;"></figure>'
+            f'<figure class="article-figure">'
+            f'<button type="button" class="article-image-trigger" '
+            f'aria-label="{expand_label}">'
+            f'<img src="{img.image.url}" alt="{caption}" loading="lazy">'
+            f'</button></figure>'
         )
         content = content.replace(placeholder, img_tag)
 

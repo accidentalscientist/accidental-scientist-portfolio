@@ -46,7 +46,9 @@
   </header>
 
   {% if post.image %}
-    <img src="{{ post.image.url }}" class="article-detail__image" alt="" loading="eager">
+    <button type="button" class="article-image-trigger article-image-trigger--cover" aria-label="Expand cover image">
+      <img src="{{ post.image.url }}" class="article-detail__image" alt="" loading="eager">
+    </button>
   {% endif %}
 
   {% if post.key_takeaway %}
@@ -68,4 +70,19 @@
     <a class="article-source-link" href="{{ post.external_url }}" target="_blank" rel="noopener">Open the source notebook <span aria-hidden="true">&nearr;</span></a>
   {% endif %}
 </article>
+
+<dialog class="article-image-lightbox" id="article-image-lightbox" aria-label="Expanded article image">
+  <div class="article-image-lightbox__toolbar">
+    <p id="article-image-lightbox-caption"></p>
+    <button type="button" class="article-image-lightbox__close" aria-label="Close expanded image">Close</button>
+  </div>
+  <div class="article-image-lightbox__viewport">
+    <img id="article-image-lightbox-image" src="" alt="">
+  </div>
+</dialog>
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="{% static 'js/article_lightbox.js' %}" defer></script>
 {% endblock %}

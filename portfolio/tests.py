@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .email_service import ContactDeliveryError, send_contact_notification
-from .models import BlogPost, Contact, Project
+from .models import BlogImage, BlogPost, Contact, Project
 
 
 @override_settings(ALLOWED_HOSTS=['testserver'])
@@ -108,6 +108,26 @@ class BlogVisibilityTests(TestCase):
     def test_future_hidden(self):
         resp = self.client.get(reverse('blog_detail', kwargs={'slug': 'future'}))
         self.assertEqual(resp.status_code, 404)
+
+    def test_article_images_open_in_accessible_lightbox(self):
+        post = BlogPost.objects.get(slug='published')
+        post.image = 'blog/cover.png'
+        post.content = 'Before.\n\n[[image1]]\n\nAfter.'
+        post.save()
+        BlogImage.objects.create(
+            post=post,
+            image='blog/chart.png',
+            caption='Forecast distribution',
+            order=0,
+        )
+
+        response = self.client.get(reverse('blog_detail', kwargs={'slug': post.slug}))
+
+        self.assertContains(response, 'class="article-image-trigger article-image-trigger--cover"')
+        self.assertContains(response, 'class="article-image-trigger"')
+        self.assertContains(response, 'aria-label="Expand image: Forecast distribution"')
+        self.assertContains(response, 'id="article-image-lightbox"')
+        self.assertContains(response, 'js/article_lightbox.js')
 
 
 @override_settings(
