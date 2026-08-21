@@ -14,6 +14,8 @@ Every entry is ordered problem, then solution, then reason — stated in a claus
 
 | Version | Theme | Date |
 |---|---|---|
+| 2.8.7 | Field Notes rename, image lightbox, and a full editorial pass on all 13 articles | Unreleased |
+| 2.8.6 | Life Compass storage normalized into seven tracked tables; Stillpoint sessions and two production-only bugs fixed | Unreleased |
 | 2.8.5 | The contact form gains a validated keyboard-send shortcut | Unreleased |
 | 2.8.4 | Branded mail routing, HTTPS contact delivery, and a portal-themed confirmation page | 17 Aug 2026 |
 | 2.8.3 | Portfolio Pulse gains account trend modelling and behavioural archetypes; World Ledger doubles its pillar count | 14 Aug 2026 |
@@ -52,6 +54,27 @@ Every entry is ordered problem, then solution, then reason — stated in a claus
 | 1.0.0 | Initial Django scaffold | 11 Apr 2025 |
 
 ---
+
+## 2.8.7: Field Notes rename, image lightbox, full editorial pass on all 13 articles (Unreleased)
+
+- "Blog" renamed to "Field Notes" in the site nav. URL unchanged, still `/blog/`.
+- Every article image was captioned twice: once from `metadata.json`'s `caption` field, rendered as a visible `<figcaption>`, and once from the article's own in-body `*Figure N. ...*` line placed directly under the same image — both present on every image, on every article. `blog_detail`'s image-tag builder no longer emits the `<figcaption>`; the metadata caption is kept as `alt` text only.
+- The blog list's single random featured post became two, picked the same way (`BlogPost.objects.filter(is_featured=True).order_by('?')[:2]`), rendered full-width and stacked with a hairline divider between them rather than side by side, after a side-by-side layout was tried and reverted.
+- Publish dates were never driven by content: `BlogPost.published` defaulted to whichever day an article was first imported and was never touched again on re-import, so a deliberate publish date silently reset on every republish. `import_elite_articles` now reads an optional `date` field from `metadata.json` via `parse_date` and applies it to `published` in both create and update. All 13 articles now publish one month apart on the first Monday of the month, article 1 earliest (4 Aug 2025) through article 13 newest (3 Aug 2026).
+- Article images (cover and inline) now open in a click-to-zoom native `<dialog>` lightbox (`static/js/article_lightbox.js`) instead of only ever rendering at article width — relevant here because several new article figures are dense, multi-panel composites.
+- Hero top padding on the Field Notes, Projects and About pages cut from 56px/48px to 24px (`.journal-hero`/`.about-hero` `padding-top`), reducing the scroll distance before any content is visible.
+- Home, Field Notes, Projects and About hero copy rewritten to consistently name all four site categories — energy systems, data stories, human performance, commercial intelligence — in the same order on every page, replacing four pages that had each named a different, incomplete subset.
+- Separately, in the `elite-analytics-articles-2026` content repo: all 13 articles rewritten around an explicit thesis stated in the opening two paragraphs and echoed in a closing synthesis section, and every article gained a large-format "synthesis board" figure — a consistently dark-themed composite recapping its five pieces of evidence plus the restated thesis — positioned as its own section immediately before the close.
+- Local release evidence is complete: 297 Django tests passed, `makemigrations --check --dry-run` reported no drift, and a full `import_elite_articles --publish` run against all 13 article packages completed cleanly with the intended one-month publish spacing confirmed in the database. Production verification remains pending until `v2.8.7` is tagged and deployed.
+
+## 2.8.6: Life Compass normalized storage; Stillpoint sessions and two production-only bugs (20 August 2026)
+
+- Life Compass stored its entire per-user state as one `LifeCompassData` JSON blob: no row-level history, no way to query a single field. Replaced with seven normalized, `django-simple-history`-tracked tables (`Strategy`, `KanbanCard`, `WeeklyFocus`, `CalendarMark`, `DailyTask`, `DoneLedgerEntry`, `LifeCompassMeta`). The `/life-compass/api/data/` sync endpoint's wire contract is unchanged — it decomposes the frontend's flat payload into rows on POST and reassembles the same shape on GET — so `personal_dashboard`'s frontend needed no protocol changes.
+- The first attempt at the blob-to-table data migration (`0003_migrate_blob_data`) failed partway through with `StringDataRightTruncation`: real Life Compass data runs longer than the 300-character `CharField` limits guessed from local demo data. Every genuinely free-text field (`Strategy.title/principle/north_star/current_season`, `KanbanCard.title`, `WeeklyFocus.main/secondary/health`, `DailyTask.text`, `DoneLedgerEntry.text`) was converted to `TextField`, and the new widening migration (`0005`) was inserted into the dependency chain ahead of `0003` despite its filename, so columns widen before the data migration writes into them. Verified via a full from-scratch replay: `0001→0002→0005→0003→0004` applies cleanly.
+- A latent bug found while building this: the weekly-focus sync regex required a `2026-W34`-style key, but the frontend's actual `getWeekKey()` has only ever produced `2026-34` — weekly focus has never round-tripped to the database until this fix.
+- Stillpoint gained `StillpointSession` (`completed_at`, `duration`, `mode`, guided-session reference) and a `/stillpoint/api/sessions/` endpoint, reusing Life Compass's existing login. Both apps are now database-only for signed-in users, with no `localStorage` read or write once authenticated; anonymous/demo use is unchanged.
+- Two Stillpoint bugs, both invisible in local development: the account link was `position: fixed` at the exact coordinates the site's `sticky-top` navbar (`z-index: 1000`) already occupies, so it rendered painted-over and unclickable in production — moved into normal document flow. Separately, logout was a plain `<a href>` issuing a GET request against Django's `LogoutView`, which only accepts POST, so every logout click 405'd to a blank page; replaced with a real `<form method="post">` styled to match the login link.
+- Local release evidence is complete: 297 Django tests passed and the reordered migration chain (`0001→0002→0005→0003→0004`) applied cleanly on a from-scratch test database. Production verification — including confirming the blob-to-table data migration against real production data — remains pending until `v2.8.6` is tagged and deployed. **Back up the production database before running `migrate`**: this release drops the `LifeCompassData` table after moving its rows.
 
 ## 2.8.5: contact.html validated keyboard submission (Unreleased)
 
