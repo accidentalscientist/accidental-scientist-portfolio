@@ -255,15 +255,17 @@ def blog_detail(request, slug):
     )
     # Replace [[image1]], [[image2]] etc. with <img> tags before rendering.
     # Captions are escaped so a stray "<", "&" etc. displays as text (hygiene).
+    # No visible <figcaption>: every article already follows each image placeholder
+    # with its own "Figure N. ..." caption line in the markdown body, so injecting
+    # a second caption here duplicated it. Caption text is kept as alt text only.
     from django.utils.html import escape
     content = post.content
     for i, img in enumerate(post.images.all()):
         placeholder = f"[[image{i+1}]]"
         caption = escape(img.caption) if img.caption else ""
-        figcaption = f"<figcaption>{caption}</figcaption>" if caption else ""
         img_tag = (
             f'<figure><img src="{img.image.url}" alt="{caption}" '
-            f'style="max-width:100%;border-radius:8px;">{figcaption}</figure>'
+            f'style="max-width:100%;border-radius:8px;"></figure>'
         )
         content = content.replace(placeholder, img_tag)
 
