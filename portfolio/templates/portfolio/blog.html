@@ -26,8 +26,9 @@
     <h2 id="featured-writing-title">Featured</h2>
   </div>
 
-  <div class="featured-grid">
+  <div class="featured-grid{% if featured_posts|length == 1 %} featured-grid--single{% endif %}">
     {% for post in featured_posts %}
+    {% if not forloop.first %}<div class="featured-divider" aria-hidden="true"></div>{% endif %}
     <a class="featured-single__card" href="{% url 'blog_detail' slug=post.slug %}">
       <span class="category-badge category-badge--{{ post.category }}">{{ post.get_category_display }}</span>
       <h3 class="featured-single__title">{{ post.title }}</h3>

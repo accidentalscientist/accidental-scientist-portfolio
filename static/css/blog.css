@@ -3,7 +3,7 @@
    ============================ */
 .journal-hero {
   max-width: 700px;
-  padding: 3.5rem 0 1.75rem;
+  padding: 1.5rem 0 1.75rem;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 0;
 }
@@ -373,7 +373,7 @@
    Responsive: editorial
    ============================ */
 @media (max-width: 768px) {
-  .journal-hero     { padding-top: 2rem; }
+  .journal-hero     { padding-top: 1.25rem; }
   .article-detail   { margin-top: 1.5rem; }
   .journal-section__heading { flex-direction: column; gap: 0.25rem; }
 }
@@ -545,8 +545,18 @@
 
 .featured-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
   gap: 1.5rem;
+}
+
+.featured-grid--single {
+  grid-template-columns: 1fr;
+}
+
+.featured-divider {
+  width: 1px;
+  background: var(--border-color);
 }
 
 .featured-single__card {
@@ -601,5 +611,7 @@
 
 @media (max-width: 720px) {
   .featured-single__card { padding: 1.5rem 1.5rem; }
+  .featured-grid          { grid-template-columns: 1fr; }
+  .featured-divider       { display: none; }
 }
 
