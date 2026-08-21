@@ -231,14 +231,14 @@ def blog_list(request):
         category = ''
         filtered_qs = published_qs
 
-    featured_post = published_qs.filter(is_featured=True).order_by('?').first()
+    featured_posts = list(published_qs.filter(is_featured=True).order_by('?')[:2])
 
-    # All posts go into the list: the featured post is highlighted above, not removed
+    # All posts go into the list: the featured posts are highlighted above, not removed
     paginator = Paginator(filtered_qs.order_by('-published'), 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
     return render(request, 'portfolio/blog.html', {
-        'featured_post': featured_post,
+        'featured_posts': featured_posts,
         'page_obj': page_obj,
         'active_category': category,
         'categories': BlogPost.Category.choices,

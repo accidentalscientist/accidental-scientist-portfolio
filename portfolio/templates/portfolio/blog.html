@@ -20,18 +20,22 @@
     {% endfor %}
 </nav>
 
-{% if featured_post and not active_category %}
+{% if featured_posts and not active_category %}
 <section class="featured-single" aria-labelledby="featured-writing-title">
   <div class="journal-section__heading">
     <h2 id="featured-writing-title">Featured</h2>
   </div>
 
-  <a class="featured-single__card" href="{% url 'blog_detail' slug=featured_post.slug %}">
-    <span class="category-badge category-badge--{{ featured_post.category }}">{{ featured_post.get_category_display }}</span>
-    <h3 class="featured-single__title">{{ featured_post.title }}</h3>
-    <p class="featured-single__intro">{{ featured_post.summary|truncatewords:55 }}</p>
-    <p class="featured-single__meta">{{ featured_post.published|date:"j M Y" }} &middot; {{ featured_post.reading_time_minutes }} min read <span class="featured-single__cta">Read article &rarr;</span></p>
-  </a>
+  <div class="featured-grid">
+    {% for post in featured_posts %}
+    <a class="featured-single__card" href="{% url 'blog_detail' slug=post.slug %}">
+      <span class="category-badge category-badge--{{ post.category }}">{{ post.get_category_display }}</span>
+      <h3 class="featured-single__title">{{ post.title }}</h3>
+      <p class="featured-single__intro">{{ post.summary|truncatewords:55 }}</p>
+      <p class="featured-single__meta">{{ post.published|date:"j M Y" }} &middot; {{ post.reading_time_minutes }} min read <span class="featured-single__cta">Read article &rarr;</span></p>
+    </a>
+    {% endfor %}
+  </div>
 </section>
 {% endif %}
 
