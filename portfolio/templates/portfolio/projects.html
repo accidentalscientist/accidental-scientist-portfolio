@@ -30,7 +30,7 @@
             <div class="project-row__head">
               <h2 class="project-row__title" id="nem-suite-title"><a href="{{ nem_suite.project_url }}">{{ nem_suite.title }}</a></h2>
               <span class="category-badge category-badge--{{ nem_suite.category }}">{{ nem_suite.category_display }}</span>
-              <span class="project-row__badge">{{ nem_suite.status_label }}</span>
+              <span class="project-row__badge project-row__badge--{{ nem_suite.category }}">{{ nem_suite.status_label }}</span>
             </div>
             <p class="project-row__desc">{{ nem_suite.description }}</p>
           </div>
@@ -55,7 +55,7 @@
           <div class="project-row__head">
             <h3 class="project-row__title">{{ project.title }}</h3>
             <span class="category-badge category-badge--{{ project.category }}">{{ project.category_display }}</span>
-            <span class="project-row__badge">{{ project.status_label }}</span>
+            <span class="project-row__badge project-row__badge--{{ project.category }}">{{ project.status_label }}</span>
           </div>
           <p class="project-row__desc">{{ project.description }}</p>
         </div>

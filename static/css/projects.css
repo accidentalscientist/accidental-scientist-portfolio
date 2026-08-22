@@ -91,12 +91,18 @@
 }
 
 .nem-suite-tool__badge {
-  color: var(--accent-color);
+  display: inline-block;
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+  color: #1e4d1e;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  padding: 0.15rem 0.5rem;
 }
+
+[data-theme='dark'] .nem-suite-tool__badge { color: #a3d9a3; }
 
 .project-row {
   display: flex;
@@ -140,14 +146,27 @@
 
 .project-row__badge {
   font-size: 0.64rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--accent-color);
-  background: rgba(45, 106, 45, 0.12);
+  background: transparent;
+  border: 1px solid currentColor;
   border-radius: 3px;
   padding: 0.2rem 0.55rem;
+  color: var(--accent-color);
 }
+
+/* Outlined in the same hue as the category badge beside it, so the pair
+   reads as one coordinated tag instead of two unrelated colours. */
+.project-row__badge--energy     { color: #1e4d1e; }
+.project-row__badge--data       { color: #1e3a8a; }
+.project-row__badge--sport      { color: #7c2d12; }
+.project-row__badge--commercial { color: #8a6416; }
+
+[data-theme='dark'] .project-row__badge--energy     { color: #a3d9a3; }
+[data-theme='dark'] .project-row__badge--data       { color: #93c5fd; }
+[data-theme='dark'] .project-row__badge--sport      { color: #fdba74; }
+[data-theme='dark'] .project-row__badge--commercial { color: #e8c375; }
 
 .project-row__desc {
   color: var(--text-secondary);

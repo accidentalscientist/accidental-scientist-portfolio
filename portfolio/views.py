@@ -57,7 +57,7 @@ EXTERNAL_TOOLS = [
         'url_name': 'world_lens:dashboard',
         'category': Project.Category.DATA,
         'description': 'Rank economic power and future potential, change the strategic weights, and see exactly which national strengths and constraints drive the result.',
-        'status_label': 'Interactive model',
+        'status_label': 'Live rankings',
         'updated_on': date(2026, 8, 9),
     },
     {
@@ -66,7 +66,7 @@ EXTERNAL_TOOLS = [
         'url_name': 'life_compass:home',
         'category': Project.Category.SPORT,
         'description': 'Turn long-term priorities into a practical weekly operating system, with a privacy-first public demo built entirely from generic data.',
-        'status_label': 'Public demo',
+        'status_label': 'Live demo',
         'updated_on': date(2026, 8, 8),
     },
     {
@@ -75,7 +75,7 @@ EXTERNAL_TOOLS = [
         'url_name': 'portfolio_pulse:dashboard',
         'category': Project.Category.COMMERCIAL,
         'description': 'Upload a book of business and get an instant health read: portfolio score, NRR/GRR, renewal risk, and silent decliners, with the scoring fully explained.',
-        'status_label': 'Upload demo',
+        'status_label': 'Live upload',
         'updated_on': date(2026, 8, 7),
     },
 ]
@@ -87,25 +87,25 @@ NEM_SUITE = {
         "One home for Australia's eastern energy market: generation, wholesale prices, "
         'battery dispatch and east-coast gas-system conditions.'
     ),
-    'status_label': 'Market data suite',
+    'status_label': 'Live markets',
     'url_name': 'nem_dashboard:nem_dashboard',
     'children': [
         {
             'title': 'Price Predictor Lab',
             'description': 'Test week-ahead NEM price forecasts against transparent baselines and the results that subsequently cleared.',
-            'status_label': 'Forecast lab',
+            'status_label': 'Live forecasts',
             'url_name': 'nem_price_lab:lab',
         },
         {
             'title': 'ChargeTrace',
             'description': 'Trace grid-battery dispatch, stored energy and observable energy and FCAS value across weekly and 90-day views.',
-            'status_label': 'Battery explorer',
+            'status_label': 'Live dispatch',
             'url_name': 'nem_battery_explorer:explorer',
         },
         {
             'title': 'FlowTrace',
             'description': 'Follow east-coast gas production, pipelines, storage, demand and emerging system pressure from public AEMO data.',
-            'status_label': 'Gas monitor',
+            'status_label': 'Live flows',
             'url_name': 'gas_monitor:monitor',
         },
     ],
@@ -114,7 +114,7 @@ NEM_SUITE = {
 PROJECT_PRESENTATION = {
     'stillpoint': {
         'description': 'Set a quiet meditation timer, keep your own silence in Master mode, or follow a simple audio guide in Guide-me mode.',
-        'status_label': 'Interactive tool',
+        'status_label': 'Live timer',
     },
 }
 
@@ -162,7 +162,7 @@ def _catalogue_project(project):
         category_display=project.get_category_display(),
         description=presentation.get('description', project.description),
         project_url=project.project_url or reverse('project_detail', kwargs={'slug': project.slug}),
-        status_label=presentation.get('status_label', 'Interactive tool' if project.project_url else 'Project'),
+        status_label=presentation.get('status_label', 'Live tool' if project.project_url else 'Project'),
         updated_on=presentation.get(
             'updated_on',
             project.updated_at.date() if project.updated_at else project.date,
