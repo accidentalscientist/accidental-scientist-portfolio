@@ -12,7 +12,7 @@ Together with `docs/DEPLOYMENT.md`, it forms the complete documentation system. 
 | Last reviewed | 22 August 2026 |
 | Next monthly review | 7 September 2026 |
 | Repository | `accidentalscientist2025` |
-| Current code version | `2.8.7` |
+| Current code version | `2.8.8` |
 | Production version | `v2.8.4`, confirmed live 17 August 2026 through route smoke tests, the public version marker, and a successful end-to-end contact delivery |
 | Current branch at review | `main`, preparing tagged release `v2.8.7` |
 | Operational source of truth | `docs/DEPLOYMENT.md` |
@@ -220,7 +220,10 @@ Full per-release detail, including the entire pre-`2.6.0` history reconstructed 
 | `2.8.2` | 13 Aug 2026 | Life Compass and StillPoint visual redesigns | Life Compass, StillPoint | `v2.8.2` / `b67fe0b` | Superseded by `2.8.3`, confirmed live 16 Aug 2026 |
 | `2.8.3` | 14 Aug 2026 | Portfolio Pulse (Account Archetype Fingerprint, Revenue Breadth) and World Ledger Giga Dataset v2.0 | Portfolio Pulse, World Ledger | `v2.8.3` / `39f2fd4`; production also included untagged follow-up `6426fd8` | **Confirmed live** 16 Aug 2026 through the on-page marker; historical tag-to-production mismatch retained explicitly |
 | `2.8.4` | 17 Aug 2026 | Reliable HTTPS contact delivery and themed confirmation experience | Portfolio | `v2.8.4` / `0bd2892` | **Confirmed live** 17 Aug 2026 — all public route checks passed and a live contact submission reached the destination mailbox |
-| `2.8.5` | Pending | Validated Ctrl + Shift + Enter contact-form submission | Portfolio | `main` / `5798122`; not yet tagged | Local checks complete; pending exact tag, production deployment, and live shortcut verification |
+| `2.8.5` | Pending | Validated Ctrl + Shift + Enter contact-form submission | Portfolio | `v2.8.5` / `5798122` | Tagged and pushed; local checks complete; production deployment and live shortcut verification pending |
+| `2.8.6` | Pending | Life Compass normalized storage; Stillpoint sessions and two production-only bugs fixed | Life Compass, Stillpoint | `v2.8.6` / `ff71776` | Tagged and pushed; local checks complete; production deployment pending, including the blob-to-table data migration against real data |
+| `2.8.7` | Pending | Field Notes rename, image lightbox, full editorial pass on all 13 articles | Portfolio | `v2.8.7` / `118f84c` | Tagged and pushed; local checks complete; production deployment pending |
+| `2.8.8` | Pending | Lightbox horizontal-scroll fix, coordinated project status badges, Field Notes doc brought current, Bluewater Ascendancy tightened | Portfolio | `main` / `2ef5da6`; not yet tagged | Local checks complete; pending tag and production deployment |
 
 Starting with the `2.8.x` releases, the Git reference is exact and optional release evidence may include before-and-after screenshots in `docs/images/releases/<version>/`. Git tags preserve the working implementation; screenshots preserve the visible iteration.
 
@@ -254,6 +257,7 @@ Dates below are based on repository history unless explicitly identified as cont
 | 14 Aug 2026 | v2.8.3: Portfolio Pulse Retention Horizon rebuilt with trajectory modelling and Account Archetype Fingerprint added; World Ledger Giga Dataset v2.0 shipped (10 pillars per model, 60-economy cohort, Compatriot Estimation Method, military-resourcing panel) | Deepened the two most analytically ambitious products without weakening either's existing data-honesty guarantees |
 | 17 Aug 2026 | v2.8.4: branded ImprovMX forwarding, verified-domain Resend delivery, durable contact storage, and a themed success page | Restored reliable contact delivery on a host where SMTP is blocked while keeping the private mailbox out of application configuration |
 | 21 Aug 2026 | v2.8.7 candidate: Field Notes editorial overhaul and 13-article corpus completed | Replaced notebook-style exposition with thesis-led articles, added synthesis boards to the analytical series, and expanded the portfolio into game design and probabilistic football forecasting |
+| 22 Aug 2026 | v2.8.8 candidate: lightbox scroll fix, coordinated project badges, Field Notes doc brought current, Bluewater Ascendancy tightened | Closed the loose ends found while reviewing `2.8.7` before its first production deployment, rather than letting them accumulate into a future cleanup pass |
 
 ## 1.8 Article history
 
@@ -339,7 +343,7 @@ Process preferences:
 - Preserve unrelated working-tree changes.
 - Before changing an app, identify its real source of truth. Life Compass source is not the compiled Django asset directory.
 
-As of 22 August 2026, local `main` and `origin/main` resolve to the committed `2.8.7` candidate at `4ca60c2`, while production release `v2.8.4` remains at `0bd2892`. No `v2.8.5`, `v2.8.6`, or `v2.8.7` production deployment is claimed yet.
+As of 22 August 2026, local `main` and `origin/main` resolve to the `2.8.8` candidate at `2ef5da6` (`v2.8.5`, `v2.8.6` and `v2.8.7` are tagged and pushed; `v2.8.8` is not yet tagged), while production release `v2.8.4` remains at `0bd2892`. No `v2.8.5` through `v2.8.8` production deployment is claimed yet.
 
 ---
 
@@ -398,6 +402,7 @@ The category system is shared between writing and projects: Energy Systems, Data
 | `2.8.4` | 17 Aug 2026 | Root MX stayed on ImprovMX for branded inbound forwarding; verified-domain website notifications moved from SMTP to Resend's HTTPS API; durable storage and a branded success page were added | Work within DigitalOcean's network policy, keep the private mailbox outside application configuration, retain every valid submission before notification, and give the sender an intentional next step |
 | `2.8.5` | Pending | Ctrl + Shift + Enter submits a valid contact form through the same path as the button | Add a fast keyboard workflow without bypassing validation or risking duplicate posts |
 | `2.8.7` | Pending | Blog renamed to Field Notes; 13 canonical articles rewritten or added; monthly publication metadata, synthesis boards, two featured slots, and an image lightbox added | Turn notebook-derived analysis into a coherent publishing corpus while keeping dense evidence inspectable at article width |
+| `2.8.8` | Pending | Lightbox images capped to viewport width so no article image ever requires horizontal scrolling; project status badges colour-coordinated with their category badge and reworded to a consistent "Live X" pattern; Field Notes editorial architecture documented directly instead of describing a superseded format; Bluewater Ascendancy given a genuine thesis bookend and a fragment/contradiction fixed | Close out the loose ends found while reviewing `2.8.7` before it reaches production |
 
 ### Contact and operational boundary
 
