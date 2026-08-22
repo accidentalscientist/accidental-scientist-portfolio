@@ -9,12 +9,12 @@ Together with `docs/DEPLOYMENT.md`, it forms the complete documentation system. 
 | Field | Current value |
 |---|---|
 | Document owner | Thibault Aymonier-Newman |
-| Last reviewed | 17 August 2026 |
+| Last reviewed | 22 August 2026 |
 | Next monthly review | 7 September 2026 |
 | Repository | `accidentalscientist2025` |
-| Current code version | `2.8.5` |
+| Current code version | `2.8.7` |
 | Production version | `v2.8.4`, confirmed live 17 August 2026 through route smoke tests, the public version marker, and a successful end-to-end contact delivery |
-| Current branch at review | `main`, preparing tagged release `v2.8.5` |
+| Current branch at review | `main`, preparing tagged release `v2.8.7` |
 | Operational source of truth | `docs/DEPLOYMENT.md` |
 | Release history source of truth | `docs/RELEASE_NOTES.md` — the complete dated release-by-release record, back to the earliest recoverable commit |
 
@@ -253,28 +253,70 @@ Dates below are based on repository history unless explicitly identified as cont
 | 12 to 13 Aug 2026 | v2.8.2: Life Compass visual redesign following its first design review; StillPoint timer visual redesign and additional bowl-strike recordings | Iterated the two most visually distinct products after their initial ship |
 | 14 Aug 2026 | v2.8.3: Portfolio Pulse Retention Horizon rebuilt with trajectory modelling and Account Archetype Fingerprint added; World Ledger Giga Dataset v2.0 shipped (10 pillars per model, 60-economy cohort, Compatriot Estimation Method, military-resourcing panel) | Deepened the two most analytically ambitious products without weakening either's existing data-honesty guarantees |
 | 17 Aug 2026 | v2.8.4: branded ImprovMX forwarding, verified-domain Resend delivery, durable contact storage, and a themed success page | Restored reliable contact delivery on a host where SMTP is blocked while keeping the private mailbox out of application configuration |
+| 21 Aug 2026 | v2.8.7 candidate: Field Notes editorial overhaul and 13-article corpus completed | Replaced notebook-style exposition with thesis-led articles, added synthesis boards to the analytical series, and expanded the portfolio into game design and probabilistic football forecasting |
 
 ## 1.8 Article history
 
-The local database snapshot reviewed on 4 August 2026 contains the following published articles. Publication dates are content metadata; the 24 June 2026 import date is the implementation milestone for the current package-based publishing system.
+### Current corpus
 
-| Published | Article | Portfolio pillar |
-|---|---|---|
-| 28 Jul 2025 | Parkrun Performance Analysis | Human Performance |
-| 28 Jul 2025 | Climate Change Part 4 | Energy Systems |
-| 24 Jun 2026 | Australia's Grid Transition: What 25 Years of NEM Data Reveals | Energy Systems |
-| 24 Jun 2026 | Mapping Australia's Power System: Where the Transition Is Taking Shape | Energy Systems |
-| 24 Jun 2026 | Australia's Energy Balance: Consumption, Supply and the Petroleum Challenge | Energy Systems |
-| 24 Jun 2026 | Who Is Really Leading the Green-Energy Transition? | Energy Systems |
-| 24 Jun 2026 | Climate Evidence: From Australia's Power System to Global Temperature Records | Energy Systems |
-| 24 Jun 2026 | Climate Risk, Emissions and Policy: From Rising Seas to National Transition Pathways | Energy Systems |
-| 24 Jun 2026 | The Weekly Energy Fingerprint: What Household Demand Tells Us About the Grid | Energy Systems |
-| 24 Jun 2026 | Where the World Is Going: Demography, Prosperity and Economic Resilience | Data Stories |
-| 24 Jun 2026 | Fifteen Years of the Premier League: What Sustained Success Looks Like | Human Performance |
-| 24 Jun 2026 | The City Inequality Question: What Metropolitan Data Reveals | Data Stories |
-| 25 Jun 2026 | The Long Run: A Parkrun Record of Progress, Patience and a Mid-2021 Breakthrough | Human Performance |
+The canonical editorial corpus, reviewed on 22 August 2026 and updated to reflect the seven-part restructure below, contains 13 article packages, 22,744 words, 20 supporting notebooks, 13 cover images, and 68 ordered inline figures. Seven articles sit in Energy Systems, three in Data Stories, and three in Human Performance. The package sources are ready for the next publish import; the forecast revision described below is not claimed as live until that import and deployment are completed. Publication dates are deliberate content metadata arranged monthly from 4 August 2025 to 3 August 2026; most of the final editorial work happened in July and August 2026 rather than over that displayed publication interval.
 
-New articles should be recorded here when published, including publication date, package-import date if different, category, and whether they introduce a new dataset, method, or project dependency.
+| Published | Article | Pillar | Editorial contribution |
+|---|---|---|---|
+| 4 Aug 2025 | Australia's Grid Transition: What 25 Years of NEM Data Reveals | Energy Systems | Establishes the whole-system method across generation, timing, carbon, price, and infrastructure |
+| 1 Sep 2025 | Mapping Australia's Power System: Where the Transition Is Taking Shape | Energy Systems | Adds geography, network access, and technology mix to the transition argument |
+| 6 Oct 2025 | Australia's Energy Balance: Consumption, Supply and the Petroleum Challenge | Energy Systems | Extends the electricity story into transport, industry, state pathways, and petroleum exposure |
+| 3 Nov 2025 | Who Is Really Leading the Green-Energy Transition? | Energy Systems | Tests how totals, per-person capacity, penetration, and trajectory produce different leaders |
+| 1 Dec 2025 | Climate Evidence: From Australia's Power System to Global Temperature Records | Energy Systems | Builds a chain across independent climate measurements before connecting evidence to response |
+| 5 Jan 2026 | Climate Risk, Emissions and Policy: From Rising Seas to National Transition Pathways | Energy Systems | Connects physical risk, emissions concentration, sector leverage, and tailored policy |
+| 2 Feb 2026 | The Weekly Energy Fingerprint: What Household Demand Tells Us About the Grid | Energy Systems | Moves the systems lens to household behaviour, temporal demand, and flexible load |
+| 2 Mar 2026 | Where the World Is Going: Demography, Prosperity and Economic Resilience | Data Stories | Broadens the portfolio into demography, health, trade, and macroeconomic resilience |
+| 6 Apr 2026 | Fifteen Years of the Premier League: What Sustained Success Looks Like | Human Performance | Makes a failed champions calculation and its historical validation part of the method |
+| 4 May 2026 | The City Inequality Question: What Metropolitan Data Reveals | Data Stories | Treats uneven coverage and repeated measurement as evidence rather than a footnote |
+| 1 Jun 2026 | The Long Run: A Parkrun Record of Progress, Patience and a Mid-2021 Breakthrough | Human Performance | Distinguishes personal-best performance, normal range, age grade, season, and forecast uncertainty |
+| 6 Jul 2026 | Bluewater Ascendancy: Teaching Empire: Total War to Care About the Sea | Data Stories | Introduces a personal, principle-led game-design essay supported by implementation evidence |
+| 3 Aug 2026 | Predicting the Premier League Season Through Data Science | Human Performance | Adds a transparent three-engine season forecast in which model disagreement remains visible |
+
+Two older database-only posts remain published outside the canonical package set: `Parkrun Performance Analysis` and `Climate Change Part 4`, both dated 28 July 2025. They preserve the earlier notebook-export stage of the site and are substantially superseded by `The Long Run` and `Climate Risk, Emissions and Policy`. The older parkrun post remains featured in the reviewed database, so random featured selection can still surface work below the current editorial standard. Archiving, redirecting, or deliberately retaining these posts requires a separate content decision; the `2.8.7` article import does not silently remove them.
+
+### Editorial architecture
+
+Articles 1 to 11 follow a seven-part house skeleton. **This is the current binding standard for every future Field Notes entry.** When the style changes, this section changes in the same edit that changes the articles, not as a later cleanup pass.
+
+1. **Unnamed executive summary**, no heading, minimum two paragraphs. Paragraph one states the thesis in plain declarative sentences. Paragraph two tells the reader how many views are coming and increasingly names the cover figure directly ("the chart above," "summarised in the chart opening this piece").
+2. **Background**, one heading, no image. Supplies the context a reader needs before the evidence starts. In several pieces this doubles as a methodological cold open, most explicitly in article 9's champions-validation failure.
+3. **Five graphic sections**, one heading per finding rather than per chart type. Each follows a fixed internal order: an unlabelled technical paragraph on how the chart was actually built (what was grouped, weighted, fitted, or compared, and why that construction over an obvious alternative), then two discussion paragraphs covering what the chart shows and what it means. The register shift from method to interpretation is never labelled; a reader infers it from content alone.
+4. **A sixth, synthesis graphic**: a large-format composite board recapping the five preceding figures plus the restated thesis, positioned as its own section immediately before the closing prose. Its title and subtitle are drawn from the article's own opening thesis; its closing argument box is drawn from the closing thesis, so the visual and the prose are the same argument told twice rather than two separate summaries.
+5. **Expanded thesis close**, one heading. Walks back through each of the five findings in one sentence apiece, states the deeper conclusion explicitly, and folds a first-person personal takeaway into the final paragraph without giving it its own heading ("what I find myself watching," "the number I'd want updated first," "I'd rather publish a model that honestly found nothing").
+6. **Methods and original sources.** Names the actual tools used, specifically (pandas, matplotlib, scikit-learn, statsmodels), never "data science techniques" as a placeholder, then lists source notebooks as a plain bullet list.
+
+Bluewater Ascendancy deliberately leaves the standard structure behind for a wager, four design principles, implementation archaeology, and a personal reflection, and stays that way on purpose: it is personal essay, not data journalism, and forcing the skeleton onto it would be the wrong fix, not a gap to close. The 2026/27 Premier League forecast follows its own modelling pipeline instead of the five-graphic pattern (four-source player valuation, historical and squad strength, three named technical engines, model-distance diagnostics, historical champion-points calibration, mixture confidence, a points-only final table) but keeps the same underlying discipline: every graph is followed by a technical paragraph explaining the method before any interpretation begins.
+
+The standard form is a default, not a quota. It creates coherence across the analytical series, but future articles should vary section count, evidence shape, and conclusion form when the subject demands it. Repeated devices such as five-view openings, identical synthesis captions, and "taken together" conclusions should not become visible machinery that flattens the author's voice.
+
+### Editorial voice and analytical identity
+
+The collection's stable identity is systems analysis written as accessible explanatory prose. Its recurring questions are whether an aggregate conceals a component, whether the denominator matches the decision, whether an observation is a level, trajectory, distribution, or exception, whether a model reproduces known reality, and which practical decision follows from the result.
+
+The house voice should preserve these traits:
+
+- **Systems before single variables.** Electricity connects to networks, storage, demand, fuels, and market design; football connects attack, defence, persistence, context, and organisational renewal.
+- **Measurement scepticism without cynicism.** Rankings, composites, clusters, and forecasts remain useful when denominators, weights, coverage, and uncertainty stay inspectable.
+- **Observation separated from inference.** Descriptive relationships are not presented as causation, and forecasts are distributions rather than ordained outcomes.
+- **Evidence directed toward agency.** Articles move from what the chart shows to what infrastructure, policy, product design, or personal expectation can reasonably change.
+- **Compressed endings earned by the analysis.** Short final claims should synthesize the evidence rather than substitute for it.
+- **Personal voice where it adds information.** Bluewater Ascendancy's affection, humour, and design judgement, and the first-person close every article now carries, show that methodological care does not require an impersonal narrator throughout.
+
+Sentence-level habits carry the voice as much as the section structure does, observed consistently enough across all 13 pieces to be treated as house rules rather than incidental style:
+
+- **No em dashes anywhere**, matching the site-wide documentation rule below. A parenthetical becomes actual parentheses or a colon; a break that would reach for a dash becomes two sentences instead. En dashes survive in genuinely numeric or compound contexts (a range spelled `2010 to 2017` in prose, or a compound like `attack-defence`), which is a different mark doing a different job and is not covered by the ban.
+- **Numbers are exact, never softened into an adjective.** "China's total rises to more than double the US level," not "China's emissions are much higher." A number stated once in a caption is not restated more vaguely in the surrounding prose.
+- **The "X is not Y, it is Z" construction** is the single most identifiable thesis-sharpening device in the corpus: "Meeting demand is a quantity problem; lowering emissions is a composition problem."
+- **Rhetorical negation before affirmation.** A claim is frequently reached by first ruling out the easy misreading, then landing on the real one, rather than stating the correct interpretation cold.
+- **Section headings are findings, never labels.** "Cleaner does not automatically mean cheaper," never "Price Analysis." A heading should be quotable and arguable on its own, never a table-of-contents entry.
+- **A caveat states exactly what the evidence cannot claim, then immediately re-anchors what it can.** Never a bare "correlation isn't causation" left without follow-through.
+
+New articles must be recorded in the corpus table above when published, including publication date, package-import date if different, category, and whether they introduce a new dataset, method, or project dependency. This architecture and voice section is the binding reference for that work: update it in the same change whenever the house structure or sentence-level habits genuinely shift, not as a later cleanup pass.
 
 ## 1.9 Documentation and working conventions
 
@@ -297,7 +339,7 @@ Process preferences:
 - Preserve unrelated working-tree changes.
 - Before changing an app, identify its real source of truth. Life Compass source is not the compiled Django asset directory.
 
-As of 17 August 2026, local `main` and `origin/main` resolve to the committed `2.8.5` candidate at `5798122`, while production release `v2.8.4` remains at `0bd2892`. No `v2.8.5` tag or production deployment is claimed yet.
+As of 22 August 2026, local `main` and `origin/main` resolve to the committed `2.8.7` candidate at `4ca60c2`, while production release `v2.8.4` remains at `0bd2892`. No `v2.8.5`, `v2.8.6`, or `v2.8.7` production deployment is claimed yet.
 
 ---
 
@@ -311,7 +353,7 @@ Every project record uses the same core structure: Purpose, Project thesis, Orig
 |---|---|
 | Status | Mature portfolio shell |
 | Introduced | April 2025 |
-| Last materially changed | 17 August 2026, pending release `2.8.5` |
+| Last materially changed | 21 August 2026, pending release `2.8.7` |
 | Public routes | `/`, `/projects/`, `/blog/`, `/about/`, `/about/message-sent/` |
 | Application | `portfolio` |
 | Data operation | Article import, project records, contact configuration, and media; see `docs/DEPLOYMENT.md` |
@@ -339,7 +381,7 @@ The April 2025 MVP contained a Django homepage, project and blog models, basic t
 - `BlogImage`: ordered article figures and captions; and
 - `Contact`: submitted message records.
 
-The public experience includes the home page, full-width project rows, blog category filtering, article detail pages, an about page, and contact. Article Markdown is rendered with `markdown2`; `[[image1]]` placeholders resolve to ordered `BlogImage` records. The project layout deliberately uses full-width rows rather than a card grid so one project and many projects both look intentional.
+The public experience includes the home page, full-width project rows, Field Notes category filtering, article detail pages, an about page, and contact. Article Markdown is rendered with `markdown2`; `[[image1]]` placeholders resolve to ordered `BlogImage` records, and the cover plus inline figures open in a native-dialog lightbox. The public database contains 15 published posts: 13 canonical package articles that match their Markdown sources exactly and two older notebook-style posts retained from before the current editorial system. The project layout deliberately uses full-width rows rather than a card grid so one project and many projects both look intentional.
 
 The category system is shared between writing and projects: Energy Systems, Data Stories, Human Performance, and Commercial Intelligence. This creates space for energy-market work, broader analysis, sport and running, and commercial products without an unhelpful catch-all category.
 
@@ -355,6 +397,7 @@ The category system is shared between writing and projects: Energy Systems, Data
 | Candidate `2.8.0` | 14 Jul 2026 | Contact delivery made fail-loud | Stop successful-looking submissions from disappearing when configuration is missing |
 | `2.8.4` | 17 Aug 2026 | Root MX stayed on ImprovMX for branded inbound forwarding; verified-domain website notifications moved from SMTP to Resend's HTTPS API; durable storage and a branded success page were added | Work within DigitalOcean's network policy, keep the private mailbox outside application configuration, retain every valid submission before notification, and give the sender an intentional next step |
 | `2.8.5` | Pending | Ctrl + Shift + Enter submits a valid contact form through the same path as the button | Add a fast keyboard workflow without bypassing validation or risking duplicate posts |
+| `2.8.7` | Pending | Blog renamed to Field Notes; 13 canonical articles rewritten or added; monthly publication metadata, synthesis boards, two featured slots, and an image lightbox added | Turn notebook-derived analysis into a coherent publishing corpus while keeping dense evidence inspectable at article width |
 
 ### Contact and operational boundary
 
@@ -371,6 +414,9 @@ The next site-shell work is operational trust and maintainability: dependency an
 - The project catalogue mixes database records with code-defined routed products. A presentation layer keeps the NEM Dashboard first, nests its specialist views, and ranks every other project by hidden update metadata. Production database rows are renamed by migration rather than by an undocumented admin edit.
 - Contact delivery depends on the Resend HTTPS API, verified-domain DNS, ImprovMX forwarding, and correct production environment configuration; the database remains a recovery trail if notification fails.
 - Article package source remains a separate repository and must be available for editorial updates.
+- Two legacy notebook-style posts remain published outside the 13-package corpus, and one remains featured; featured selection can therefore surface an older editorial standard until a deliberate archive or redirect decision is made.
+- `Bluewater Ascendancy` currently uses Data Stories because the four-part taxonomy has no design or gaming category. Its fit should be reviewed before the exception becomes a precedent for a broad catch-all.
+- The importer populates `BlogPost.external_url` only from the first `source_notebooks` entry. The revised forecast metadata now supplies that GitHub notebook URL as well as the local `analysis_notebook` path, so the standard source-notebook button will populate on the next import.
 
 ## 2.2 NEM Dashboard
 
