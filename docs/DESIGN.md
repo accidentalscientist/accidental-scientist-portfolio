@@ -361,7 +361,7 @@ Every project record uses the same core structure: Purpose, Project thesis, Orig
 | Public routes | `/`, `/projects/`, `/blog/`, `/about/`, `/about/message-sent/` |
 | Application | `portfolio` |
 | Data operation | Article import, project records, contact configuration, and media; see `docs/DEPLOYMENT.md` |
-| Roadmap references | `SITE-S01`, `SITE-S03`, `SITE-P01`, `SITE-P02` |
+| Roadmap references | `SITE-S01`, `SITE-S03`, `SITE-P01`, `SITE-P02`, `FN-P01` |
 
 ### Purpose
 
@@ -1748,6 +1748,7 @@ A target may be a release or operating event rather than a calendar date.
 | `CT-P03` | ChargeTrace | Add operational and event context | Target, availability, constraints, and event definitions | Target versus SCADA, availability, limits, headroom, and selected events are visible without implying private intent |
 | `CT-P04` | ChargeTrace | Add a practical rules benchmark and sensitivity analysis | Stable current hindsight benchmark | Practical and upper-bound comparators are distinct and every efficiency, capacity, and degradation assumption is visible |
 | `CT-P05` | ChargeTrace | Improve auditability and accessible interaction | Stable payload and export contract | CSV or table access, shareable event URLs, keyboard tooltips, and mobile chart interaction are delivered and tested |
+| `FN-P01` | Portfolio and publishing (Field Notes) | Publish the next three Field Notes articles under Commercial Intelligence; the category currently has zero published articles despite anchoring one of the four site-wide pillars used identically across About, Projects, and Field Notes | Real commercial-intelligence source material worth the same evidence-led treatment as the rest of the corpus, and the seven-part house structure documented in 1.8 | Three new articles published with `category = commercial`, following the standard house skeleton and voice, bringing every one of the four site-wide categories to at least one Field Notes entry. Energy Systems remaining the largest category by volume is an accepted, deliberate outcome, not something this item corrects |
 
 ## 3.4 Idea phase
 

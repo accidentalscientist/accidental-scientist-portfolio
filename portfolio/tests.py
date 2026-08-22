@@ -26,7 +26,15 @@ class PageSmokeTests(TestCase):
         self.assertContains(response, 'NEM Dashboard')
         self.assertContains(response, 'ChargeTrace')
         self.assertContains(response, 'FlowTrace')
-        self.assertNotContains(response, 'Live tool')
+        # Status labels are deliberately consolidated to four: NEM Dashboard
+        # keeps its own, its three children plus Stillpoint share "Live tool",
+        # World Ledger is "Live model", Life Compass and Portfolio Pulse are
+        # "Live demo". "Live tool" appearing three times (the NEM children)
+        # is the intended state, not a leaked fallback.
+        self.assertContains(response, 'Market data suite')
+        self.assertContains(response, 'Live tool', count=3)
+        self.assertContains(response, 'Live model')
+        self.assertContains(response, 'Live demo', count=2)
 
     def test_nem_suite_is_first_and_database_duplicates_are_hidden(self):
         Project.objects.create(

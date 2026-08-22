@@ -57,7 +57,7 @@ EXTERNAL_TOOLS = [
         'url_name': 'world_lens:dashboard',
         'category': Project.Category.DATA,
         'description': 'Rank economic power and future potential, change the strategic weights, and see exactly which national strengths and constraints drive the result.',
-        'status_label': 'Live rankings',
+        'status_label': 'Live model',
         'updated_on': date(2026, 8, 9),
     },
     {
@@ -75,7 +75,7 @@ EXTERNAL_TOOLS = [
         'url_name': 'portfolio_pulse:dashboard',
         'category': Project.Category.COMMERCIAL,
         'description': 'Upload a book of business and get an instant health read: portfolio score, NRR/GRR, renewal risk, and silent decliners, with the scoring fully explained.',
-        'status_label': 'Live upload',
+        'status_label': 'Live demo',
         'updated_on': date(2026, 8, 7),
     },
 ]
@@ -87,25 +87,25 @@ NEM_SUITE = {
         "One home for Australia's eastern energy market: generation, wholesale prices, "
         'battery dispatch and east-coast gas-system conditions.'
     ),
-    'status_label': 'Live markets',
+    'status_label': 'Market data suite',
     'url_name': 'nem_dashboard:nem_dashboard',
     'children': [
         {
             'title': 'Price Predictor Lab',
             'description': 'Test week-ahead NEM price forecasts against transparent baselines and the results that subsequently cleared.',
-            'status_label': 'Live forecasts',
+            'status_label': 'Live tool',
             'url_name': 'nem_price_lab:lab',
         },
         {
             'title': 'ChargeTrace',
             'description': 'Trace grid-battery dispatch, stored energy and observable energy and FCAS value across weekly and 90-day views.',
-            'status_label': 'Live dispatch',
+            'status_label': 'Live tool',
             'url_name': 'nem_battery_explorer:explorer',
         },
         {
             'title': 'FlowTrace',
             'description': 'Follow east-coast gas production, pipelines, storage, demand and emerging system pressure from public AEMO data.',
-            'status_label': 'Live flows',
+            'status_label': 'Live tool',
             'url_name': 'gas_monitor:monitor',
         },
     ],
@@ -114,7 +114,7 @@ NEM_SUITE = {
 PROJECT_PRESENTATION = {
     'stillpoint': {
         'description': 'Set a quiet meditation timer, keep your own silence in Master mode, or follow a simple audio guide in Guide-me mode.',
-        'status_label': 'Live timer',
+        'status_label': 'Live tool',
     },
 }
 
@@ -186,9 +186,10 @@ def home(request):
     # Deterministic per-day rotation (not per-visit): stable all day, changes
     # daily, and needs no stored state.
     current_project = tools[timezone.localdate().toordinal() % len(tools)] if tools else None
+    # Any published post can land here: featured is a random spotlight,
+    # not an editorial pin, so it needs no upkeep to stay populated.
     featured_post = BlogPost.objects.filter(
         status=BlogPost.Status.PUBLISHED,
-        is_featured=True,
         published__lte=timezone.now(),
     ).order_by('?').first()
     return render(request, 'portfolio/home.html', {'current_project': current_project, 'featured_post': featured_post})
@@ -231,7 +232,9 @@ def blog_list(request):
         category = ''
         filtered_qs = published_qs
 
-    featured_posts = list(published_qs.filter(is_featured=True).order_by('?')[:2])
+    # Any published post can land here: featured is a random spotlight,
+    # not an editorial pin, so it needs no upkeep to stay populated.
+    featured_posts = list(published_qs.order_by('?')[:2])
 
     # All posts go into the list: the featured posts are highlighted above, not removed
     paginator = Paginator(filtered_qs.order_by('-published'), 10)

@@ -76,8 +76,21 @@ class BlogPost(models.Model):
 
     @property
     def reading_time_minutes(self):
-        word_count = len(re.findall(r'\b\w+\b', self.content))
-        return max(1, (word_count + 199) // 200)
+        # Markdown table rows are excluded from the word count: a reader
+        # examines a table's shape and headline numbers rather than reading
+        # every cell as prose, so counting cell contents as words inflated
+        # dense, table-heavy articles far beyond their actual reading time.
+        prose = re.sub(r'(?m)^\s*\|.*\|\s*$', '', self.content)
+        word_count = len(re.findall(r'\b\w+\b', prose))
+        reading_seconds = (word_count / 200) * 60
+        # A brief, fixed allowance per image: a reader looks at a chart
+        # rather than reading it word by word, so this adds real but
+        # bounded time instead of letting image-heavy articles read as
+        # arbitrarily long. Counted from the placeholders already in the
+        # content, so it needs no extra query for the image count.
+        image_count = len(re.findall(r'\[\[image\d+\]\]', self.content)) + (1 if self.image else 0)
+        reading_seconds += image_count * 12
+        return max(1, round(reading_seconds / 60))
 
 class BlogImage(models.Model):
     post = models.ForeignKey(BlogPost, related_name='images', on_delete=models.CASCADE)
